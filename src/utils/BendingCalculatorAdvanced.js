@@ -220,6 +220,41 @@ export function calcolaAperturaMatrice(spessore, processo = 'airBend', materiale
 }
 
 /**
+ * Calcola il raggio di piega effettivo in base alla larghezza della matrice
+ * @param {number} spessore - Spessore del materiale in mm
+ * @param {number} larghezzaMatrice - Larghezza apertura matrice (V-die) in mm
+ * @param {number} raggioPiegaBase - Raggio di piega desiderato (se presente)
+ * @param {string} processo - Processo di piega ('airBend', 'bottoming', 'coining')
+ * @returns {number} - Raggio di piega effettivo in mm
+ */
+export function calcolaRaggioEffettivo(spessore, larghezzaMatrice, raggioPiegaBase = null, processo = 'airBend') {
+  // Per air bending (processo standard), il raggio interno è fortemente influenzato dalla larghezza matrice
+  
+  // Base per il calcolo
+  let raggioEffettivo;
+  
+  if (processo === 'airBend') {
+    // In air bending, il raggio è principalmente determinato da V-die e spessore
+    // Formula empirica: R ≈ V/6.6 per acciai comuni
+    raggioEffettivo = (larghezzaMatrice / 6.6) - (0.1 * spessore);
+  } else if (processo === 'bottoming') {
+    // Nel bottoming, il raggio è più vicino al raggio desiderato
+    raggioEffettivo = raggioPiegaBase || (larghezzaMatrice / 8.0) - (0.15 * spessore);
+  } else if (processo === 'coining') {
+    // Nel coining, il raggio è quasi uguale al raggio dello stampo
+    raggioEffettivo = raggioPiegaBase || (larghezzaMatrice / 9.0);
+  } else {
+    // Default - fallback alla formula di air bending
+    raggioEffettivo = (larghezzaMatrice / 6.6) - (0.1 * spessore);
+  }
+  
+  // Assicuriamoci che il raggio non sia inferiore a 0
+  raggioEffettivo = Math.max(0.1 * spessore, raggioEffettivo);
+  
+  return raggioEffettivo;
+}
+
+/**
  * Esegue calcoli avanzati completi per piegatura lamiera
  * @param {object} params - Parametri per i calcoli
  * @returns {object} - Risultati completi dei calcoli
@@ -238,11 +273,17 @@ export function calcoliAvanzatiPiegatura(params) {
     larghezzaMatrice = null
   } = params;
   
-  // Calcola bend allowance
+  // Calcola il raggio effettivo se è specificata la larghezza matrice
+  let raggioEffettivo = raggioPiega;
+  if (larghezzaMatrice && larghezzaMatrice > 0) {
+    raggioEffettivo = calcolaRaggioEffettivo(spessore, larghezzaMatrice, raggioPiega, processo);
+  }
+  
+  // Calcola bend allowance usando il raggio effettivo
   const bendAllowance = calcolaBendAllowanceAvanzato(
     angolo, 
     spessore, 
-    raggioPiega, 
+    raggioEffettivo, // Usa raggio effettivo qui
     metodo, 
     fattoreK
   );
@@ -252,7 +293,7 @@ export function calcoliAvanzatiPiegatura(params) {
     angolo, 
     materiale, 
     spessore, 
-    raggioPiega, 
+    raggioEffettivo, // Usa raggio effettivo qui 
     processo
   );
   
@@ -280,7 +321,7 @@ export function calcoliAvanzatiPiegatura(params) {
   
   // Calcola setback e bend deduction
   const angoloRad = Math.abs(angolo) * (Math.PI / 180);
-  const setback = (raggioPiega + spessore) * Math.tan(angoloRad/2);
+  const setback = (raggioEffettivo + spessore) * Math.tan(angoloRad/2); // Usa raggio effettivo qui
   const bendDeduction = 2 * setback - bendAllowance;
   
   // Restituisci tutti i risultati
@@ -295,13 +336,16 @@ export function calcoliAvanzatiPiegatura(params) {
     // Angolo vero da impostare sulla macchina per compensare lo springback
     angoloEffettivo: angolo + springback,
     // Verifica se il raggio di piega è adeguato
-    raggioAdeguato: raggioPiega >= raggioMinimo,
+    raggioAdeguato: raggioEffettivo >= raggioMinimo,
+    // Raggio effettivo calcolato
+    raggioEffettivo,
     // Informazioni aggiuntive
     info: {
       processoUsato: processo,
       metodoCalcolo: metodo,
       materiale: materiale,
-      fattoreK: (metodo === 'customK') ? fattoreK : null
+      fattoreK: (metodo === 'customK') ? fattoreK : null,
+      larghezzaMatrice: larghezzaMatrice
     }
   };
 }

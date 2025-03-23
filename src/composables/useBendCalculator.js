@@ -1,25 +1,67 @@
-import { computed } from 'vue';
+import { computed, watch, ref } from 'vue';
 import { calcolaDettagliSegmenti } from '@/utils/BendingCalculator.js';
+import { calcolaRaggioEffettivo } from '@/utils/BendingCalculatorAdvanced.js';
 
-export function useBendCalculator(segments, spessore, raggioPiega, fattoreK, metodoDiCalcolo = 'standard') {
-  // Calcolo dei dettagli
+export function useBendCalculator(
+  segments, 
+  spessore, 
+  raggioPiega, 
+  fattoreK, 
+  metodoDiCalcolo = 'standard',
+  larghezzaMatrice = null,
+  processo = 'airBend'
+) {
+  // Riferimento per il raggio effettivo calcolato
+  const raggioEffettivo = ref(raggioPiega.value);
+  
+  // Calcolo del raggio effettivo quando larghezzaMatrice è fornito
+  watch(
+    [spessore, raggioPiega, larghezzaMatrice, processo],
+    ([newSpessore, newRaggioPiega, newLarghezzaMatrice, newProcesso]) => {
+      if (newLarghezzaMatrice && newLarghezzaMatrice > 0) {
+        // Calcola il raggio effettivo basato sulla larghezza matrice
+        raggioEffettivo.value = calcolaRaggioEffettivo(
+          newSpessore,
+          newLarghezzaMatrice,
+          newRaggioPiega,
+          newProcesso
+        );
+      } else {
+        // Se larghezzaMatrice non è specificata, usa il raggio nominale
+        raggioEffettivo.value = newRaggioPiega;
+      }
+    },
+    { immediate: true }
+  );
+  
+  // Calcolo dei dettagli con raggio effettivo
   const dettagli = computed(() => {
+    // Utilizza il raggio effettivo nei calcoli invece del raggio nominale
+    const raggioCalcolo = larghezzaMatrice.value && larghezzaMatrice.value > 0 
+      ? raggioEffettivo.value 
+      : raggioPiega.value;
+    
     const { dettagli } = calcolaDettagliSegmenti(
       segments.value,
       spessore.value,
-      raggioPiega.value,
+      raggioCalcolo, // Usa il raggio effettivo
       fattoreK.value,
       metodoDiCalcolo.value
     );
     return dettagli;
   });
   
-  // Calcolo dello sviluppo totale
+  // Calcolo dello sviluppo totale con raggio effettivo
   const sviluppoTotale = computed(() => {
+    // Utilizza il raggio effettivo nei calcoli invece del raggio nominale
+    const raggioCalcolo = larghezzaMatrice.value && larghezzaMatrice.value > 0 
+      ? raggioEffettivo.value 
+      : raggioPiega.value;
+    
     const { sviluppoTotale } = calcolaDettagliSegmenti(
       segments.value,
       spessore.value,
-      raggioPiega.value,
+      raggioCalcolo, // Usa il raggio effettivo
       fattoreK.value,
       metodoDiCalcolo.value
     );
@@ -54,6 +96,7 @@ export function useBendCalculator(segments, spessore, raggioPiega, fattoreK, met
     dettagli,
     sviluppoTotale,
     lunghezzaLineare,
-    calcolaFattoreKDinamico
+    calcolaFattoreKDinamico,
+    raggioEffettivo // Esponiamo il raggio effettivo calcolato
   };
 }
