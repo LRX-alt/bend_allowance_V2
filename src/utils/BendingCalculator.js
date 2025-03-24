@@ -23,14 +23,30 @@ export function calcolaDettagliSegmenti(segments, spessore, raggioPiega, fattore
     const angolo = segmento.angle;
     let lunghezzaEffettiva = segmento.length;
 
-    // Esempio di logica semplice per modificare leggermente la lunghezza effettiva
-    // Puoi adattare questa parte in base alle tue esigenze
-    if (i > 0 && angolo >= 0 && angolo <= 80) {
-      lunghezzaEffettiva = segmento.length;
-    } else if (i === 0 || i === segments.length - 1) {
-      lunghezzaEffettiva -= spessore;
-    } else {
-      lunghezzaEffettiva -= 2 * spessore;
+    // Correzione della lunghezza in base all'angolo di piega
+    if (i > 0 && angolo !== 0) {
+      const angoloRad = Math.abs(angolo) * (Math.PI / 180);
+      
+      // Calcola la posizione della linea neutra in base all'angolo
+      // La posizione varia da 0.5 (centro) a circa 0.33 (verso l'interno)
+      const fattoreY = 0.5 - (0.17 * Math.sin(angoloRad));
+      
+      // Calcola la correzione della lunghezza
+      // Questa formula si basa sulla geometria della piega e tiene conto
+      // dello spostamento della linea neutra
+      const correzione = spessore * (1 - Math.cos(angoloRad/2)) * (1 - 2*fattoreY);
+      lunghezzaEffettiva -= correzione;
+    }
+    
+    // Applica una correzione simile all'ultimo segmento se c'è stata una piega prima
+    if (i === segments.length - 1 && i > 0) {
+      const prevAngolo = segments[i-1].angle || 0;
+      if (prevAngolo !== 0) {
+        const angoloRad = Math.abs(prevAngolo) * (Math.PI / 180);
+        const fattoreY = 0.5 - (0.17 * Math.sin(angoloRad));
+        const correzione = spessore * (1 - Math.cos(angoloRad/2)) * (1 - 2*fattoreY);
+        lunghezzaEffettiva -= correzione;
+      }
     }
 
     let bendAllowance = 0;
