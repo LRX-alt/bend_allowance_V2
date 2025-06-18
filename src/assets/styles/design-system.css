@@ -103,30 +103,7 @@
   --header-height: 64px;
 }
 
-/* === TEMA SCURO === */
-[data-theme="dark"] {
-  /* Colori adattati per tema scuro */
-  --gray-50: #1f2937;
-  --gray-100: #374151;
-  --gray-200: #4b5563;
-  --gray-300: #6b7280;
-  --gray-400: #9ca3af;
-  --gray-500: #d1d5db;
-  --gray-600: #e5e7eb;
-  --gray-700: #f3f4f6;
-  --gray-800: #f9fafb;
-  --gray-900: #ffffff;
 
-  /* Background scuro */
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-
-  /* Text su scuro */
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-tertiary: #94a3b8;
-}
 
 /* === UTILITIES === */
 .sr-only {

@@ -1,5 +1,5 @@
 <template>
-  <div class="calculator-container" :class="{ 'dark-theme': darkMode }">
+      <div class="calculator-container">
     <header class="calculator-header">
       <!-- Titolo semplificato -->
       <h1>Sviluppo Lamiera</h1>
@@ -452,12 +452,7 @@
 
         <div class="settings-section">
           <h3>Personalizzazione</h3>
-          <div class="form-row">
-            <label>
-              <input type="checkbox" v-model="darkMode" />
-              Modalità Scura
-            </label>
-          </div>
+
 
           <div class="form-row">
             <label>Modalità di calcolo predefinita:</label>
@@ -536,8 +531,7 @@ export default {
     const unitFactor = ref(1); // 1 per mm (default)
     const unitLabel = ref('mm');
 
-    // Tema
-    const darkMode = ref(false);
+
 
     // Preferenze utente
     const calcoliAvanzatiDefault = ref(false);
@@ -1247,10 +1241,7 @@ export default {
     };
 
     // Gestione tema scuro e preferenze
-    watch(darkMode, newValue => {
-      document.body.classList.toggle('dark-theme', newValue);
-      localStorage.setItem('darkMode', newValue);
-    });
+
 
     watch(calcoliAvanzatiDefault, newValue => {
       localStorage.setItem('calcoliAvanzatiDefault', newValue);
@@ -1306,8 +1297,7 @@ export default {
     onMounted(() => {
       try {
         // Carica tema e preferenze
-        const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-        darkMode.value = savedDarkMode;
+        
 
         // Carica preferenza per calcoli avanzati
         const savedCalcoliAvanzati = localStorage.getItem('calcoliAvanzatiDefault') === 'true';
@@ -1404,7 +1394,7 @@ export default {
     return {
       activeTab,
       tabs,
-      darkMode,
+
       calcoliAvanzatiDefault,
       spessore,
       raggioPiega,
@@ -2006,129 +1996,7 @@ input:checked + .slider:before {
   display: inline-block;
 }
 
-.dark-theme .advanced-badge {
-  background: #1d4b2a;
-  color: #d4edda;
-}
 
-.dark-theme {
-  background-color: #2a2a2a;
-  color: #f0f0f0;
-}
-
-.dark-theme .tab-btn {
-  color: #f0f0f0;
-}
-
-.dark-theme .tab-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.dark-theme .settings-section,
-.dark-theme .materials-reference,
-.dark-theme .bend-parameters-card,
-.dark-theme .apply-advanced-section,
-.dark-theme .comparison-section {
-  background: #333;
-  border-color: #444;
-  color: #f0f0f0;
-}
-
-.dark-theme .raggio-effettivo-info {
-  background-color: #1a3a5f;
-  border-color: #2c5b8f;
-  color: #a9d5ff;
-}
-
-.dark-theme .calculation-status {
-  background: #444;
-}
-
-.dark-theme .calculation-status.active {
-  background: #1d4b2a;
-  color: #f0f0f0;
-}
-
-.dark-theme .calculation-mode-toggle {
-  background: #444;
-  border-color: #555;
-}
-
-.dark-theme .advanced-params {
-  background: #2a3f5f;
-  border-color: #4682b4;
-}
-
-.dark-theme .advanced-params h4 {
-  color: #82b1ff;
-}
-
-.dark-theme .status-value {
-  background: #444;
-  color: #f0f0f0;
-}
-
-.dark-theme .status-value.active {
-  background: #1d4b2a;
-  color: #d4edda;
-}
-
-.dark-theme .materials-table th {
-  background-color: #444;
-  color: #f0f0f0;
-}
-
-.dark-theme .materials-table td {
-  border-color: #555;
-}
-
-.dark-theme .formula-card {
-  background: #444;
-  border-color: #555;
-}
-
-.dark-theme .formula {
-  background: #1a3a5f;
-  color: #f0f0f0;
-}
-
-.dark-theme .comparison-row.header {
-  background: #444;
-}
-
-.dark-theme .comparison-cell {
-  border-color: #555;
-}
-
-.dark-theme .recommendation {
-  background: #1d4b2a;
-  color: #d4edda;
-  border-color: #28a745;
-}
-
-.dark-theme .btn {
-  background: #0066cc;
-}
-
-.dark-theme .btn:hover {
-  background: #0055aa;
-}
-
-.dark-theme .btn-small {
-  background: #0066cc;
-}
-
-.dark-theme .btn-small:hover {
-  background: #0055aa;
-}
-
-.dark-theme .slider {
-  background-color: #555;
-}
-
-.dark-theme input:checked + .slider {
-  background-color: #9c27b0;
-}
 
 @media (max-width: 768px) {
   .tabs {

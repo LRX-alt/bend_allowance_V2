@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :data-theme="isDark ? 'dark' : 'light'">
+  <div id="app">
     <!-- Header moderno -->
     <header class="app-header">
       <div class="container">
@@ -25,11 +25,7 @@
             </router-link>
           </nav>
 
-          <!-- Theme toggle -->
-          <button @click="toggleTheme" class="theme-toggle" :title="isDark ? 'Modalità chiara' : 'Modalità scura'">
-            <span v-if="isDark">☀️</span>
-            <span v-else>🌙</span>
-          </button>
+
         </div>
       </div>
     </header>
@@ -54,34 +50,8 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-
 export default {
-  name: 'App',
-  setup() {
-    const isDark = ref(false)
-
-    // Load theme preference from localStorage
-    onMounted(() => {
-      const savedTheme = localStorage.getItem('theme')
-      if (savedTheme) {
-        isDark.value = savedTheme === 'dark'
-      } else {
-        // Check system preference
-        isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-      }
-    })
-
-    const toggleTheme = () => {
-      isDark.value = !isDark.value
-      localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
-    }
-
-    return {
-      isDark,
-      toggleTheme
-    }
-  }
+  name: 'App'
 }
 </script>
 
@@ -109,11 +79,7 @@ body {
   transition: all var(--transition-fast);
 }
 
-/* Dark theme */
-[data-theme="dark"] #app {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-}
+
 
 .container {
   max-width: var(--container-max-width);
@@ -132,10 +98,7 @@ body {
   transition: all var(--transition-fast);
 }
 
-[data-theme="dark"] .app-header {
-  background: var(--bg-secondary);
-  border-bottom-color: var(--gray-700);
-}
+
 
 .header-content {
   display: flex;
@@ -187,9 +150,7 @@ body {
   line-height: var(--leading-tight);
 }
 
-[data-theme="dark"] .brand-subtitle {
-  color: var(--text-secondary);
-}
+
 
 /* Navigation */
 .main-nav {
@@ -238,51 +199,9 @@ body {
   font-size: var(--text-lg);
 }
 
-[data-theme="dark"] .nav-link {
-  color: var(--text-secondary);
-}
 
-[data-theme="dark"] .nav-link:hover {
-  background: var(--gray-700);
-  color: var(--primary-400);
-}
 
-[data-theme="dark"] .nav-link.router-link-active {
-  background: rgba(59, 130, 246, 0.1);
-  color: var(--primary-400);
-}
 
-/* Theme toggle */
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--gray-300);
-  background: white;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-size: var(--text-lg);
-}
-
-.theme-toggle:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-400);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-[data-theme="dark"] .theme-toggle {
-  background: var(--bg-tertiary);
-  border-color: var(--gray-600);
-}
-
-[data-theme="dark"] .theme-toggle:hover {
-  background: var(--gray-600);
-  border-color: var(--gray-500);
-}
 
 /* === MAIN CONTENT === */
 .main-content {
@@ -298,10 +217,7 @@ body {
   transition: all var(--transition-fast);
 }
 
-[data-theme="dark"] .app-footer {
-  background: var(--bg-secondary);
-  border-top-color: var(--gray-700);
-}
+
 
 .footer-content {
   padding: var(--space-6) 0;
@@ -329,13 +245,7 @@ body {
   font-style: italic;
 }
 
-[data-theme="dark"] .footer-text {
-  color: var(--text-primary);
-}
 
-[data-theme="dark"] .footer-subtitle {
-  color: var(--text-secondary);
-}
 
 /* === RESPONSIVE === */
 @media (max-width: 768px) {
