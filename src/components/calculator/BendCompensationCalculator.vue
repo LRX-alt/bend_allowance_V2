@@ -1,79 +1,85 @@
 <template>
   <section class="bend-compensation-calculator">
     <h2>Calcolatore di Compensazione Piega</h2>
-    
+
     <p class="intro-text">
-      Questo strumento ti aiuta a calcolare la compensazione esatta per le tue pieghe basandosi su 
+      Questo strumento ti aiuta a calcolare la compensazione esatta per le tue pieghe basandosi su
       misurazioni reali. Utile per calibrare i calcoli teorici con i risultati effettivi.
     </p>
-    
+
     <div class="calculator-inputs">
       <div class="form-group">
         <h3>Misurazioni del Progetto</h3>
-        
+
         <div class="form-row">
           <label>Lunghezza piatta teorica (mm):</label>
           <input v-model.number="lunghezzaTeorica" type="number" step="0.1" min="0" />
         </div>
-        
+
         <div class="form-row">
           <label>Lunghezza misurata dopo piega (mm):</label>
           <input v-model.number="lunghezzaMisurata" type="number" step="0.1" min="0" />
         </div>
-        
+
         <div class="form-row">
           <label>Numero di pieghe:</label>
           <input v-model.number="numeroPieghe" type="number" step="1" min="1" />
         </div>
-        
+
         <div class="form-row">
           <label>Spessore materiale (mm):</label>
           <input v-model.number="spessoreMateriale" type="number" step="0.1" min="0.1" />
         </div>
-        
+
         <div class="form-row">
           <label>Angolo di piega (°):</label>
           <input v-model.number="angoloPiega" type="number" step="1" min="0" max="180" />
         </div>
-        
+
         <div class="form-row">
           <label>Raggio interno (mm):</label>
           <input v-model.number="raggioInterno" type="number" step="0.1" min="0" />
         </div>
-        
+
         <button @click="calcolaCompensazione" class="btn-calculate">Calcola Compensazione</button>
       </div>
-      
+
       <div class="results-container" v-if="risultati.fattoreK !== null">
         <h3>Risultati Calcolati</h3>
-        
+
         <div class="result-card">
           <h4>Fattore K Effettivo</h4>
           <div class="result-value">{{ risultati.fattoreK.toFixed(4) }}</div>
           <p class="result-note">Questo è il fattore K reale calcolato dalle tue misurazioni</p>
         </div>
-        
+
         <div class="result-card">
           <h4>Bend Allowance per Piega</h4>
           <div class="result-value">{{ risultati.bendAllowancePerPiega.toFixed(2) }} mm</div>
         </div>
-        
+
         <div class="result-card">
           <h4>Differenza per Piega</h4>
-          <div class="result-value" :class="{ positive: risultati.differenzaPerPiega > 0, negative: risultati.differenzaPerPiega < 0 }">
+          <div
+            class="result-value"
+            :class="{
+              positive: risultati.differenzaPerPiega > 0,
+              negative: risultati.differenzaPerPiega < 0,
+            }"
+          >
             {{ risultati.differenzaPerPiega.toFixed(2) }} mm
           </div>
           <p class="result-note">
-            {{ risultati.differenzaPerPiega > 0 ? 'Materiale aggiunto' : 'Materiale rimosso' }} 
+            {{ risultati.differenzaPerPiega > 0 ? 'Materiale aggiunto' : 'Materiale rimosso' }}
             rispetto al teorico
           </p>
         </div>
-        
+
         <div class="recommendation">
           <h4>Raccomandazione</h4>
           <p>
-            Per future pieghe simili con questo materiale e configurazione, 
-            utilizza un fattore K di <strong>{{ risultati.fattoreK.toFixed(4) }}</strong>
+            Per future pieghe simili con questo materiale e configurazione, utilizza un fattore K di
+            <strong>{{ risultati.fattoreK.toFixed(4) }}</strong>
             per ottenere calcoli più precisi.
           </p>
           <button @click="applicaFattoreK" class="btn-apply">Applica questo Fattore K</button>
@@ -84,7 +90,7 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 
 export default {
   name: 'BendCompensationCalculator',
@@ -97,47 +103,49 @@ export default {
     const spessoreMateriale = ref(2.0);
     const angoloPiega = ref(90);
     const raggioInterno = ref(1.0);
-    
+
     // Risultati
     const risultati = ref({
       fattoreK: null,
       bendAllowancePerPiega: null,
-      differenzaPerPiega: null
+      differenzaPerPiega: null,
     });
-    
+
     const calcolaCompensazione = () => {
       if (numeroPieghe.value <= 0 || !lunghezzaTeorica.value || !lunghezzaMisurata.value) {
         return;
       }
-      
+
       // Differenza totale
       const differenzaTotale = lunghezzaMisurata.value - lunghezzaTeorica.value;
-      
+
       // Differenza per piega
       const differenzaPerPiega = differenzaTotale / numeroPieghe.value;
-      
+
       // Conversione angolo in radianti
       const angoloRad = (Math.PI / 180) * angoloPiega.value;
-      
+
       // Calcolo del fattore K
       // BA = α * (R + K*T)
       // Quindi K = (BA/(α) - R) / T
-      const bendAllowancePerPiega = Math.abs(differenzaPerPiega) + (2 * raggioInterno.value * Math.tan((angoloRad) / 2));
-      const fattoreK = ((bendAllowancePerPiega / angoloRad) - raggioInterno.value) / spessoreMateriale.value;
-      
+      const bendAllowancePerPiega =
+        Math.abs(differenzaPerPiega) + 2 * raggioInterno.value * Math.tan(angoloRad / 2);
+      const fattoreK =
+        (bendAllowancePerPiega / angoloRad - raggioInterno.value) / spessoreMateriale.value;
+
       risultati.value = {
         fattoreK: fattoreK,
         bendAllowancePerPiega: bendAllowancePerPiega,
-        differenzaPerPiega: differenzaPerPiega
+        differenzaPerPiega: differenzaPerPiega,
       };
     };
-    
+
     const applicaFattoreK = () => {
       if (risultati.value.fattoreK !== null) {
         emit('update:fattoreK', risultati.value.fattoreK);
       }
     };
-    
+
     return {
       lunghezzaTeorica,
       lunghezzaMisurata,
@@ -147,9 +155,9 @@ export default {
       raggioInterno,
       risultati,
       calcolaCompensazione,
-      applicaFattoreK
+      applicaFattoreK,
     };
-  }
+  },
 };
 </script>
 

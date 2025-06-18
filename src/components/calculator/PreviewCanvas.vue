@@ -1,25 +1,28 @@
 <template>
   <section class="preview-section">
     <h2>Anteprima Grafica</h2>
-    
+
     <!-- Informazioni di visualizzazione -->
     <div class="preview-info">
       <div class="preview-params">
-        <p class="matrix-info">
-          Matrice: {{ tipoMatrice }} ({{ larghezzaMatrice }}mm)
-        </p>
-        <p class="radius-info">
-          Raggio: {{ raggioPiega }}mm
-        </p>
+        <p class="matrix-info">Matrice: {{ tipoMatrice }} ({{ larghezzaMatrice }}mm)</p>
+        <p class="radius-info">Raggio: {{ raggioPiega }}mm</p>
       </div>
     </div>
-    
+
     <div class="canvas-wrapper">
       <canvas ref="canvas" width="800" height="400"></canvas>
     </div>
     <div class="zoom-controls">
       <label>Zoom:</label>
-      <input type="range" min="0.5" max="5" step="0.1" v-model.number="scale" @input="drawPreview" />
+      <input
+        type="range"
+        min="0.5"
+        max="5"
+        step="0.1"
+        v-model.number="scale"
+        @input="drawPreview"
+      />
       <button type="button" @click="resetView" class="btn">Reset View</button>
     </div>
   </section>
@@ -33,43 +36,38 @@ export default {
   props: {
     segments: {
       type: Array,
-      required: true
+      required: true,
     },
     spessore: {
       type: Number,
-      required: true
+      required: true,
     },
     raggioPiega: {
       type: Number,
-      required: true
+      required: true,
     },
     fattoreK: {
       type: Number,
-      required: true
+      required: true,
     },
     processo: {
       type: String,
-      default: 'airBend'
+      default: 'airBend',
     },
     tipoMatrice: {
       type: String,
-      required: true
+      required: true,
     },
     larghezzaMatrice: {
       type: Number,
-      required: true
+      required: true,
     },
     tipoCava: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
-  emits: [
-    'update:raggioPiega',
-    'update:tipoMatrice',
-    'update:larghezzaMatrice',
-    'update:tipoCava'
-  ],
+  emits: ['update:raggioPiega', 'update:tipoMatrice', 'update:larghezzaMatrice', 'update:tipoCava'],
   setup(props, { emit }) {
     const canvas = ref(null);
     const scale = ref(1);
@@ -77,15 +75,15 @@ export default {
     const panY = ref(0);
     const isPanning = ref(false);
     const startPan = ref({ x: 0, y: 0 });
-    
+
     // Funzione per disegnare l'anteprima
     const drawPreview = () => {
       if (!canvas.value) return;
-      
+
       const ctx = canvas.value.getContext('2d');
       const canvasWidth = canvas.value.width;
       const canvasHeight = canvas.value.height;
-      
+
       // Pulisci il canvas
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
@@ -97,7 +95,7 @@ export default {
       // Calcola il punto di partenza al centro del canvas
       const xStart = canvasWidth / 2 / scale.value - 100; // Spostato a sinistra di 100px
       const yStart = canvasHeight / 2 / scale.value;
-      
+
       // Inizializza le coordinate correnti e l'angolo
       let x = xStart;
       let y = yStart;
@@ -106,7 +104,7 @@ export default {
       // Disegna una griglia leggera di sfondo
       ctx.strokeStyle = '#e5e5e5';
       ctx.lineWidth = 0.5;
-      
+
       // Griglia orizzontale
       for (let i = -1000; i < 1000; i += 50) {
         ctx.beginPath();
@@ -114,7 +112,7 @@ export default {
         ctx.lineTo(2000, yStart + i);
         ctx.stroke();
       }
-      
+
       // Griglia verticale
       for (let i = -1000; i < 1000; i += 50) {
         ctx.beginPath();
@@ -132,22 +130,22 @@ export default {
       // Disegna il profilo completo della lamiera
       ctx.beginPath();
       ctx.moveTo(x, y);
-      
+
       let puntiPiega = []; // Per memorizzare le coordinate dei punti di piega
-      
+
       for (let i = 0; i < props.segments.length; i++) {
         const segmento = props.segments[i];
         const lunghezza = segmento.length || 0;
 
-        // Se è il primo segmento, non ci sono pieghe precedenti
-        if (i > 0 && props.segments[i-1].angle !== 0) {
-          // Salva la posizione corrente come punto di piega
+        // Salva il punto di piega PRIMA di disegnare il segmento corrente
+        // se il segmento corrente ha un angolo di piega
+        if (segmento.angle && segmento.angle !== 0) {
           puntiPiega.push({
             x,
             y,
             angolo: angoloCorrente,
-            angoloPiega: props.segments[i-1].angle || 0,
-            tipoPiega: props.segments[i-1].tipoPiega || 'su'
+            angoloPiega: segmento.angle,
+            tipoPiega: segmento.tipoPiega || 'su',
           });
         }
 
@@ -169,203 +167,262 @@ export default {
           angoloCorrente += segmento.angle * direzione;
         }
       }
-      
+
       // Completa il tracciato e disegna
       ctx.strokeStyle = '#007bff';
       ctx.lineWidth = 2;
       ctx.stroke();
+
+      // Aggiungi etichette per i segmenti
+      ctx.save();
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#007bff';
       
+      let xLabel = xStart;
+      let yLabel = yStart;
+      let angoloLabel = 0;
+
+      for (let i = 0; i < props.segments.length; i++) {
+        const segmento = props.segments[i];
+        const lunghezza = segmento.length || 0;
+
+        // Calcola le coordinate finali del segmento per l'etichetta
+        const angleRad = (angoloLabel * Math.PI) / 180;
+        const x2Label = xLabel + lunghezza * Math.cos(angleRad);
+        const y2Label = yLabel - lunghezza * Math.sin(angleRad);
+
+        // Posizione dell'etichetta al centro del segmento
+        const xMid = (xLabel + x2Label) / 2;
+        const yMid = (yLabel + y2Label) / 2;
+        
+        // Offset per l'etichetta (perpendicolare al segmento)
+        const offsetX = 15 * Math.sin(angleRad);
+        const offsetY = 15 * Math.cos(angleRad);
+
+        ctx.fillText(`L${i + 1}: ${lunghezza}mm`, xMid + offsetX, yMid + offsetY);
+
+        // Aggiorna le coordinate
+        xLabel = x2Label;
+        yLabel = y2Label;
+
+        // Aggiorna l'angolo per il prossimo segmento
+        if (segmento.angle) {
+          const direzione = segmento.tipoPiega === 'su' ? 1 : -1;
+          angoloLabel += segmento.angle * direzione;
+        }
+      }
+      
+      ctx.restore();
+
       // Disegna spessore della lamiera
       ctx.save();
       ctx.strokeStyle = '#007bff';
       ctx.lineWidth = 0.5;
       ctx.globalAlpha = 0.3;
-      
+
       x = xStart;
       y = yStart;
       angoloCorrente = 0;
-      
+
       ctx.beginPath();
       ctx.moveTo(x, y + props.spessore);
-      
+
       for (let i = 0; i < props.segments.length; i++) {
         const segmento = props.segments[i];
         const lunghezza = segmento.length || 0;
 
-        if (i > 0 && props.segments[i-1].angle !== 0) {
-          // Gestisci la piega con spessore
-          const piegaAngolo = props.segments[i-1].angle || 0;
-          const piegaTipo = props.segments[i-1].tipoPiega || 'su';
+        // Gestisci la piega con spessore se il segmento corrente ha un angolo
+        if (segmento.angle && segmento.angle !== 0) {
+          const piegaAngolo = segmento.angle;
+          const piegaTipo = segmento.tipoPiega || 'su';
           const direzione = piegaTipo === 'su' ? 1 : -1;
-          
+
           // Calcola l'offset dello spessore in base all'angolo corrente
           const offsetX = props.spessore * Math.sin((angoloCorrente * Math.PI) / 180);
           const offsetY = props.spessore * Math.cos((angoloCorrente * Math.PI) / 180);
-          
+
           // Applica l'offset nella direzione corretta
           const x2 = x + offsetX * (direzione === 1 ? -1 : 1);
           const y2 = y + offsetY * (direzione === 1 ? 1 : -1);
-          
+
           ctx.lineTo(x2, y2);
         }
-        
+
         // Calcola le coordinate finali del segmento con lo spessore
         const angleRad = (angoloCorrente * Math.PI) / 180;
         const offsetX = props.spessore * Math.sin(angleRad);
         const offsetY = props.spessore * Math.cos(angleRad);
-        
+
         const x2 = x + lunghezza * Math.cos(angleRad);
         const y2 = y - lunghezza * Math.sin(angleRad);
-        
+
         // Disegna il segmento con lo spessore
         const x2Offset = x2 - offsetX;
         const y2Offset = y2 + offsetY;
-        
+
         ctx.lineTo(x2Offset, y2Offset);
-        
+
         // Aggiorna le coordinate correnti
         x = x2;
         y = y2;
-        
+
         // Aggiorna l'angolo per il prossimo segmento
         if (segmento.angle) {
           const direzione = segmento.tipoPiega === 'su' ? 1 : -1;
           angoloCorrente += segmento.angle * direzione;
         }
       }
-      
+
       ctx.stroke();
       ctx.restore();
-      
-      // Disegna i punti di piega
-      for (const punto of puntiPiega) {
+
+      // Disegna i punti di piega e le annotazioni
+      for (let idx = 0; idx < puntiPiega.length; idx++) {
+        const punto = puntiPiega[idx];
         ctx.save();
-        
+
         // Disegna il punto di piega
         ctx.beginPath();
         ctx.arc(punto.x, punto.y, 4, 0, 2 * Math.PI);
         ctx.fillStyle = '#dc3545';
         ctx.fill();
-        
+
+        // Aggiungi numero della piega
+        ctx.font = '12px Arial';
+        ctx.fillStyle = '#dc3545';
+        ctx.fillText(`P${idx + 1}`, punto.x + 8, punto.y - 8);
+
         // Disegna il raggio di piega se è maggiore di 0
         if (props.raggioPiega > 0) {
           const direzione = punto.tipoPiega === 'su' ? 1 : -1;
           const startAngle = ((punto.angolo - 90) * Math.PI) / 180;
-          const endAngle = ((punto.angolo - 90 + (punto.angoloPiega * direzione)) * Math.PI) / 180;
-          
+          const endAngle = ((punto.angolo - 90 + punto.angoloPiega * direzione) * Math.PI) / 180;
+
           // Disegna il raggio interno
           ctx.beginPath();
           ctx.arc(punto.x, punto.y, props.raggioPiega, startAngle, endAngle, direzione !== 1);
           ctx.strokeStyle = '#28a745';
           ctx.lineWidth = 1.5;
           ctx.stroke();
-          
+
           // Visualizza un'annotazione con il valore del raggio
-          ctx.font = '12px Arial';
+          ctx.font = '10px Arial';
           ctx.fillStyle = '#28a745';
-          ctx.fillText(`R${props.raggioPiega}`, punto.x + 10, punto.y - 10);
+          ctx.fillText(`R${props.raggioPiega}`, punto.x + 12, punto.y + 15);
         }
-        
+
+        // Aggiungi annotazione dell'angolo
+        ctx.font = '10px Arial';
+        ctx.fillStyle = '#666';
+        ctx.fillText(`${punto.angoloPiega}° ${punto.tipoPiega}`, punto.x - 15, punto.y + 25);
+
         ctx.restore();
       }
-      
+
       // Ripristina il contesto
       ctx.restore();
     };
-    
+
     const resetView = () => {
       panX.value = 0;
       panY.value = 0;
       scale.value = 1;
       drawPreview();
     };
-    
+
     const calcolaRaggioOttimale = () => {
       // Calcolo semplificato per il raggio ottimale interno
       // basato sullo spessore del materiale
       const raggioOttimale = Math.max(props.spessore / 2, 0.8);
       emit('update:raggioPiega', raggioOttimale);
     };
-    
-    const handleWheel = (event) => {
+
+    const handleWheel = event => {
       event.preventDefault();
       const scaleAmount = -event.deltaY * 0.001;
       scale.value = Math.min(Math.max(scale.value + scaleAmount, 0.5), 5);
       drawPreview();
     };
-    
-    const handleMouseDown = (event) => {
+
+    const handleMouseDown = event => {
       isPanning.value = true;
       startPan.value = { x: event.clientX - panX.value, y: event.clientY - panY.value };
     };
-    
-    const handleMouseMove = (event) => {
+
+    const handleMouseMove = event => {
       if (!isPanning.value) return;
       panX.value = event.clientX - startPan.value.x;
       panY.value = event.clientY - startPan.value.y;
       drawPreview();
     };
-    
+
     const handleMouseUp = () => {
       isPanning.value = false;
     };
-    
+
     onMounted(() => {
       if (canvas.value) {
-        canvas.value.addEventListener("wheel", handleWheel);
-        canvas.value.addEventListener("mousedown", handleMouseDown);
-        window.addEventListener("mousemove", handleMouseMove);
-        window.addEventListener("mouseup", handleMouseUp);
-        
+        canvas.value.addEventListener('wheel', handleWheel);
+        canvas.value.addEventListener('mousedown', handleMouseDown);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+
         // Imposta le dimensioni del canvas per adattarsi al contenitore
         const container = canvas.value.parentElement;
         if (container) {
           canvas.value.width = container.clientWidth * 0.95;
           canvas.value.height = 400;
         }
-        
+
         nextTick(() => {
           drawPreview();
         });
       }
     });
-    
+
     onUnmounted(() => {
       if (canvas.value) {
-        canvas.value.removeEventListener("wheel", handleWheel);
-        canvas.value.removeEventListener("mousedown", handleMouseDown);
+        canvas.value.removeEventListener('wheel', handleWheel);
+        canvas.value.removeEventListener('mousedown', handleMouseDown);
       }
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
     });
-    
+
     // Ridisegna quando cambiano i segmenti o i parametri
-    watch(() => props.segments, () => {
-      nextTick(() => {
-        drawPreview();
-      });
-    }, { deep: true });
-    
-    watch([
-      () => props.raggioPiega,
-      () => props.spessore,
-      () => props.tipoMatrice,
-      () => props.larghezzaMatrice,
-      () => props.tipoCava
-    ], () => {
-      nextTick(() => {
-        drawPreview();
-      });
-    });
-    
+    watch(
+      () => props.segments,
+      () => {
+        nextTick(() => {
+          drawPreview();
+        });
+      },
+      { deep: true }
+    );
+
+    watch(
+      [
+        () => props.raggioPiega,
+        () => props.spessore,
+        () => props.tipoMatrice,
+        () => props.larghezzaMatrice,
+        () => props.tipoCava,
+      ],
+      () => {
+        nextTick(() => {
+          drawPreview();
+        });
+      }
+    );
+
     return {
       canvas,
       scale,
       drawPreview,
       resetView,
-      calcolaRaggioOttimale
+      calcolaRaggioOttimale,
     };
-  }
+  },
 };
 </script>
 
@@ -431,7 +488,8 @@ canvas {
   gap: 10px;
 }
 
-.btn, .btn-small {
+.btn,
+.btn-small {
   background: #007bff;
   color: white;
   border: none;
@@ -445,7 +503,8 @@ canvas {
   font-size: 12px;
 }
 
-.btn:hover, .btn-small:hover {
+.btn:hover,
+.btn-small:hover {
   background: #0056b3;
 }
 </style>

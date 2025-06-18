@@ -1,45 +1,50 @@
 <template>
-  <section class="segments-section">
-    <h2>Segmenti</h2>
-    <div v-for="(segment, index) in modelValue" :key="index" class="segmento">
-      <div class="form-row">
-        <label>Lunghezza segmento {{ index + 1 }} (mm):</label>
-        <input 
-          v-model.number="segment.length" 
-          type="number" 
-          step="0.1" 
-          min="0.1" 
-          required 
-          @input="validateLength(segment)" 
-        />
-        <p v-if="segment.errorLength" class="error-message">La lunghezza deve essere maggiore di 0.</p>
+  <div class="modern-segments-panel">
+    <h2 class="panel-title">Segmenti</h2>
+
+    <div class="segments-table">
+      <div class="segments-header">
+        <div class="segment-cell">#</div>
+        <div class="segment-cell">Lunghezza</div>
+        <div class="segment-cell">Angolo</div>
+        <div class="segment-cell">Azioni</div>
       </div>
-      <div class="form-row">
-        <label>Angolo piega (°):</label>
-        <input
-          v-model.number="segment.angle"
-          type="number"
-          step="1"
-          min="-180"
-          max="180"
-          @input="validateAngle(segment)"
-          required
-        />
-        <p v-if="segment.errorAngle" class="error-message">Angolo non valido! Deve essere tra -180° e 180°.</p>
-      </div>
-      <div class="form-row">
-        <label>Tipologia di piega:</label>
-        <select v-model="segment.tipoPiega">
-          <option value="su">In su</option>
-          <option value="giu">In giù</option>
-        </select>
-      </div>
-      <div class="form-actions">
-        <button type="button" @click="removeSegment(index)" class="btn-remove">Rimuovi Segmento</button>
+
+      <div v-for="(segment, index) in modelValue" :key="index" class="segment-row">
+        <div class="segment-cell">{{ index + 1 }}</div>
+        <div class="segment-cell">
+          <input
+            type="number"
+            v-model.number="segment.length"
+            min="0.1"
+            step="1"
+            class="segment-input"
+            @input="updateModel"
+          />
+        </div>
+        <div class="segment-cell">
+          <input
+            type="number"
+            v-model.number="segment.angle"
+            min="-180"
+            max="180"
+            step="1"
+            class="segment-input"
+            @input="updateModel"
+          />
+        </div>
+        <div class="segment-cell">
+          <button @click="$emit('remove', index)" class="btn-icon" title="Rimuovi segmento">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
       </div>
     </div>
-    <button type="button" @click="addSegment" class="btn-add">Aggiungi Segmento</button>
-  </section>
+
+    <div class="segments-actions">
+      <button @click="$emit('add')" class="btn-primary">+ Aggiungi Segmento</button>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -48,93 +53,122 @@ export default {
   props: {
     modelValue: {
       type: Array,
-      required: true
-    }
+      required: true,
+    },
+    unitFactor: {
+      type: Number,
+      default: 1,
+    },
+    unitLabel: {
+      type: String,
+      default: 'mm',
+    },
   },
   emits: ['update:modelValue', 'add', 'remove'],
   setup(props, { emit }) {
-    const validateLength = (segment) => {
-      segment.errorLength = segment.length <= 0;
-      updateModelValue();
+    const updateModel = () => {
+      emit('update:modelValue', props.modelValue);
     };
-    
-    const validateAngle = (segment) => {
-      segment.errorAngle = segment.angle < -180 || segment.angle > 180;
-      updateModelValue();
-    };
-    
-    const addSegment = () => {
-      emit('add');
-    };
-    
-    const removeSegment = (index) => {
-      emit('remove', index);
-    };
-    
-    const updateModelValue = () => {
-      emit('update:modelValue', [...props.modelValue]);
-    };
-    
+
     return {
-      validateLength,
-      validateAngle,
-      addSegment,
-      removeSegment
+      updateModel,
     };
-  }
+  },
 };
 </script>
 
 <style scoped>
-.segments-section {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
+.modern-segments-panel {
   margin-bottom: 20px;
 }
 
-.segmento {
-  background: #f8f9fa;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  padding: 10px;
-  margin-bottom: 15px;
+.panel-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+  color: #212529;
 }
 
-.form-row {
-  margin-bottom: 10px;
+.segments-table {
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.segments-header {
+  display: grid;
+  grid-template-columns: 50px 1fr 1fr 50px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  font-weight: 600;
+  color: #495057;
+}
+
+.segment-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 1fr 50px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.segment-row:last-child {
+  border-bottom: none;
+}
+
+.segment-cell {
+  padding: 10px;
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
-.btn-add,
-.btn-remove {
-  background: #007bff;
+.segment-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.segment-input:focus {
+  border-color: #86b7fe;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  border: none;
+  background-color: #f8f9fa;
+  color: #dc3545;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: #ffd5d9;
+}
+
+.segments-actions {
+  margin-top: 15px;
+}
+
+.btn-primary {
+  padding: 8px 16px;
+  background-color: #0d6efd;
   color: white;
   border: none;
-  padding: 8px 12px;
   border-radius: 4px;
+  font-size: 14px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
-.btn-remove {
-  background: #dc3545;
-}
-
-.btn-add:hover {
-  background: #0056b3;
-}
-
-.btn-remove:hover {
-  background: #c82333;
-}
-
-.error-message {
-  color: red;
-  font-size: 0.9em;
-  margin-top: 5px;
+.btn-primary:hover {
+  background-color: #0b5ed7;
 }
 </style>

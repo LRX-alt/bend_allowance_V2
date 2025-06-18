@@ -1,10 +1,13 @@
 <template>
   <section class="advanced-calculations">
     <h2>Calcoli Avanzati</h2>
-    
+
     <!-- Parametri condivisi con il componente principale -->
     <div class="shared-parameters-info">
-      <p>I parametri di base (processo, direzione, tipo matrice, ecc.) vengono sincronizzati con quelli della pagina principale.</p>
+      <p>
+        I parametri di base (processo, direzione, tipo matrice, ecc.) vengono sincronizzati con
+        quelli della pagina principale.
+      </p>
       <div class="current-params">
         <div><strong>Processo di piega:</strong> {{ processo }}</div>
         <div><strong>Direzione grana:</strong> {{ direzione }}</div>
@@ -12,11 +15,11 @@
         <div><strong>Larghezza matrice:</strong> {{ larghezzaMatrice }} mm</div>
       </div>
     </div>
-    
+
     <!-- Controlli per larghezza matrice e processo -->
     <div class="matrix-controls">
       <h3>Impostazioni Matrice</h3>
-      
+
       <div class="form-row">
         <label>Processo di Piegatura:</label>
         <select v-model="processoAttuale" @change="updateProcesso">
@@ -26,41 +29,45 @@
         </select>
         <i class="info-icon" title="Il processo di piegatura influenza il raggio effettivo">i</i>
       </div>
-      
+
       <div class="form-row">
         <label>Larghezza Matrice (V-die):</label>
         <div class="input-with-unit">
-          <input 
-            type="number" 
+          <input
+            type="number"
             v-model.number="matriceWidth"
-            @input="updateMatriceWidth" 
-            step="0.1" 
+            @input="updateMatriceWidth"
+            step="0.1"
             min="0.1"
           />
           <span>mm</span>
         </div>
-        <i class="info-icon" title="La larghezza della matrice influenza il raggio effettivo di piega">i</i>
+        <i
+          class="info-icon"
+          title="La larghezza della matrice influenza il raggio effettivo di piega"
+          >i</i
+        >
         <button @click="useRecommendedWidth" class="btn-small">Consigliata</button>
       </div>
-      
+
       <!-- Mostra il raggio effettivo calcolato quando larghezzaMatrice è impostata -->
       <div v-if="larghezzaMatrice > 0 && raggioEffettivoCalcolato > 0" class="info-box">
         <p>
-          <strong>Raggio effettivo stimato:</strong> 
+          <strong>Raggio effettivo stimato:</strong>
           {{ raggioEffettivoCalcolato.toFixed(2) }} mm
         </p>
         <p class="info-note">
-          Con processo di {{ getProcessoLabel(processoAttuale) }}, 
-          una matrice di larghezza {{ larghezzaMatrice.toFixed(2) }} mm
-          produce un raggio interno di circa {{ raggioEffettivoCalcolato.toFixed(2) }} mm.
+          Con processo di {{ getProcessoLabel(processoAttuale) }}, una matrice di larghezza
+          {{ larghezzaMatrice.toFixed(2) }} mm produce un raggio interno di circa
+          {{ raggioEffettivoCalcolato.toFixed(2) }} mm.
         </p>
       </div>
     </div>
-    
+
     <!-- Parametri avanzati (solo per questo tab) -->
     <div class="parameters-advanced">
       <h3>Parametri di Calcolo Avanzati</h3>
-      
+
       <div class="form-row">
         <label>Metodo di calcolo:</label>
         <select v-model="metodo" @change="aggiornaCalcoli">
@@ -72,7 +79,7 @@
         </select>
         <i class="info-icon" title="Formula utilizzata per il calcolo">i</i>
       </div>
-      
+
       <div class="form-row">
         <label>Materiale:</label>
         <select v-model="materiale" @change="aggiornaCalcoli">
@@ -86,7 +93,7 @@
         <i class="info-icon" title="Materiale utilizzato per calcoli avanzati">i</i>
       </div>
     </div>
-    
+
     <!-- Risultati dei calcoli avanzati -->
     <div v-if="hasBend && risultatiInterni" class="results-advanced">
       <div class="result-card-group">
@@ -94,33 +101,38 @@
           <h3>Bend Allowance</h3>
           <div class="result-value">{{ risultatiInterni.bendAllowance.toFixed(2) }} mm</div>
         </div>
-        
+
         <div class="result-card">
           <h3>Springback</h3>
           <div class="result-value">{{ risultatiInterni.springback.toFixed(2) }}°</div>
           <div class="result-note">Compensazione necessaria</div>
         </div>
-        
+
         <div class="result-card">
           <h3>Angolo Macchina</h3>
           <div class="result-value">{{ risultatiInterni.angoloEffettivo.toFixed(2) }}°</div>
           <div class="result-note">Per ottenere {{ currentBendAngle }}°</div>
         </div>
       </div>
-      
+
       <div class="result-card-group">
         <div class="result-card">
           <h3>Forza Richiesta</h3>
           <div class="result-value">{{ risultatiInterni.forzaPiega.forzaTon.toFixed(2) }} t</div>
           <div class="result-note">{{ risultatiInterni.forzaPiega.forzaKN.toFixed(2) }} kN</div>
         </div>
-        
+
         <div class="result-card">
           <h3>V-Die Ottimale</h3>
-          <div class="result-value">{{ risultatiInterni.aperturaMatrice.aperturaOttimale.toFixed(2) }} mm</div>
-          <div class="result-note">Range: {{ risultatiInterni.aperturaMatrice.rangeConsigliato.min.toFixed(2) }} - {{ risultatiInterni.aperturaMatrice.rangeConsigliato.max.toFixed(2) }} mm</div>
+          <div class="result-value">
+            {{ risultatiInterni.aperturaMatrice.aperturaOttimale.toFixed(2) }} mm
+          </div>
+          <div class="result-note">
+            Range: {{ risultatiInterni.aperturaMatrice.rangeConsigliato.min.toFixed(2) }} -
+            {{ risultatiInterni.aperturaMatrice.rangeConsigliato.max.toFixed(2) }} mm
+          </div>
         </div>
-        
+
         <div class="result-card" :class="{ warning: !risultatiInterni.raggioAdeguato }">
           <h3>Raggio Minimo</h3>
           <div class="result-value">{{ risultatiInterni.raggioMinimo.toFixed(2) }} mm</div>
@@ -129,7 +141,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Aggiungiamo una card per il raggio effettivo -->
       <div v-if="larghezzaMatrice > 0" class="result-card-group">
         <div class="result-card special-card">
@@ -139,40 +151,38 @@
         </div>
         <div class="result-card">
           <h3>Sviluppo Totale</h3>
-          <div class="result-value">
-            {{ sviluppoTotaleCalcolato.toFixed(2) }} mm
-          </div>
+          <div class="result-value">{{ sviluppoTotaleCalcolato.toFixed(2) }} mm</div>
           <div class="result-note">Con raggio effettivo applicato</div>
         </div>
       </div>
-      
+
       <div class="technical-details">
         <h3>Dettagli Tecnici</h3>
         <table>
-          <tr>
-            <td>Pressione Massima:</td>
-            <td>{{ risultatiInterni.forzaPiega.pressioneMax.toFixed(2) }} N/mm²</td>
-          </tr>
-          <tr>
-            <td>Setback:</td>
-            <td>{{ risultatiInterni.setback.toFixed(2) }} mm</td>
-          </tr>
-          <tr>
-            <td>Bend Deduction:</td>
-            <td>{{ risultatiInterni.bendDeduction.toFixed(2) }} mm</td>
-          </tr>
+          <tbody>
+            <tr>
+              <td>Pressione Massima:</td>
+              <td>{{ risultatiInterni.forzaPiega.pressioneMax.toFixed(2) }} N/mm²</td>
+            </tr>
+            <tr>
+              <td>Setback:</td>
+              <td>{{ risultatiInterni.setback.toFixed(2) }} mm</td>
+            </tr>
+            <tr>
+              <td>Bend Deduction:</td>
+              <td>{{ risultatiInterni.bendDeduction.toFixed(2) }} mm</td>
+            </tr>
+          </tbody>
         </table>
       </div>
-      
+
       <!-- Pulsante per applicare i risultati -->
       <div class="apply-results">
-        <button @click="applicaRisultati" class="btn-apply">
-          Applica Questi Risultati
-        </button>
+        <button @click="applicaRisultati" class="btn-apply">Applica Questi Risultati</button>
         <p class="note">Clicca per utilizzare questi calcoli nella visualizzazione principale</p>
       </div>
     </div>
-    
+
     <div v-else-if="!hasBend" class="no-data-message">
       Aggiungi almeno un segmento con un angolo di piega per visualizzare i calcoli avanzati.
     </div>
@@ -181,7 +191,11 @@
 
 <script>
 import { ref, computed, watch, nextTick } from 'vue';
-import { calcoliAvanzatiPiegatura, calcolaAperturaMatrice, calcolaRaggioEffettivo } from '@/utils/BendingCalculatorAdvanced';
+import {
+  calcoliAvanzatiPiegatura,
+  calcolaAperturaMatrice,
+  calcolaRaggioEffettivo,
+} from '@/utils/BendingCalculatorAdvanced';
 import { calcolaDettagliSegmenti } from '@/utils/BendingCalculator';
 
 export default {
@@ -189,78 +203,78 @@ export default {
   props: {
     spessore: {
       type: Number,
-      required: true
+      required: true,
     },
     raggioPiega: {
       type: Number,
-      required: true
+      required: true,
     },
     segments: {
       type: Array,
-      required: true
+      required: true,
     },
     fattoreK: {
       type: Number,
-      required: true
+      required: true,
     },
     unitFactor: {
       type: Number,
-      default: 1
+      default: 1,
     },
     unitLabel: {
       type: String,
-      default: 'mm'
+      default: 'mm',
     },
     // Parametri sincronizzati con il componente principale
     processo: {
       type: String,
-      default: 'airBend'
+      default: 'airBend',
     },
     direzione: {
       type: String,
-      default: 'parallelaPiega'
+      default: 'parallelaPiega',
     },
     tipoMatrice: {
       type: String,
-      default: 'vDie'
+      default: 'vDie',
     },
     larghezzaMatrice: {
       type: Number,
-      default: 0
+      default: 0,
     },
     tipoCava: {
       type: String,
-      default: 'standard'
+      default: 'standard',
     },
     risultatiAvanzati: {
       type: Object,
-      default: null
-    }
+      default: null,
+    },
   },
   emits: [
     'update:risultatiAvanzati',
     'update:larghezzaMatrice',
     'update:processo',
-    'calcoliAggiornati'
+    'calcoliAggiornati',
   ],
   setup(props, { emit }) {
     // Utilizziamo solo i parametri che sono esclusivi di questo componente
     const metodo = ref('standard');
     const materiale = ref('acciaio');
-    
+
     // Valori per larghezza matrice e processo
     const matriceWidth = ref(props.larghezzaMatrice || calcolaAperturaMatriceDefault());
     const processoAttuale = ref(props.processo);
-    
+
     // Manteniamo una copia locale dei risultati
     const risultatiInterni = ref(props.risultatiAvanzati || null);
-    
+
     // Funzione per calcolare la larghezza matrice consigliata
     function calcolaAperturaMatriceDefault() {
       const apertura = calcolaAperturaMatrice(props.spessore, props.processo, materiale.value);
       return apertura.aperturaOttimale;
     }
-    
+
     // Calcola il raggio effettivo in base alla larghezza matrice
     const raggioEffettivoCalcolato = computed(() => {
       if (matriceWidth.value > 0) {
@@ -273,109 +287,111 @@ export default {
       }
       return props.raggioPiega;
     });
-    
+
     // Calcola la lunghezza della piega attiva e l'angolo di piega
     const currentBend = computed(() => {
       if (!props.segments || props.segments.length < 2) return null;
-      
+
       // Trova il primo segmento con angolo non zero
       for (let i = 1; i < props.segments.length; i++) {
-        if (props.segments[i-1] && 
-            props.segments[i-1].angle && 
-            props.segments[i-1].angle !== 0) {
+        if (
+          props.segments[i - 1] &&
+          props.segments[i - 1].angle &&
+          props.segments[i - 1].angle !== 0
+        ) {
           return {
-            angolo: props.segments[i-1].angle,
-            lunghezza: props.segments[i].length
+            angolo: props.segments[i - 1].angle,
+            lunghezza: props.segments[i].length,
           };
         }
       }
       return null;
     });
-    
+
     const hasBend = computed(() => {
       return currentBend.value !== null;
     });
-    
+
     const currentBendAngle = computed(() => {
       return hasBend.value ? Math.abs(currentBend.value.angolo) : 0;
     });
-    
+
     // Calcolo dello sviluppo totale con raggio effettivo
     const sviluppoTotaleCalcolato = computed(() => {
       if (!props.segments || props.segments.length === 0) return 0;
-      
+
       try {
         // Usa il raggio effettivo per calcolare lo sviluppo
         const { sviluppoTotale } = calcolaDettagliSegmenti(
           props.segments,
           props.spessore,
-          raggioEffettivoCalcolato.value,  // Usa il raggio effettivo
+          raggioEffettivoCalcolato.value, // Usa il raggio effettivo
           props.fattoreK
         );
         return sviluppoTotale;
       } catch (error) {
-        console.error("Errore nel calcolo sviluppo totale:", error);
+        console.error('Errore nel calcolo sviluppo totale:', error);
         return 0;
       }
     });
-    
+
     // Gestione della modifica della larghezza matrice
     const updateMatriceWidth = () => {
       // Verifica se il valore è valido
       if (matriceWidth.value <= 0) {
         matriceWidth.value = calcolaAperturaMatriceDefault();
       }
-      
+
       // Aggiorna il valore nel componente principale
       emit('update:larghezzaMatrice', matriceWidth.value);
-      
+
       // Ricalcola con la nuova larghezza matrice
       aggiornaCalcoli();
-      
+
       // Emetti i risultati aggiornati
       emit('calcoliAggiornati', {
         raggioEffettivo: raggioEffettivoCalcolato.value,
         larghezzaMatrice: matriceWidth.value,
-        processo: processoAttuale.value
+        processo: processoAttuale.value,
       });
     };
-    
+
     // Gestione della modifica del processo
     const updateProcesso = () => {
       // Aggiorna il valore nel componente principale
       emit('update:processo', processoAttuale.value);
-      
+
       // Ricalcola con il nuovo processo
       aggiornaCalcoli();
-      
+
       // Emetti i risultati aggiornati
       emit('calcoliAggiornati', {
         raggioEffettivo: raggioEffettivoCalcolato.value,
         larghezzaMatrice: matriceWidth.value,
-        processo: processoAttuale.value
+        processo: processoAttuale.value,
       });
     };
-    
+
     // Usa la larghezza matrice consigliata
     const useRecommendedWidth = () => {
       matriceWidth.value = calcolaAperturaMatriceDefault();
       updateMatriceWidth();
     };
-    
+
     // Funzione helper per mostrare il nome del processo
-    const getProcessoLabel = (processo) => {
+    const getProcessoLabel = processo => {
       const labels = {
-        'airBend': 'Air Bending',
-        'bottoming': 'Bottoming',
-        'coining': 'Coining'
+        airBend: 'Air Bending',
+        bottoming: 'Bottoming',
+        coining: 'Coining',
       };
       return labels[processo] || processo;
     };
-    
+
     // Aggiorna i calcoli usando i parametri dal componente padre
     const aggiornaCalcoli = () => {
       if (!hasBend.value) return;
-      
+
       try {
         // Usiamo i parametri dal componente padre per i calcoli
         const params = {
@@ -389,24 +405,24 @@ export default {
           fattoreK: props.fattoreK || 0.33,
           direzione: props.direzione || 'parallelaPiega',
           tipoMatrice: props.tipoMatrice || 'vDie',
-          larghezzaMatrice: matriceWidth.value || (8 * props.spessore),
-          tipoCava: props.tipoCava || 'standard'
+          larghezzaMatrice: matriceWidth.value || 8 * props.spessore,
+          tipoCava: props.tipoCava || 'standard',
         };
-        
-        console.log("Parametri usati per calcoli avanzati:", params);
-        
+
+        console.log('Parametri usati per calcoli avanzati:', params);
+
         // Esegui i calcoli
         const nuoviRisultati = calcoliAvanzatiPiegatura(params);
-        
+
         // Aggiorna la copia locale e monitora eventuali problemi
         risultatiInterni.value = JSON.parse(JSON.stringify(nuoviRisultati));
-        
-        console.log("Risultati avanzati aggiornati");
+
+        console.log('Risultati avanzati aggiornati');
       } catch (error) {
-        console.error("Errore nei calcoli avanzati:", error);
+        console.error('Errore nei calcoli avanzati:', error);
       }
     };
-    
+
     // Funzione per applicare i risultati al componente padre
     const applicaRisultati = () => {
       // Notifica il componente padre con i nuovi risultati
@@ -417,58 +433,65 @@ export default {
         emit('calcoliAggiornati', {
           raggioEffettivo: raggioEffettivoCalcolato.value,
           larghezzaMatrice: matriceWidth.value,
-          processo: processoAttuale.value
+          processo: processoAttuale.value,
         });
-        console.log("Risultati applicati al componente padre");
+        console.log('Risultati applicati al componente padre');
       }
     };
-    
+
     // Sincronizza matriceWidth con larghezzaMatrice prop
-    watch(() => props.larghezzaMatrice, (newValue) => {
-      if (newValue !== null && newValue !== undefined && newValue !== matriceWidth.value) {
-        matriceWidth.value = newValue;
+    watch(
+      () => props.larghezzaMatrice,
+      newValue => {
+        if (newValue !== null && newValue !== undefined && newValue !== matriceWidth.value) {
+          matriceWidth.value = newValue;
+        }
       }
-    });
-    
+    );
+
     // Sincronizza processoAttuale con processo prop
-    watch(() => props.processo, (newValue) => {
-      if (newValue !== processoAttuale.value) {
-        processoAttuale.value = newValue;
+    watch(
+      () => props.processo,
+      newValue => {
+        if (newValue !== processoAttuale.value) {
+          processoAttuale.value = newValue;
+        }
       }
-    });
-    
+    );
+
     // Aggiorna i nostri risultati interni quando cambiano i parametri del padre
-    watch([
-      () => props.spessore,
-      () => props.raggioPiega,
-      () => props.segments,
-      () => props.fattoreK,
-      () => props.direzione,
-      () => props.tipoMatrice,
-      () => props.tipoCava
-    ], () => {
-      console.log("Parametri dal componente padre cambiati, aggiornamento...");
-      nextTick(() => {
-        aggiornaCalcoli();
-      });
-    }, { deep: true });
-    
+    watch(
+      [
+        () => props.spessore,
+        () => props.raggioPiega,
+        () => props.segments,
+        () => props.fattoreK,
+        () => props.direzione,
+        () => props.tipoMatrice,
+        () => props.tipoCava,
+      ],
+      () => {
+        console.log('Parametri dal componente padre cambiati, aggiornamento...');
+        nextTick(() => {
+          aggiornaCalcoli();
+        });
+      },
+      { deep: true }
+    );
+
     // Aggiorna i nostri risultati interni quando cambiano i parametri locali
-    watch([
-      metodo,
-      materiale
-    ], () => {
-      console.log("Parametri locali cambiati, aggiornamento...");
+    watch([metodo, materiale], () => {
+      console.log('Parametri locali cambiati, aggiornamento...');
       nextTick(() => {
         aggiornaCalcoli();
       });
     });
-    
+
     // Aggiorna i risultati quando viene montato il componente
     nextTick(() => {
       aggiornaCalcoli();
     });
-    
+
     return {
       metodo,
       materiale,
@@ -484,9 +507,9 @@ export default {
       updateMatriceWidth,
       updateProcesso,
       useRecommendedWidth,
-      getProcessoLabel
+      getProcessoLabel,
     };
-  }
+  },
 };
 </script>
 
@@ -666,7 +689,7 @@ export default {
 }
 
 .btn-apply {
-  background: #9C27B0;
+  background: #9c27b0;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -677,7 +700,7 @@ export default {
 }
 
 .btn-apply:hover {
-  background: #8E24AA;
+  background: #8e24aa;
 }
 
 .note {

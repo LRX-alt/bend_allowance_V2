@@ -20,13 +20,13 @@ export const materialsDatabase = [
       minRadiusParallel: 0.5, // x spessore
       minRadiusPerpendicular: 0.8, // x spessore
       springback: 0.04, // 4%
-      grainDirection: true // tiene conto della direzione della grana?
+      grainDirection: true, // tiene conto della direzione della grana?
     },
     tooling: {
       recommendedVDie: 8, // x spessore
-      maxPressure: 35 // N/mm²
+      maxPressure: 35, // N/mm²
     },
-    notes: 'Facile da piegare, molto comune per applicazioni generali'
+    notes: 'Facile da piegare, molto comune per applicazioni generali',
   },
   {
     id: 'steel_stainless_304',
@@ -43,13 +43,13 @@ export const materialsDatabase = [
       minRadiusParallel: 1.0, // x spessore
       minRadiusPerpendicular: 1.5, // x spessore
       springback: 0.08, // 8%
-      grainDirection: true
+      grainDirection: true,
     },
     tooling: {
       recommendedVDie: 10, // x spessore
-      maxPressure: 45 // N/mm²
+      maxPressure: 45, // N/mm²
     },
-    notes: 'Soggetto a incrudimento durante la piegatura, richiede più forza di pressione'
+    notes: 'Soggetto a incrudimento durante la piegatura, richiede più forza di pressione',
   },
   {
     id: 'aluminum_1100',
@@ -62,17 +62,17 @@ export const materialsDatabase = [
       elasticModulus: 69000, // MPa
     },
     bending: {
-      kFactor: 0.40,
+      kFactor: 0.4,
       minRadiusParallel: 0.7, // x spessore
       minRadiusPerpendicular: 1.0, // x spessore
       springback: 0.06, // 6%
-      grainDirection: false
+      grainDirection: false,
     },
     tooling: {
       recommendedVDie: 7, // x spessore
-      maxPressure: 20 // N/mm²
+      maxPressure: 20, // N/mm²
     },
-    notes: 'Molto duttile, facile da piegare, bassa resistenza'
+    notes: 'Molto duttile, facile da piegare, bassa resistenza',
   },
   {
     id: 'aluminum_5052',
@@ -89,13 +89,13 @@ export const materialsDatabase = [
       minRadiusParallel: 1.0, // x spessore
       minRadiusPerpendicular: 1.5, // x spessore
       springback: 0.075, // 7.5%
-      grainDirection: true
+      grainDirection: true,
     },
     tooling: {
       recommendedVDie: 8, // x spessore
-      maxPressure: 28 // N/mm²
+      maxPressure: 28, // N/mm²
     },
-    notes: 'Buon compromesso resistenza/formabilità, comune in applicazioni marine'
+    notes: 'Buon compromesso resistenza/formabilità, comune in applicazioni marine',
   },
   {
     id: 'aluminum_6061t6',
@@ -112,13 +112,13 @@ export const materialsDatabase = [
       minRadiusParallel: 1.5, // x spessore
       minRadiusPerpendicular: 2.5, // x spessore
       springback: 0.095, // 9.5%
-      grainDirection: true
+      grainDirection: true,
     },
     tooling: {
       recommendedVDie: 9, // x spessore
-      maxPressure: 32 // N/mm²
+      maxPressure: 32, // N/mm²
     },
-    notes: 'Alta resistenza, richiede raggi più ampi per evitare crepe'
+    notes: 'Alta resistenza, richiede raggi più ampi per evitare crepe',
   },
   {
     id: 'copper_pure',
@@ -135,13 +135,13 @@ export const materialsDatabase = [
       minRadiusParallel: 0.4, // x spessore
       minRadiusPerpendicular: 0.7, // x spessore
       springback: 0.04, // 4%
-      grainDirection: false
+      grainDirection: false,
     },
     tooling: {
       recommendedVDie: 7, // x spessore
-      maxPressure: 25 // N/mm²
+      maxPressure: 25, // N/mm²
     },
-    notes: 'Molto duttile, eccellente formabilità'
+    notes: 'Molto duttile, eccellente formabilità',
   },
   {
     id: 'brass_70_30',
@@ -158,13 +158,13 @@ export const materialsDatabase = [
       minRadiusParallel: 1.0, // x spessore
       minRadiusPerpendicular: 1.5, // x spessore
       springback: 0.055, // 5.5%
-      grainDirection: false
+      grainDirection: false,
     },
     tooling: {
       recommendedVDie: 8, // x spessore
-      maxPressure: 30 // N/mm²
+      maxPressure: 30, // N/mm²
     },
-    notes: 'Buona lavorabilità, adatto per decorazioni'
+    notes: 'Buona lavorabilità, adatto per decorazioni',
   },
   {
     id: 'titanium_grade2',
@@ -181,14 +181,14 @@ export const materialsDatabase = [
       minRadiusParallel: 2.5, // x spessore
       minRadiusPerpendicular: 3.5, // x spessore
       springback: 0.12, // 12%
-      grainDirection: true
+      grainDirection: true,
     },
     tooling: {
       recommendedVDie: 12, // x spessore
-      maxPressure: 50 // N/mm²
+      maxPressure: 50, // N/mm²
     },
-    notes: 'Richiede utensili specializzati, alta resistenza al calore'
-  }
+    notes: 'Richiede utensili specializzati, alta resistenza al calore',
+  },
 ];
 
 /**
@@ -226,10 +226,10 @@ export function getAllCategories() {
 export function getBendingParameters(materialId) {
   const material = getMaterialById(materialId);
   if (!material) return null;
-  
+
   return {
     fattoreK: material.bending.kFactor,
     springback: material.bending.springback,
-    resistenza: material.properties.tensileStrength
+    resistenza: material.properties.tensileStrength,
   };
 }
