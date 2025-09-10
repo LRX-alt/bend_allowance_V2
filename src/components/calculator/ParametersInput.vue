@@ -30,13 +30,29 @@
       <div class="parameter-slider-container">
         <input
           type="range"
-          v-model.number="spessoreLocal"
-          min="0.1"
-          max="10"
-          step="0.1"
+          v-model.number="spessoreIndex"
+          :min="0"
+          :max="spessoriStandard.length - 1"
+          :step="1"
           class="parameter-slider"
           @input="updateSpessore"
         />
+      </div>
+      <div class="parameter-input-group" style="margin-top: 8px;">
+        <select
+          v-model.number="quickSpessoreSelezionato"
+          class="parameter-select"
+          @change="applyQuickSpessore"
+        >
+          <option :value="null">Seleziona spessore rapido</option>
+          <option v-for="qs in quickSpessori" :key="qs" :value="qs">{{ qs }} mm</option>
+        </select>
+      </div>
+      <div v-if="isSpessoreAlto" class="thickness-warning">
+        ⚠️ Spessore elevato: usa V più ampie (es. {{ matriceConsigliata }} mm) e verifica la forza pressa.
+      </div>
+      <div v-if="materialeAvviso" class="material-warning">
+        {{ materialeAvviso }}
       </div>
     </div>
 
@@ -224,11 +240,28 @@ export default {
       { value: 32, label: '32mm (per spessori 4-5mm)', spessoreMin: 4.0, spessoreMax: 5.0 },
       { value: 40, label: '40mm (per spessori 5-6mm)', spessoreMin: 5.0, spessoreMax: 6.0 },
       { value: 50, label: '50mm (per spessori 6-8mm)', spessoreMin: 6.0, spessoreMax: 8.0 },
-      { value: 60, label: '60mm (per spessori 8-10mm)', spessoreMin: 8.0, spessoreMax: 10.0 }
+      { value: 60, label: '60mm (per spessori 8-10mm)', spessoreMin: 8.0, spessoreMax: 10.0 },
+      { value: 80, label: '80mm (per spessori 10-12mm)', spessoreMin: 10.0, spessoreMax: 12.0 },
+      { value: 100, label: '100mm (per spessori 12-14mm)', spessoreMin: 12.0, spessoreMax: 14.0 },
+      { value: 120, label: '120mm (per spessori 14-16mm)', spessoreMin: 14.0, spessoreMax: 16.0 },
+      { value: 140, label: '140mm (per spessori 16-18mm)', spessoreMin: 16.0, spessoreMax: 18.0 },
+      { value: 160, label: '160mm (per spessori 18-20mm)', spessoreMin: 18.0, spessoreMax: 20.0 },
     ];
+
+    // Lista di spessori standard per lamiera (mm)
+    const spessoriStandard = [
+      0.5, 0.6, 0.7, 0.8, 0.9,
+      1.0, 1.2, 1.5, 2.0, 2.5,
+      3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 15.0, 20.0
+    ];
+
+    // Quick select: spessori comuni
+    const quickSpessori = [2.0, 3.0, 5.0, 10.0, 15.0, 20.0];
+    const quickSpessoreSelezionato = ref(null);
 
     // Stati reattivi locali
     const spessoreLocal = ref(props.spessore);
+    const spessoreIndex = ref(0);
     const raggioPiegaLocal = ref(props.raggioPiega);
     const materialeSelezionatoLocal = ref(props.materialeSelezionato);
     const fattoreKLocal = ref(props.fattoreK);
@@ -254,9 +287,52 @@ export default {
       return matrice ? matrice.value : Math.max(16, Math.round(spessore * 8));
     });
 
+    // Helper: trova l'indice nello slider più vicino allo spessore richiesto
+    const findClosestIndex = (value) => {
+      let closestIdx = 0;
+      let minDiff = Infinity;
+      for (let i = 0; i < spessoriStandard.length; i++) {
+        const diff = Math.abs(spessoriStandard[i] - value);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIdx = i;
+        }
+      }
+      return closestIdx;
+    };
+
+    // Inizializza lo slider in base allo spessore iniziale
+    spessoreIndex.value = findClosestIndex(spessoreLocal.value);
+    spessoreLocal.value = spessoriStandard[spessoreIndex.value];
+
+    const isSpessoreAlto = computed(() => spessoreLocal.value >= 10);
+
+    // Avvisi dinamici per materiale
+    const materialeAvviso = computed(() => {
+      const m = (materialeSelezionatoLocal.value || '').toLowerCase();
+      if (m === 'inox') {
+        return 'Acciaio Inox: maggiore forza e springback (~7–10%). Preferisci V più ampia e raggio ≥ 1.0×T.';
+      }
+      if (m === 'titanio') {
+        return 'Titanio: forza elevata e springback (~12%). Usa V molto ampia (+20%) e raggio ≥ 2.5–3.5×T.';
+      }
+      if (m === 'alluminio') {
+        return 'Alluminio: springback ~8%. Considera sovra-piega e protezioni anti-segno.';
+      }
+      return null;
+    });
+
     // Handlers per aggiornare i valori
     const updateSpessore = () => {
+      spessoreLocal.value = spessoriStandard[spessoreIndex.value];
       emit('update:spessore', spessoreLocal.value);
+    };
+
+    const applyQuickSpessore = () => {
+      if (quickSpessoreSelezionato.value !== null) {
+        spessoreIndex.value = findClosestIndex(quickSpessoreSelezionato.value);
+        updateSpessore();
+      }
     };
 
     const updateRaggioPiega = () => {
@@ -331,7 +407,8 @@ export default {
     watch(
       () => props.spessore,
       newValue => {
-        spessoreLocal.value = newValue;
+        spessoreIndex.value = findClosestIndex(newValue);
+        spessoreLocal.value = spessoriStandard[spessoreIndex.value];
         // Non aggiorniamo più automaticamente - l'utente può scegliere
         // usando il pulsante "Auto" o selezionando dalla lista
       }
@@ -376,6 +453,12 @@ export default {
 
     return {
       spessoreLocal,
+      spessoreIndex,
+      spessoriStandard,
+      quickSpessori,
+      quickSpessoreSelezionato,
+      isSpessoreAlto,
+      materialeAvviso,
       raggioPiegaLocal,
       materialeSelezionatoLocal,
       fattoreKLocal,
@@ -387,6 +470,7 @@ export default {
       matriceConsigliata,
       trovaMatriceStandard,
       updateSpessore,
+      applyQuickSpessore,
       updateRaggioPiega,
       updateMateriale,
       updateFattoreK,
@@ -551,5 +635,25 @@ export default {
   flex: 0 0 80px;
   margin-left: 8px;
   margin-right: 8px;
+}
+
+.thickness-warning {
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.material-warning {
+  background: #e7f3ff;
+  border: 1px solid #b6daff;
+  color: #084298;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 13px;
 }
 </style>

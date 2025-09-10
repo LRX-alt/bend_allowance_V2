@@ -262,6 +262,25 @@ export default {
     const metodo = ref('standard');
     const materiale = ref('acciaio');
 
+    // Tabella matrici standard per spessore (allineata a ParametersInput.vue)
+    const matriciStandardIndustriali = [
+      { value: 6, label: '6mm (0.5-1mm)', spessoreMin: 0.5, spessoreMax: 1.0 },
+      { value: 8, label: '8mm (1-1.5mm)', spessoreMin: 1.0, spessoreMax: 1.5 },
+      { value: 12, label: '12mm (1.5-2mm)', spessoreMin: 1.5, spessoreMax: 2.0 },
+      { value: 16, label: '16mm (2-2.5mm)', spessoreMin: 2.0, spessoreMax: 2.5 },
+      { value: 20, label: '20mm (2.5-3mm)', spessoreMin: 2.5, spessoreMax: 3.0 },
+      { value: 24, label: '24mm (3-4mm)', spessoreMin: 3.0, spessoreMax: 4.0 },
+      { value: 32, label: '32mm (4-5mm)', spessoreMin: 4.0, spessoreMax: 5.0 },
+      { value: 40, label: '40mm (5-6mm)', spessoreMin: 5.0, spessoreMax: 6.0 },
+      { value: 50, label: '50mm (6-8mm)', spessoreMin: 6.0, spessoreMax: 8.0 },
+      { value: 60, label: '60mm (8-10mm)', spessoreMin: 8.0, spessoreMax: 10.0 },
+      { value: 80, label: '80mm (10-12mm)', spessoreMin: 10.0, spessoreMax: 12.0 },
+      { value: 100, label: '100mm (12-14mm)', spessoreMin: 12.0, spessoreMax: 14.0 },
+      { value: 120, label: '120mm (14-16mm)', spessoreMin: 14.0, spessoreMax: 16.0 },
+      { value: 140, label: '140mm (16-18mm)', spessoreMin: 16.0, spessoreMax: 18.0 },
+      { value: 160, label: '160mm (18-20mm)', spessoreMin: 18.0, spessoreMax: 20.0 },
+    ];
+
     // Valori per larghezza matrice e processo
     const matriceWidth = ref(props.larghezzaMatrice || calcolaAperturaMatriceDefault());
     const processoAttuale = ref(props.processo);
@@ -269,8 +288,12 @@ export default {
     // Manteniamo una copia locale dei risultati
     const risultatiInterni = ref(props.risultatiAvanzati || null);
 
-    // Funzione per calcolare la larghezza matrice consigliata
+    // Funzione per calcolare la larghezza matrice consigliata (preferisci standard)
     function calcolaAperturaMatriceDefault() {
+      // Cerca una matrice standard per lo spessore
+      const m = matriciStandardIndustriali.find(m => props.spessore >= m.spessoreMin && props.spessore <= m.spessoreMax);
+      if (m) return m.value;
+      // Fallback alla funzione avanzata se fuori range
       const apertura = calcolaAperturaMatrice(props.spessore, props.processo, materiale.value);
       return apertura.aperturaOttimale;
     }
