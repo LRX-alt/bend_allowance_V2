@@ -6,17 +6,16 @@
         <div class="hero-content">
           <div class="hero-text">
             <h1 class="hero-title">
-              Calcola il Bend Allowance con
-              <span class="highlight">Precisione Professionale</span>
+              Calcola con precisione professionale i
+              <span class="highlight">parametri di piegatura</span>
             </h1>
             <p class="hero-description">
-              Strumento avanzato per il calcolo dello sviluppo lamiera, bend allowance, setback e
-              compensazione di piegatura. Ottimizzato per l'industria metalmeccanica moderna.
+              Strumento avanzato per la determinazione dello sviluppo lamiera tramite Bend Allowance, Bend Deduction, Setback e compensazioni di piegatura. <span class="highlight">Ottimizzato per l'industria metalmeccanica moderna.</span>
             </p>
             <div class="hero-actions">
-              <router-link to="/calculator" class="btn btn-primary btn-lg">
-                🧮 Inizia Calcolo
-              </router-link>
+          <router-link to="/calcolatore-sviluppo-lamiera" class="btn btn-primary btn-lg">
+            🧮 Inizia Calcolo
+          </router-link>
               <button @click="scrollToFeatures" class="btn btn-secondary btn-lg">
                 📖 Scopri di più
               </button>
@@ -57,9 +56,9 @@
     <section ref="featuresSection" class="features">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title">Funzionalità Professionali</h2>
+          <h2 class="section-title">Calcolatore Piegatura Lamiera Professionale</h2>
           <p class="section-description">
-            Tutto quello che serve per calcoli precisi nella lavorazione lamiera
+            Strumenti avanzati per calcolo sviluppo lamiera, bend allowance calculator, bend deduction e setback lamiera
           </p>
         </div>
 
@@ -67,56 +66,60 @@
           <!-- Feature 1 -->
           <div class="feature-card">
             <div class="feature-icon">🎯</div>
-            <h3 class="feature-title">Calcoli Precisi</h3>
+            <h3 class="feature-title">Calcolo Bend Allowance Lamiera</h3>
             <p class="feature-description">
-              Algoritmi avanzati per bend allowance, setback e bend deduction con precisione al centesimo di millimetro.
+              Algoritmi avanzati per calcolo bend allowance lamiera, bend deduction calculator e setback lamiera con precisione al centesimo di millimetro.
             </p>
             <ul class="feature-list">
-              <li>Formule DIN 6935 e ANSI</li>
-              <li>Fattore K dinamico</li>
-              <li>Compensazione springback</li>
+              <li>Formula piegatura DIN 6935 e ANSI standard</li>
+              <li>Fattore K dinamico per materiale</li>
+              <li>Compensazione springback automatica</li>
+              <li>Calcolo sviluppo lamiera accurato</li>
             </ul>
           </div>
 
           <!-- Feature 2 -->
           <div class="feature-card">
             <div class="feature-icon">🔧</div>
-            <h3 class="feature-title">Calcoli Avanzati</h3>
+            <h3 class="feature-title">Calcolo Piegatura Lamiera Avanzata</h3>
             <p class="feature-description">
-              Parametri avanzati per processi di piegatura professionali con calcolo automatico della matrice ottimale.
+              Parametri avanzati per processi piegatura lamiera professionali con calcolo automatico matrice V-die ottimale e forza pressa.
             </p>
             <ul class="feature-list">
-              <li>Air bending, bottoming, coining</li>
-              <li>Calcolo forza di piegatura</li>
-              <li>Ottimizzazione apertura matrice</li>
+              <li>Processi: air bending, bottoming, coining</li>
+              <li>Calcolo forza piegatura pressopiegatrice</li>
+              <li>Ottimizzazione apertura matrice V-die</li>
+              <li>Raggio effettivo calcolato dalla matrice</li>
             </ul>
           </div>
 
           <!-- Feature 3 -->
           <div class="feature-card">
             <div class="feature-icon">📊</div>
-            <h3 class="feature-title">Database Materiali</h3>
+            <h3 class="feature-title">Database Materiali Lamiera</h3>
             <p class="feature-description">
-              Database completo con proprietà dei materiali più comuni nell'industria metalmeccanica.
+              Database completo proprietà materiali lamiera per calcolo piegatura accurato. Supporto acciaio, alluminio, inox, rame, ottone e titanio.
             </p>
             <ul class="feature-list">
-              <li>Acciaio, alluminio, inox, rame</li>
-              <li>Fattori K specifici per materiale</li>
-              <li>Valori di springback</li>
+              <li>Materiali: acciaio S235, alluminio 1100/5052/6061, inox AISI 304, rame, ottone, titanio</li>
+              <li>Fattori K specifici per ogni materiale lamiera</li>
+              <li>Valori springback e raggi minimi di piegatura</li>
+              <li>Raggi consigliati per direzione grana</li>
             </ul>
           </div>
 
           <!-- Feature 4 -->
           <div class="feature-card">
             <div class="feature-icon">📱</div>
-            <h3 class="feature-title">Design Responsive</h3>
+            <h3 class="feature-title">Calcolatore Lamiera Mobile</h3>
             <p class="feature-description">
-              Interfaccia moderna e responsive, ottimizzata per desktop, tablet e smartphone.
+              Calcolatore piegatura lamiera responsive e ottimizzato per tutti i dispositivi. Calcola bend allowance online su desktop, tablet e smartphone.
             </p>
             <ul class="feature-list">
-              <li>Tema chiaro/scuro</li>
-              <li>Layout adattivo</li>
-              <li>Touch-friendly</li>
+              <li>Interfaccia touch-friendly per dispositivi mobili</li>
+              <li>Layout adattivo per ogni risoluzione schermo</li>
+              <li>Tema chiaro/scuro per comfort visivo</li>
+              <li>Accessibile da qualsiasi dispositivo connesso</li>
             </ul>
           </div>
 
@@ -151,6 +154,62 @@
       </div>
     </section>
 
+    <!-- SEO Content Section -->
+    <section class="seo-content">
+      <div class="container">
+        <div class="seo-content-grid">
+          <div class="seo-content-block">
+            <h2>Calcolo Bend Allowance Lamiera</h2>
+            <p>
+              Il nostro calcolatore bend allowance online permette di calcolare con precisione il bend allowance per qualsiasi tipo di lamiera.
+              Utilizziamo formule standard DIN 6935 e ANSI per garantire risultati accurati nel calcolo dello sviluppo lamiera.
+            </p>
+            <p>
+              Il bend allowance rappresenta la lunghezza aggiuntiva necessaria per ottenere l'angolo desiderato dopo la piegatura.
+              Il nostro strumento calcola automaticamente il bend allowance in base al materiale selezionato, allo spessore della lamiera,
+              al raggio di piegatura e all'angolo richiesto.
+            </p>
+          </div>
+
+          <div class="seo-content-block">
+            <h3>Bend Deduction Calculator</h3>
+            <p>
+              Oltre al bend allowance, il calcolatore determina automaticamente il bend deduction necessario per il taglio preciso della lamiera.
+              Il bend deduction è la differenza tra la lunghezza sviluppata e la lunghezza finale del pezzo piegato.
+            </p>
+            <p>
+              Utilizziamo la formula standard: <strong>Bend Deduction = 2 × Setback - Bend Allowance</strong> per calcoli precisi
+              e affidabili nel calcolo sviluppo lamiera professionale.
+            </p>
+          </div>
+
+          <div class="seo-content-block">
+            <h3>Calcolo Setback Lamiera</h3>
+            <p>
+              Il setback lamiera è calcolato automaticamente dal nostro strumento utilizzando la formula:
+              <strong>Setback = (R + T) × tan(α/2)</strong> dove R è il raggio interno, T lo spessore e α l'angolo di piegatura.
+            </p>
+            <p>
+              Questa misura è fondamentale per determinare con precisione le posizioni delle flange nel progetto CAD
+              e garantire un assemblaggio perfetto dei componenti in lamiera.
+            </p>
+          </div>
+
+          <div class="seo-content-block">
+            <h3>Calcolatore Piegatura Online Gratuito</h3>
+            <p>
+              Il nostro calcolatore piegatura lamiera è completamente gratuito e accessibile online da qualsiasi dispositivo.
+              Non richiede installazione di software e funziona direttamente nel browser web.
+            </p>
+            <p>
+              Ottimizzato per l'industria metalmeccanica, supporta tutti i principali materiali da costruzione:
+              acciaio S235, alluminio 1100/5052/6061, acciaio inox AISI 304, rame, ottone e titanio.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA Section -->
     <section class="cta">
       <div class="container">
@@ -159,8 +218,8 @@
           <p class="cta-description">
             Inizia subito con il calcolatore professionale per la lavorazione lamiera
           </p>
-          <router-link to="/calculator" class="btn btn-primary btn-lg">
-            🚀 Apri Calcolatore
+          <router-link to="/calcolatore-sviluppo-lamiera" class="btn btn-primary btn-lg">
+            🚀 Calcola Bend Allowance Online
           </router-link>
         </div>
       </div>
@@ -603,5 +662,64 @@ export default {
   .feature-card {
     margin: 0 var(--space-2);
   }
+
+  .seo-content {
+    padding: var(--space-12) 0;
+  }
+
+  .seo-content-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  .seo-content-block {
+    padding: var(--space-4);
+  }
+}
+
+/* SEO Content Section */
+.seo-content {
+  background: #f8f9fa;
+  padding: 60px 0;
+  margin: 40px 0;
+}
+
+.seo-content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.seo-content-block {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.seo-content-block h2 {
+  color: #1976d2;
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.seo-content-block h3 {
+  color: #424242;
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.seo-content-block p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.seo-content-block strong {
+  color: #1976d2;
+  font-weight: 600;
 }
 </style>

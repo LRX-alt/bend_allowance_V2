@@ -6,7 +6,9 @@
         <div class="header-content">
           <!-- Logo e titolo -->
           <div class="brand">
-            <div class="brand-icon">📐</div>
+            <div class="brand-logo">
+              <img src="@/assets/logo.png" alt="Bend Allowance Calculator" class="logo-image" />
+            </div>
             <div class="brand-text">
               <h1 class="brand-title">Bend Allowance</h1>
               <p class="brand-subtitle">Calcolatore Lamiera</p>
@@ -19,7 +21,7 @@
               <span class="nav-icon">🏠</span>
               Home
             </router-link>
-            <router-link to="/calculator" class="nav-link">
+            <router-link to="/calcolatore-sviluppo-lamiera" class="nav-link">
               <span class="nav-icon">🧮</span>
               Calcolatore
             </router-link>
@@ -115,16 +117,22 @@ body {
   gap: var(--space-3);
 }
 
-.brand-icon {
-  font-size: var(--text-2xl);
+.brand-logo {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
   border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-md);
+}
+
+.logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
 }
 
 .brand-text {
@@ -260,6 +268,11 @@ body {
     order: 1;
   }
 
+  .brand-logo {
+    width: 40px;
+    height: 40px;
+  }
+
   .main-nav {
     order: 2;
     justify-content: center;
@@ -290,6 +303,11 @@ body {
 
   .brand-subtitle {
     font-size: var(--text-xs);
+  }
+
+  .brand-logo {
+    width: 36px;
+    height: 36px;
   }
 
   .nav-link {

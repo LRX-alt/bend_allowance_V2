@@ -2,7 +2,7 @@
       <div class="calculator-container">
     <header class="calculator-header">
       <!-- Titolo semplificato -->
-      <h1>Sviluppo Lamiera</h1>
+      <h1>Calcolatore Bend Allowance Lamiera Online</h1>
       <UnitsSelector @update:unit="updateUnits" />
     </header>
 
@@ -480,6 +480,57 @@
             </div>
             <p v-if="shareUrlCopied" class="success-message">Link copiato negli appunti!</p>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sezione SEO con contenuto ottimizzato -->
+    <div class="seo-calculator-section">
+      <div class="container">
+        <h2>Formula Piegatura Lamiera: Calcolo Bend Allowance</h2>
+
+        <div class="seo-content-blocks">
+          <div class="seo-block">
+            <h3>Come Calcolare il Bend Allowance</h3>
+            <p>
+              Il bend allowance lamiera è la lunghezza aggiuntiva necessaria per ottenere l'angolo desiderato dopo la piegatura.
+              La formula principale per il calcolo bend allowance è: <strong>BA = α × (R + K × T)</strong>
+              dove α è l'angolo in radianti, R il raggio interno, K il fattore K e T lo spessore.
+            </p>
+          </div>
+
+          <div class="seo-block">
+            <h3>Bend Deduction Calculator Online</h3>
+            <p>
+              Il bend deduction rappresenta la differenza tra la lunghezza sviluppata e la lunghezza finale del pezzo piegato.
+              Formula standard: <strong>BD = 2 × SB - BA</strong> dove SB è il setback calcolato come
+              <strong>SB = (R + T) × tan(α/2)</strong>.
+            </p>
+          </div>
+
+          <div class="seo-block">
+            <h3>Calcolo Sviluppo Lamiera Professionale</h3>
+            <p>
+              Il nostro calcolatore piegatura lamiera utilizza algoritmi avanzati basati su standard industriali
+              DIN 6935 e ANSI per garantire risultati precisi. Supporta tutti i principali materiali:
+              acciaio S235, alluminio 1100/5052/6061, acciaio inox AISI 304, rame, ottone e titanio.
+            </p>
+          </div>
+
+          <div class="seo-block">
+            <h3>Fattore K per Materiali Lamiera</h3>
+            <p>
+              Il fattore K dipende dal materiale utilizzato e influenza direttamente il calcolo del bend allowance.
+              Valori tipici: acciaio dolce K=0.33, alluminio K=0.40, acciaio inox K=0.38, rame K=0.45.
+              Il nostro strumento seleziona automaticamente il valore corretto per ogni materiale.
+            </p>
+          </div>
+        </div>
+
+        <div class="back-to-home">
+          <router-link to="/" class="btn btn-secondary">
+            ← Torna alla Home
+          </router-link>
         </div>
       </div>
     </div>
@@ -2079,5 +2130,63 @@ input:checked + .slider:before {
 
 .section-description a:hover {
   text-decoration: underline;
+}
+
+/* Sezione SEO Calculator */
+.seo-calculator-section {
+  background: #f8f9fa;
+  padding: 60px 0;
+  margin-top: 40px;
+  border-top: 2px solid #e9ecef;
+}
+
+.seo-calculator-section h2 {
+  color: #1976d2;
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 40px;
+  font-weight: 600;
+}
+
+.seo-content-blocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.seo-block {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.seo-block h3 {
+  color: #424242;
+  font-size: 1.25rem;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.seo-block p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+.seo-block strong {
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.back-to-home {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.back-to-home .btn {
+  padding: 12px 24px;
+  font-size: 16px;
 }
 </style>
