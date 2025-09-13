@@ -482,7 +482,7 @@ export default {
       }
     );
 
-    // Aggiorna i nostri risultati interni quando cambiano i parametri del padre
+    // Aggiorna i miei risultati interni quando cambiano i parametri del padre
     watch(
       [
         () => props.spessore,
@@ -502,7 +502,7 @@ export default {
       { deep: true }
     );
 
-    // Aggiorna i nostri risultati interni quando cambiano i parametri locali
+    // Aggiorna i miei risultati interni quando cambiano i parametri locali
     watch([metodo, materiale], () => {
       console.log('Parametri locali cambiati, aggiornamento...');
       nextTick(() => {

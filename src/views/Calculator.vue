@@ -511,7 +511,7 @@
           <div class="seo-block">
             <h3>Calcolo Sviluppo Lamiera Professionale</h3>
             <p>
-              Il nostro calcolatore piegatura lamiera utilizza algoritmi avanzati basati su standard industriali
+              Il mio calcolatore piegatura lamiera utilizza algoritmi avanzati basati su standard industriali
               DIN 6935 e ANSI per garantire risultati precisi. Supporta tutti i principali materiali:
               acciaio S235, alluminio 1100/5052/6061, acciaio inox AISI 304, rame, ottone e titanio.
             </p>
@@ -522,7 +522,7 @@
             <p>
               Il fattore K dipende dal materiale utilizzato e influenza direttamente il calcolo del bend allowance.
               Valori tipici: acciaio dolce K=0.33, alluminio K=0.40, acciaio inox K=0.38, rame K=0.45.
-              Il nostro strumento seleziona automaticamente il valore corretto per ogni materiale.
+              Il mio strumento seleziona automaticamente il valore corretto per ogni materiale.
             </p>
           </div>
         </div>

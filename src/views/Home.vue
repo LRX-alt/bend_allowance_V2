@@ -10,7 +10,7 @@
               <span class="highlight">parametri di piegatura</span>
             </h1>
             <p class="hero-description">
-              Strumento avanzato per la determinazione dello sviluppo lamiera tramite Bend Allowance, Bend Deduction, Setback e compensazioni di piegatura. <span class="highlight">Ottimizzato per l'industria metalmeccanica moderna.</span>
+              Strumento avanzato sviluppato da un professionista con oltre 20 anni di esperienza nella piegatura lamiera, per la determinazione dello sviluppo lamiera tramite Bend Allowance, Bend Deduction, Setback e compensazioni di piegatura. <span class="highlight">Ottimizzato per l'industria metalmeccanica moderna.</span>
             </p>
             <div class="hero-actions">
           <router-link to="/calcolatore-sviluppo-lamiera" class="btn btn-primary btn-lg">
@@ -154,6 +154,47 @@
       </div>
     </section>
 
+    <!-- Experience Section -->
+    <section class="experience">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Frutto di 20 Anni di Esperienza</h2>
+          <p class="section-description">
+            Sviluppato da un professionista con oltre ventennale esperienza nella lavorazione lamiera e piegatura industriale.
+          </p>
+        </div>
+
+        <div class="experience-grid">
+          <div class="experience-card">
+            <div class="experience-icon">🏭</div>
+            <h3 class="experience-title">Esperti Industriali</h3>
+            <p class="experience-description">
+              Ho lavorato per anni nell'industria metalmeccanica, sviluppando competenze pratiche nella piegatura di lamiera
+              per diversi settori: automotive, arredamento, edilizia e meccanica di precisione.
+            </p>
+          </div>
+
+          <div class="experience-card">
+            <div class="experience-icon">💻</div>
+            <h3 class="experience-title">Tecnologia Moderna</h3>
+            <p class="experience-description">
+              Combino la mia esperienza sul campo con le più moderne tecnologie digitali per offrire uno strumento
+              che risponda alle esigenze reali dell'officina e del progettista.
+            </p>
+          </div>
+
+          <div class="experience-card">
+            <div class="experience-icon">🎯</div>
+            <h3 class="experience-title">Precisione Garantita</h3>
+            <p class="experience-description">
+              Ogni formula e algoritmo è stato testato e validato attraverso anni di applicazione pratica,
+              garantendo risultati affidabili per qualsiasi tipo di lavorazione lamiera.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- SEO Content Section -->
     <section class="seo-content">
       <div class="container">
@@ -161,12 +202,12 @@
           <div class="seo-content-block">
             <h2>Calcolo Bend Allowance Lamiera</h2>
             <p>
-              Il nostro calcolatore bend allowance online permette di calcolare con precisione il bend allowance per qualsiasi tipo di lamiera.
+              Il mio calcolatore bend allowance online permette di calcolare con precisione il bend allowance per qualsiasi tipo di lamiera.
               Utilizziamo formule standard DIN 6935 e ANSI per garantire risultati accurati nel calcolo dello sviluppo lamiera.
             </p>
             <p>
               Il bend allowance rappresenta la lunghezza aggiuntiva necessaria per ottenere l'angolo desiderato dopo la piegatura.
-              Il nostro strumento calcola automaticamente il bend allowance in base al materiale selezionato, allo spessore della lamiera,
+              Il mio strumento calcola automaticamente il bend allowance in base al materiale selezionato, allo spessore della lamiera,
               al raggio di piegatura e all'angolo richiesto.
             </p>
           </div>
@@ -186,7 +227,7 @@
           <div class="seo-content-block">
             <h3>Calcolo Setback Lamiera</h3>
             <p>
-              Il setback lamiera è calcolato automaticamente dal nostro strumento utilizzando la formula:
+              Il setback lamiera è calcolato automaticamente dal mio strumento utilizzando la formula:
               <strong>Setback = (R + T) × tan(α/2)</strong> dove R è il raggio interno, T lo spessore e α l'angolo di piegatura.
             </p>
             <p>
@@ -198,7 +239,7 @@
           <div class="seo-content-block">
             <h3>Calcolatore Piegatura Online Gratuito</h3>
             <p>
-              Il nostro calcolatore piegatura lamiera è completamente gratuito e accessibile online da qualsiasi dispositivo.
+              Il mio calcolatore piegatura lamiera è completamente gratuito e accessibile online da qualsiasi dispositivo.
               Non richiede installazione di software e funziona direttamente nel browser web.
             </p>
             <p>
@@ -544,6 +585,84 @@ export default {
 }
 
 
+
+/* === EXPERIENCE SECTION === */
+.experience {
+  padding: var(--space-12) 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  position: relative;
+}
+
+.experience::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23e2e8f0' fill-opacity='0.05'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E") repeat;
+  opacity: 0.3;
+}
+
+.experience-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-8);
+  position: relative;
+  z-index: 1;
+}
+
+.experience-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.experience-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--success-500), var(--success-600));
+  transform: scaleX(0);
+  transition: transform var(--transition-fast);
+}
+
+.experience-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--success-200);
+}
+
+.experience-card:hover::before {
+  transform: scaleX(1);
+}
+
+.experience-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-4);
+  display: block;
+}
+
+.experience-title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  margin: 0 0 var(--space-3) 0;
+  color: var(--gray-900);
+}
+
+.experience-description {
+  color: var(--gray-600);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
 
 /* === CTA SECTION === */
 .cta {

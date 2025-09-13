@@ -42,7 +42,7 @@
       <div class="container">
         <div class="footer-content">
           <div class="footer-main">
-            <p class="footer-text">© 2025 Bend Allowance Calculator - Ideato e sviluppato da Di Furio Loris</p>
+            <p class="footer-text">© 2025 Bend Allowance Calculator - Ideato e sviluppato da Loris Di Furio</p>
             <p class="footer-subtitle">Calcolatore professionale per bend deduction e sviluppo lamiera</p>
           </div>
         </div>
