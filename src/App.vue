@@ -41,7 +41,7 @@
         <div class="footer-content">
           <div class="footer-main">
             <p class="footer-text">
-              © 2025 Bend Allowance Calculator - Ideato e sviluppato da Loris Di Furio
+              © {{ currentYear }} Bend Allowance Calculator - Ideato e sviluppato da Loris Di Furio
             </p>
             <p class="footer-subtitle">
               Calcolatore professionale per bend deduction e sviluppo lamiera
@@ -56,6 +56,10 @@
 <script>
 export default {
   name: 'App',
+  setup() {
+    const currentYear = new Date().getFullYear();
+    return { currentYear };
+  },
 };
 </script>
 
