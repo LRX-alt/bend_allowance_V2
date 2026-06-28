@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div class="app-root">
     <!-- Header moderno -->
     <header class="app-header">
       <div class="container">
@@ -18,11 +18,49 @@
           <!-- Navigation -->
           <nav class="main-nav">
             <router-link to="/" class="nav-link">
-              <span class="nav-icon">🏠</span>
+              <span class="nav-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+              </span>
               Home
             </router-link>
             <router-link to="/calcolatore-sviluppo-lamiera" class="nav-link">
-              <span class="nav-icon">🧮</span>
+              <span class="nav-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect width="16" height="20" x="4" y="2" rx="2" />
+                  <line x1="8" x2="16" y1="6" y2="6" />
+                  <line x1="16" x2="16" y1="14" y2="18" />
+                  <path d="M16 10h.01" />
+                  <path d="M12 10h.01" />
+                  <path d="M8 10h.01" />
+                  <path d="M12 14h.01" />
+                  <path d="M8 14h.01" />
+                  <path d="M12 18h.01" />
+                  <path d="M8 18h.01" />
+                </svg>
+              </span>
               Calcolatore
             </router-link>
           </nav>
@@ -54,9 +92,16 @@
 </template>
 
 <script>
+import { useHead } from '@unhead/vue';
+
 export default {
   name: 'App',
   setup() {
+    // Attributi <html> globali (vite-ssg/unhead altrimenti reimposta lang="en").
+    useHead({
+      htmlAttrs: { lang: 'it' },
+    });
+
     const currentYear = new Date().getFullYear();
     return { currentYear };
   },
@@ -75,7 +120,7 @@ body {
   line-height: 1.6;
 }
 
-#app {
+.app-root {
   font-family: var(--font-family-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -91,6 +136,37 @@ body {
   max-width: var(--container-max-width);
   margin: 0 auto;
   padding: 0 var(--space-4);
+}
+
+/* ==========================================================================
+   APP SHELL GLOBALS
+   ========================================================================== */
+
+/* Stili per le icone integrate nel testo */
+.nav-icon svg,
+.btn-icon,
+.section-icon,
+.alert-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+  margin-bottom: 2px;
+}
+
+.alert-icon {
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.thickness-warning .alert-icon,
+.validation-warning .alert-icon {
+  margin-right: 8px;
+  margin-top: 2px;
+}
+
+.d-flex {
+  display: flex;
+  align-items: flex-start;
 }
 
 /* === HEADER === */
@@ -204,7 +280,13 @@ body {
 }
 
 .nav-icon {
-  font-size: var(--text-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-icon svg {
+  margin: 0;
 }
 
 /* === MAIN CONTENT === */

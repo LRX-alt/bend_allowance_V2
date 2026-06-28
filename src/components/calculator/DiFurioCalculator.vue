@@ -105,10 +105,28 @@
       </div>
     </div>
 
-    <div class="validation-warning" v-if="raggioNonValido">
-      ⚠️ Attenzione: Il raggio di piega inserito ({{ raggioPiega }} mm) è inferiore al raggio minimo
-      consigliato ({{ raggioMinimoConsigliato.toFixed(2) }} mm) per questo materiale e spessore. La
-      piega potrebbe causare cricche.
+    <div class="alert alert-warning" v-if="raggioNonValido">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="alert-icon"
+      >
+        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+        <line x1="12" x2="12" y1="9" y2="13" />
+        <line x1="12" x2="12.01" y1="17" y2="17" />
+      </svg>
+      <span
+        >Attenzione: Il raggio di piega inserito ({{ raggioPiega }} mm) è inferiore al raggio minimo
+        consigliato ({{ raggioMinimoConsigliato.toFixed(2) }} mm) per questo materiale e spessore.
+        La piega potrebbe causare cricche.</span
+      >
     </div>
 
     <div class="work-suggestions">
@@ -127,17 +145,76 @@
         >Basato su materiale selezionato (V ≈ fattore × T, ritorno elastico ≈
         {{ (springbackPercent * 100).toFixed(0) }}%).</small
       >
-      <div v-if="isSpessoreAlto" class="thickness-warning">
-        ⚠️ Spessore elevato: usa V più ampie (es. {{ vDieConsigliata.toFixed(1) }} mm) e verifica la
-        forza pressa.
+      <div v-if="isSpessoreAlto" class="alert alert-warning">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="alert-icon"
+        >
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+          <line x1="12" x2="12" y1="9" y2="13" />
+          <line x1="12" x2="12.01" y1="17" y2="17" />
+        </svg>
+        <span
+          >Spessore elevato: usa V più ampie (es. {{ vDieConsigliata.toFixed(1) }} mm) e verifica la
+          forza pressa.</span
+        >
       </div>
-      <div v-if="materialeAvviso" class="material-warning">
-        {{ materialeAvviso }}
+      <div v-if="materialeAvviso" class="alert alert-info">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="alert-icon"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4" />
+          <path d="M12 8h.01" />
+        </svg>
+        <span>{{ materialeAvviso }}</span>
       </div>
     </div>
 
     <div class="results-section" v-if="risultato">
-      <h4>📊 Risultati</h4>
+      <h4>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="section-icon"
+        >
+          <rect width="16" height="20" x="4" y="2" rx="2" />
+          <line x1="8" x2="16" y1="6" y2="6" />
+          <line x1="16" x2="16" y1="14" y2="18" />
+          <path d="M16 10h.01" />
+          <path d="M12 10h.01" />
+          <path d="M8 10h.01" />
+          <path d="M12 14h.01" />
+          <path d="M8 14h.01" />
+          <path d="M12 18h.01" />
+          <path d="M8 18h.01" />
+        </svg>
+        Risultati
+      </h4>
 
       <div class="results-grid">
         <div class="result-card primary">

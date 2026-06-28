@@ -23,9 +23,9 @@
     <div class="matrix-controls">
       <h3>Impostazioni Matrice</h3>
 
-      <div class="form-row">
-        <label>Processo di Piegatura:</label>
-        <select v-model="processoAttuale" @change="updateProcesso">
+      <div class="form-row form-group">
+        <label class="form-label">Processo di Piegatura:</label>
+        <select v-model="processoAttuale" class="form-control" @change="updateProcesso">
           <option value="airBend">Piega in aria</option>
           <option value="bottoming">Piega a fondo cava</option>
           <option value="coining">Coniatura</option>
@@ -33,8 +33,8 @@
         <i class="info-icon" title="Il processo di piegatura influenza il raggio effettivo">i</i>
       </div>
 
-      <div class="form-row">
-        <label>Apertura matrice (V):</label>
+      <div class="form-row form-group">
+        <label class="form-label">Apertura matrice (V):</label>
         <div class="input-with-unit">
           <input
             type="number"
@@ -42,6 +42,7 @@
             @input="updateMatriceWidth"
             step="0.1"
             min="0.1"
+            class="form-control"
           />
           <span>mm</span>
         </div>
@@ -50,20 +51,40 @@
           title="La larghezza della matrice influenza il raggio effettivo di piega"
           >i</i
         >
-        <button @click="useRecommendedWidth" class="btn-small">Consigliata</button>
+        <button @click="useRecommendedWidth" class="btn btn-secondary btn-small">
+          Consigliata
+        </button>
       </div>
 
       <!-- Mostra il raggio effettivo calcolato quando larghezzaMatrice è impostata -->
-      <div v-if="larghezzaMatrice > 0 && raggioEffettivoCalcolato > 0" class="info-box">
-        <p>
-          <strong>Raggio effettivo stimato:</strong>
-          {{ raggioEffettivoCalcolato.toFixed(2) }} mm
-        </p>
-        <p class="info-note">
-          Con processo di {{ getProcessoLabel(processoAttuale) }}, una matrice di larghezza
-          {{ larghezzaMatrice.toFixed(2) }} mm produce un raggio interno di circa
-          {{ raggioEffettivoCalcolato.toFixed(2) }} mm.
-        </p>
+      <div v-if="larghezzaMatrice > 0 && raggioEffettivoCalcolato > 0" class="alert alert-info">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="alert-icon"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4" />
+          <path d="M12 8h.01" />
+        </svg>
+        <div>
+          <p class="mb-1 mt-0">
+            <strong>Raggio effettivo stimato:</strong>
+            {{ raggioEffettivoCalcolato.toFixed(2) }} mm
+          </p>
+          <p class="info-note mb-0 mt-0">
+            Con processo di {{ getProcessoLabel(processoAttuale) }}, una matrice di larghezza
+            {{ larghezzaMatrice.toFixed(2) }} mm produce un raggio interno di circa
+            {{ raggioEffettivoCalcolato.toFixed(2) }} mm.
+          </p>
+        </div>
       </div>
     </div>
 
@@ -71,9 +92,9 @@
     <div class="parameters-advanced">
       <h3>Parametri di Calcolo Avanzati</h3>
 
-      <div class="form-row">
-        <label>Metodo di calcolo:</label>
-        <select v-model="metodo" @change="aggiornaCalcoli">
+      <div class="form-row form-group">
+        <label class="form-label">Metodo di calcolo:</label>
+        <select v-model="metodo" class="form-control" @change="aggiornaCalcoli">
           <option value="standard">Standard</option>
           <option value="DIN6935">DIN 6935</option>
           <option value="ANSI">ANSI/ASME</option>
@@ -83,9 +104,9 @@
         <i class="info-icon" title="Formula utilizzata per il calcolo">i</i>
       </div>
 
-      <div class="form-row">
-        <label>Materiale:</label>
-        <select v-model="materiale" @change="aggiornaCalcoli">
+      <div class="form-row form-group">
+        <label class="form-label">Materiale:</label>
+        <select v-model="materiale" class="form-control" @change="aggiornaCalcoli">
           <optgroup
             v-for="gruppo in materialiPerCategoria"
             :key="gruppo.categoria"
@@ -184,13 +205,32 @@
 
       <!-- Pulsante per applicare i risultati -->
       <div class="apply-results">
-        <button @click="applicaRisultati" class="btn-apply">Applica Questi Risultati</button>
+        <button @click="applicaRisultati" class="btn btn-primary">Applica Questi Risultati</button>
         <p class="note">Clicca per utilizzare questi calcoli nella visualizzazione principale</p>
       </div>
     </div>
 
-    <div v-else-if="!hasBend" class="no-data-message">
-      Aggiungi almeno un segmento con un angolo di piega per visualizzare i calcoli avanzati.
+    <div v-else-if="!hasBend" class="alert alert-warning">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="alert-icon"
+      >
+        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+        <line x1="12" x2="12" y1="9" y2="13" />
+        <line x1="12" x2="12.01" y1="17" y2="17" />
+      </svg>
+      <span
+        >Aggiungi almeno un segmento con un angolo di piega per visualizzare i calcoli
+        avanzati.</span
+      >
     </div>
   </section>
 </template>

@@ -2,56 +2,104 @@
   <div class="modern-segments-panel">
     <h2 class="panel-title">Segmenti</h2>
 
-    <div class="segments-table">
-      <div class="segments-header">
-        <div class="segment-cell">#</div>
-        <div class="segment-cell">Lunghezza</div>
-        <div class="segment-cell">Angolo</div>
-        <div class="segment-cell">Azioni</div>
-      </div>
-
-      <template v-for="(segment, index) in modelValue" :key="index">
-        <div class="segment-row">
-          <div class="segment-cell">{{ index + 1 }}</div>
-          <div class="segment-cell">
-            <input
-              type="number"
-              v-model.number="segment.length"
-              min="0.1"
-              step="1"
-              class="segment-input"
-              :class="{ invalid: isLengthInvalid(segment) }"
-              @input="updateModel"
-            />
-          </div>
-          <div class="segment-cell">
-            <input
-              type="number"
-              v-model.number="segment.angle"
-              min="-180"
-              max="180"
-              step="1"
-              class="segment-input"
-              :class="{ invalid: isAngleInvalid(segment) }"
-              :disabled="index === 0"
-              :title="index === 0 ? 'Il primo segmento non ha piega in ingresso' : ''"
-              @input="updateModel"
-            />
-          </div>
-          <div class="segment-cell">
-            <button @click="$emit('remove', index)" class="btn-icon" title="Rimuovi segmento">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-        </div>
-        <div v-if="rowMessage(segment, index)" class="segment-message">
-          {{ rowMessage(segment, index) }}
-        </div>
-      </template>
+    <div class="segments-table table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Lunghezza</th>
+            <th>Angolo</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template v-for="(segment, index) in modelValue" :key="index">
+            <tr class="segment-row">
+              <td>{{ index + 1 }}</td>
+              <td>
+                <input
+                  type="number"
+                  v-model.number="segment.length"
+                  min="0.1"
+                  step="1"
+                  class="form-control segment-input"
+                  :class="{ invalid: isLengthInvalid(segment) }"
+                  @input="updateModel"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  v-model.number="segment.angle"
+                  min="-180"
+                  max="180"
+                  step="1"
+                  class="form-control segment-input"
+                  :class="{ invalid: isAngleInvalid(segment) }"
+                  :disabled="index === 0"
+                  :title="index === 0 ? 'Il primo segmento non ha piega in ingresso' : ''"
+                  @input="updateModel"
+                />
+              </td>
+              <td>
+                <button
+                  @click="$emit('remove', index)"
+                  class="btn btn-secondary btn-icon"
+                  title="Rimuovi segmento"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </td>
+            </tr>
+            <tr v-if="rowMessage(segment, index)" class="segment-message-row">
+              <td colspan="4">
+                <div class="segment-message validation-warning d-flex">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="alert-icon"
+                  >
+                    <path
+                      d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                    />
+                    <line x1="12" x2="12" y1="9" y2="13" />
+                    <line x1="12" x2="12.01" y1="17" y2="17" />
+                  </svg>
+                  <span>{{ rowMessage(segment, index) }}</span>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
     </div>
 
     <div class="segments-actions">
-      <button @click="$emit('add')" class="btn-primary">+ Aggiungi Segmento</button>
+      <button @click="$emit('add')" class="btn btn-primary">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="btn-icon"
+        >
+          <line x1="12" x2="12" y1="5" y2="19" />
+          <line x1="5" x2="19" y1="12" y2="12" />
+        </svg>
+        Aggiungi Segmento
+      </button>
     </div>
 
     <p v-if="modelValue.length === 0" class="segments-empty">
@@ -135,66 +183,31 @@ export default {
 }
 
 .segments-header {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) 48px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-  font-weight: 600;
-  color: #495057;
+  display: none;
 }
 
 .segment-row {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) 48px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.segment-row:last-child {
-  border-bottom: none;
+  display: none;
 }
 
 .segment-cell {
-  min-width: 0;
-  padding: 8px;
-  display: flex;
-  align-items: center;
+  display: none;
 }
 
 /* Colonne numero e azioni: contenuto centrato e compatto */
 .segment-header-num,
 .segment-cell:first-child {
-  justify-content: center;
-  padding-left: 4px;
-  padding-right: 4px;
+  display: none;
 }
 
 .segments-header .segment-cell:last-child,
 .segment-row .segment-cell:last-child {
-  justify-content: center;
-  padding-left: 4px;
-  padding-right: 4px;
+  display: none;
 }
 
 .segment-input {
-  width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  padding: 6px 8px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.segment-input:focus {
-  border-color: #86b7fe;
-  outline: 0;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-.segment-input:disabled {
-  background-color: #f1f3f5;
-  color: #adb5bd;
-  cursor: not-allowed;
 }
 
 .segment-input.invalid {
@@ -202,17 +215,10 @@ export default {
   background-color: #fff5f5;
 }
 
-.segment-input.invalid:focus {
-  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.2);
-}
-
 .segment-message {
-  grid-column: 1 / -1;
   padding: 6px 10px;
   margin: -6px 0 6px;
   font-size: 12px;
-  color: #b21f2d;
-  background: #fce8e6;
   border-radius: 4px;
 }
 
@@ -223,21 +229,12 @@ export default {
 }
 
 .btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 4px;
-  border: none;
-  background-color: #f8f9fa;
+  background-color: transparent;
   color: #dc3545;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
 .btn-icon:hover {
-  background-color: #ffd5d9;
+  background-color: #fee2e2;
 }
 
 .segments-actions {
@@ -245,8 +242,6 @@ export default {
 }
 
 .btn-primary {
-  padding: 8px 16px;
-  background-color: #0d6efd;
   color: white;
   border: none;
   border-radius: 4px;

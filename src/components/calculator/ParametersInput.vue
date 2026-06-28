@@ -3,11 +3,11 @@
     <h2 class="panel-title">Materiale</h2>
 
     <!-- Selezione materiale -->
-    <div class="parameter-row">
-      <label class="parameter-label">Materiale</label>
+    <div class="parameter-row form-group">
+      <label class="parameter-label form-label">Materiale</label>
       <select
         v-model="materialeSelezionatoLocal"
-        class="parameter-select"
+        class="parameter-select form-control"
         @change="updateMateriale"
       >
         <optgroup
@@ -23,9 +23,9 @@
     </div>
 
     <!-- Spessore -->
-    <div class="parameter-row">
+    <div class="parameter-row form-group">
       <div class="parameter-header">
-        <label class="parameter-label">Spessore</label>
+        <label class="parameter-label form-label">Spessore</label>
         <span class="parameter-value"
           >{{ (spessoreLocal * unitFactor).toFixed(1) }} {{ unitLabel }}</span
         >
@@ -37,33 +37,67 @@
           :min="0"
           :max="spessoriStandard.length - 1"
           :step="1"
-          class="parameter-slider"
+          class="parameter-slider form-range"
           @input="updateSpessore"
         />
       </div>
       <div class="parameter-input-group" style="margin-top: 8px">
         <select
           v-model.number="quickSpessoreSelezionato"
-          class="parameter-select"
+          class="parameter-select form-control"
           @change="applyQuickSpessore"
         >
           <option :value="null">Seleziona spessore rapido</option>
           <option v-for="qs in quickSpessori" :key="qs" :value="qs">{{ qs }} mm</option>
         </select>
       </div>
-      <div v-if="isSpessoreAlto" class="thickness-warning">
-        ⚠️ Spessore elevato: usa V più ampie (es. {{ matriceConsigliata }} mm) e verifica la forza
-        pressa.
+      <div v-if="isSpessoreAlto" class="alert alert-warning">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="alert-icon"
+        >
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+          <line x1="12" x2="12" y1="9" y2="13" />
+          <line x1="12" x2="12.01" y1="17" y2="17" />
+        </svg>
+        <span
+          >Spessore elevato: usa V più ampie (es. {{ matriceConsigliata }} mm) e verifica la forza
+          pressa.</span
+        >
       </div>
-      <div v-if="materialeAvviso" class="material-warning">
-        {{ materialeAvviso }}
+      <div v-if="materialeAvviso" class="alert alert-info">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="alert-icon"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4" />
+          <path d="M12 8h.01" />
+        </svg>
+        <span>{{ materialeAvviso }}</span>
       </div>
     </div>
 
     <!-- Raggio piega -->
-    <div class="parameter-row">
+    <div class="parameter-row form-group">
       <div class="parameter-header">
-        <label class="parameter-label">Raggio di piega</label>
+        <label class="parameter-label form-label">Raggio di piega</label>
         <span class="parameter-value"
           >{{ (raggioPiegaLocal * unitFactor).toFixed(1) }} {{ unitLabel }}</span
         >
@@ -75,16 +109,16 @@
           min="0.1"
           max="10"
           step="0.1"
-          class="parameter-slider"
+          class="parameter-slider form-range"
           @input="updateRaggioPiega"
         />
       </div>
     </div>
 
     <!-- Fattore K -->
-    <div class="parameter-row">
+    <div class="parameter-row form-group">
       <div class="parameter-header">
-        <label class="parameter-label">Fattore K</label>
+        <label class="parameter-label form-label">Fattore K</label>
         <span class="parameter-value">{{ fattoreKLocal.toFixed(2) }}</span>
       </div>
       <div class="parameter-input-group">
@@ -94,19 +128,23 @@
           min="0.01"
           max="0.5"
           step="0.01"
-          class="parameter-input"
+          class="parameter-input form-control"
           @input="updateFattoreK"
         />
-        <button class="btn-auto" @click="setDynamicK">Auto</button>
+        <button class="btn btn-secondary" @click="setDynamicK">Auto</button>
       </div>
     </div>
 
     <h2 class="panel-title process-title">Processo</h2>
 
     <!-- Processo di piegatura -->
-    <div class="parameter-row">
-      <label class="parameter-label">Processo</label>
-      <select v-model="processoLocal" class="parameter-select" @change="updateProcesso">
+    <div class="parameter-row form-group">
+      <label class="parameter-label form-label">Processo</label>
+      <select
+        v-model="processoLocal"
+        class="parameter-select form-control"
+        @change="updateProcesso"
+      >
         <option value="airBend">Piega in aria</option>
         <option value="bottoming">Piega a fondo cava</option>
         <option value="coining">Coniatura</option>
@@ -114,9 +152,9 @@
     </div>
 
     <!-- Larghezza matrice -->
-    <div class="parameter-row">
+    <div class="parameter-row form-group">
       <div class="parameter-header">
-        <label class="parameter-label">Apertura Matrice (V)</label>
+        <label class="parameter-label form-label">Apertura Matrice (V)</label>
         <span class="parameter-value formula-indicator">
           {{ (larghezzaMatriceLocal * unitFactor).toFixed(1) }} {{ unitLabel }}
           <small v-if="matriceStandardSelezionata !== 'custom'">(Standard)</small>
@@ -127,7 +165,7 @@
         <!-- Dropdown matrici standard -->
         <select
           v-model="matriceStandardSelezionata"
-          class="parameter-select matrix-select"
+          class="parameter-select matrix-select form-control"
           @change="aggiornaMatriceStandard"
         >
           <option
@@ -147,13 +185,13 @@
           v-model.number="larghezzaMatriceCustom"
           min="1"
           step="0.5"
-          class="parameter-input matrix-custom-input"
+          class="parameter-input matrix-custom-input form-control"
           placeholder="mm"
           @input="updateLarghezzaMatriceCustom"
         />
 
         <button
-          class="btn-auto"
+          class="btn btn-secondary"
           @click="calcolaMatriceOttimale"
           title="Seleziona matrice ottimale per lo spessore"
         >

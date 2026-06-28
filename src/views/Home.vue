@@ -17,7 +17,30 @@
             </p>
             <div class="hero-actions">
               <router-link to="/calcolatore-sviluppo-lamiera" class="btn btn-primary btn-lg">
-                🧮 Inizia Calcolo
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="btn-icon"
+                >
+                  <rect width="16" height="20" x="4" y="2" rx="2" />
+                  <line x1="8" x2="16" y1="6" y2="6" />
+                  <line x1="16" x2="16" y1="14" y2="18" />
+                  <path d="M16 10h.01" />
+                  <path d="M12 10h.01" />
+                  <path d="M8 10h.01" />
+                  <path d="M12 14h.01" />
+                  <path d="M8 14h.01" />
+                  <path d="M12 18h.01" />
+                  <path d="M8 18h.01" />
+                </svg>
+                Inizia Calcolo
               </router-link>
               <button @click="scrollToFeatures" class="btn btn-secondary btn-lg">
                 📖 Scopri di più
@@ -101,7 +124,23 @@
 
           <!-- Feature 3 -->
           <div class="feature-card">
-            <div class="feature-icon">📊</div>
+            <div class="feature-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 3v18h18" />
+                <rect width="4" height="7" x="7" y="10" rx="1" />
+                <rect width="4" height="12" x="15" y="5" rx="1" />
+              </svg>
+            </div>
             <h3 class="feature-title">Database Materiali Lamiera</h3>
             <p class="feature-description">
               Database completo proprietà materiali lamiera per calcolo piegatura accurato. Supporto
@@ -293,10 +332,40 @@
 
 <script>
 import { ref } from 'vue';
+import { useHead } from '@unhead/vue';
+
+const SITE_URL = 'https://www.sviluppolamiera.it';
 
 export default {
   name: 'Home',
   setup() {
+    useHead({
+      title: 'Calcolatore Sviluppo Lamiera | Bend Allowance Calculator Online Gratuito',
+      meta: [
+        {
+          name: 'description',
+          content:
+            'Calcolatore professionale per sviluppo lamiera, bend allowance, bend deduction e setback. Strumento avanzato per calcolo piegatura lamiera, ottimizzato per industria metalmeccanica.',
+        },
+        {
+          name: 'keywords',
+          content:
+            'calcolatore sviluppo lamiera, bend allowance calculator, calcolo piegatura lamiera, bend deduction, setback lamiera',
+        },
+        {
+          property: 'og:title',
+          content: 'Calcolatore Sviluppo Lamiera | Bend Allowance Calculator Online',
+        },
+        {
+          property: 'og:description',
+          content:
+            'Calcolatore professionale per calcolo piegatura lamiera. Bend allowance, bend deduction, setback online gratuitamente.',
+        },
+        { property: 'og:url', content: `${SITE_URL}/` },
+      ],
+      link: [{ rel: 'canonical', href: `${SITE_URL}/` }],
+    });
+
     const featuresSection = ref(null);
 
     const scrollToFeatures = () => {

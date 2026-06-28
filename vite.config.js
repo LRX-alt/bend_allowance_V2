@@ -17,6 +17,15 @@ export default defineConfig({
   server: {
     port: 8080,
   },
+  // Opzioni per vite-ssg (Static Site Generation)
+  ssgOptions: {
+    script: 'async',
+    formatting: 'minify',
+    // Genera solo le pagine reali; il path '/calculator' e un redirect.
+    includedRoutes(paths) {
+      return paths.filter(path => path !== '/calculator');
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',

@@ -1,10 +1,19 @@
-import { createApp } from 'vue';
+import { ViteSSG } from 'vite-ssg';
 import App from './App.vue';
-import router from './router/index.js'; // Importa il router
+import { routes } from './router/index.js';
 
 // Import design system
 import './assets/styles/design-system.css';
 
-createApp(App)
-  .use(router) // Usa il router nell'app
-  .mount('#app');
+// ViteSSG sostituisce createApp(App).mount('#app'): crea l'app, il router
+// (con createWebHistory) e gestisce sia il pre-render statico (build) sia
+// l'idratazione lato client. La gestione del <head> avviene tramite
+// @unhead/vue (useHead) nei singoli componenti.
+export const createApp = ViteSSG(
+  App,
+  { routes },
+  ({ app, router }) => {
+    void app;
+    void router;
+  }
+);

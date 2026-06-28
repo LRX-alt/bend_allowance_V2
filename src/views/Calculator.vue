@@ -21,127 +21,159 @@
         <div class="main-calculator-layout">
           <div class="left-column">
             <!-- Step 1: Materiale, parametri e utensile -->
-            <section class="step-card">
-              <div class="step-header">
+            <section class="step-card card">
+              <div class="step-header card-header">
                 <span class="step-num">1</span>
-                <h2 class="step-title">Materiale &amp; Utensile</h2>
+                <h2 class="step-title card-title">Materiale &amp; Utensile</h2>
               </div>
-              <ParametersInput
-                v-model:spessore="spessore"
-                v-model:raggioPiega="raggioPiega"
-                v-model:materialeSelezionato="materialeSelezionato"
-                v-model:fattoreK="fattoreK"
-                v-model:fattoreKDinamico="fattoreKDinamico"
-                v-model:metodoDiCalcolo="metodoDiCalcolo"
-                v-model:processo="processo"
-                v-model:larghezzaMatrice="larghezzaMatrice"
-                :fattoriKMateriali="fattoriKMateriali"
-                @update:fattoriKMateriali="updateFattoriKMateriali"
-                :unitFactor="unitFactor"
-                :unitLabel="unitLabel"
-              />
+              <div class="card-body">
+                <ParametersInput
+                  v-model:spessore="spessore"
+                  v-model:raggioPiega="raggioPiega"
+                  v-model:materialeSelezionato="materialeSelezionato"
+                  v-model:fattoreK="fattoreK"
+                  v-model:fattoreKDinamico="fattoreKDinamico"
+                  v-model:metodoDiCalcolo="metodoDiCalcolo"
+                  v-model:processo="processo"
+                  v-model:larghezzaMatrice="larghezzaMatrice"
+                  :fattoriKMateriali="fattoriKMateriali"
+                  @update:fattoriKMateriali="updateFattoriKMateriali"
+                  :unitFactor="unitFactor"
+                  :unitLabel="unitLabel"
+                />
 
-              <AccordionSection
-                title="Opzioni avanzate"
-                hint="Senso di laminazione, tipo matrice e modalità di calcolo"
-              >
-                <div class="parameters-grid">
-                  <div class="form-row">
-                    <label>Senso di laminazione:</label>
-                    <select v-model="direzione">
-                      <option value="parallelaPiega">Parallelo alla piega</option>
-                      <option value="perpendicolarePiega">Perpendicolare alla piega</option>
-                    </select>
+                <AccordionSection
+                  title="Opzioni avanzate"
+                  hint="Senso di laminazione, tipo matrice e modalità di calcolo"
+                >
+                  <div class="parameters-grid">
+                    <div class="form-row form-group">
+                      <label class="form-label">Senso di laminazione:</label>
+                      <select v-model="direzione" class="form-control">
+                        <option value="parallelaPiega">Parallelo alla piega</option>
+                        <option value="perpendicolarePiega">Perpendicolare alla piega</option>
+                      </select>
+                    </div>
+
+                    <div class="form-row form-group">
+                      <label class="form-label">Tipo di matrice:</label>
+                      <select v-model="tipoMatrice" class="form-control">
+                        <option value="vDie">Matrice (V)</option>
+                        <option value="gooseneck">Gooseneck</option>
+                        <option value="offset">Offset</option>
+                        <option value="zDie">Z-Die</option>
+                        <option value="custom">Custom</option>
+                      </select>
+                    </div>
                   </div>
 
-                  <div class="form-row">
-                    <label>Tipo di matrice:</label>
-                    <select v-model="tipoMatrice">
-                      <option value="vDie">Matrice (V)</option>
-                      <option value="gooseneck">Gooseneck</option>
-                      <option value="offset">Offset</option>
-                      <option value="zDie">Z-Die</option>
-                      <option value="custom">Custom</option>
-                    </select>
+                  <div
+                    class="alert alert-info raggio-effettivo-info"
+                    v-if="larghezzaMatrice && larghezzaMatrice > 0"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="alert-icon"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 16v-4" />
+                      <path d="M12 8h.01" />
+                    </svg>
+                    <span><strong>Raggio effettivo:</strong> {{ raggioEffettivoFormattato }}</span>
                   </div>
-                </div>
 
-                <div class="raggio-effettivo-info" v-if="larghezzaMatrice && larghezzaMatrice > 0">
-                  <strong>Raggio effettivo:</strong> {{ raggioEffettivoFormattato }}
-                </div>
-
-                <div class="calculation-mode-toggle" v-if="hasBendAndAdvanced">
-                  <label class="toggle-label">
-                    <span class="mode-text">Modalità di calcolo:</span>
-                    <span class="toggle-switch">
-                      <input
-                        type="checkbox"
-                        v-model="usaCalcoliAvanzati"
-                        @change="toggleCalcoliAvanzati"
-                      />
-                      <span class="slider"></span>
-                    </span>
-                    <span class="mode-text">{{
-                      usaCalcoliAvanzati ? 'Avanzata' : 'Standard'
-                    }}</span>
-                  </label>
-                </div>
-              </AccordionSection>
+                  <div class="calculation-mode-toggle" v-if="hasBendAndAdvanced">
+                    <label class="toggle-label">
+                      <span class="mode-text">Modalità di calcolo:</span>
+                      <span class="toggle-switch">
+                        <input
+                          type="checkbox"
+                          v-model="usaCalcoliAvanzati"
+                          @change="toggleCalcoliAvanzati"
+                        />
+                        <span class="slider"></span>
+                      </span>
+                      <span class="mode-text">{{
+                        usaCalcoliAvanzati ? 'Avanzata' : 'Standard'
+                      }}</span>
+                    </label>
+                  </div>
+                </AccordionSection>
+              </div>
             </section>
 
             <!-- Step 2: Geometria -->
-            <section class="step-card">
-              <div class="step-header">
+            <section class="step-card card">
+              <div class="step-header card-header">
                 <span class="step-num">2</span>
-                <h2 class="step-title">Geometria</h2>
+                <h2 class="step-title card-title">Geometria</h2>
               </div>
-              <SegmentsList
-                v-model="segments"
-                @add="aggiungiLato"
-                @remove="rimuoviLato"
-                :unitFactor="unitFactor"
-                :unitLabel="unitLabel"
-              />
+              <div class="card-body">
+                <SegmentsList
+                  v-model="segments"
+                  @add="aggiungiLato"
+                  @remove="rimuoviLato"
+                  :unitFactor="unitFactor"
+                  :unitLabel="unitLabel"
+                />
+              </div>
             </section>
           </div>
 
           <div class="right-column">
             <!-- Step 3: Risultati -->
-            <section class="step-card">
-              <div class="step-header">
+            <section class="step-card card">
+              <div class="step-header card-header">
                 <span class="step-num">3</span>
-                <h2 class="step-title">Risultati</h2>
+                <h2 class="step-title card-title">Risultati</h2>
                 <span v-if="usaCalcoliAvanzati" class="badge-small advanced-badge">Avanzati</span>
               </div>
-              <ResultsDisplay
-                :dettagli="dettagli"
-                :risultato="sviluppoTotale"
-                :segments="segments"
-                :unitFactor="unitFactor"
-                :unitLabel="unitLabel"
-                v-model:usaCalcoliAvanzati="usaCalcoliAvanzati"
-                :risultatiAvanzati="risultatiAvanzati"
-                :dettagliStandard="dettagliStandard"
-                :isAdvancedRecommended="isAdvancedRecommended"
-                :raggioEffettivo="raggioEffettivo"
-                :raggioEffettivoFormattato="raggioEffettivoFormattato"
-                :larghezzaMatrice="larghezzaMatrice"
-              />
+              <div class="card-body">
+                <ResultsDisplay
+                  :dettagli="dettagli"
+                  :risultato="sviluppoTotale"
+                  :segments="segments"
+                  :unitFactor="unitFactor"
+                  :unitLabel="unitLabel"
+                  v-model:usaCalcoliAvanzati="usaCalcoliAvanzati"
+                  :risultatiAvanzati="risultatiAvanzati"
+                  :dettagliStandard="dettagliStandard"
+                  :isAdvancedRecommended="isAdvancedRecommended"
+                  :raggioEffettivo="raggioEffettivo"
+                  :raggioEffettivoFormattato="raggioEffettivoFormattato"
+                  :larghezzaMatrice="larghezzaMatrice"
+                />
+              </div>
             </section>
 
             <!-- Anteprima grafica -->
-            <PreviewCanvas
-              :segments="segments"
-              :spessore="spessore"
-              v-model:raggioPiega="raggioPiega"
-              :fattoreK="fattoreKEffettivo"
-              :processo="processo"
-              v-model:tipoMatrice="tipoMatrice"
-              v-model:larghezzaMatrice="larghezzaMatrice"
-              v-model:tipoCava="tipoCava"
-            />
+            <section class="step-card card">
+              <div class="card-body">
+                <PreviewCanvas
+                  :segments="segments"
+                  :spessore="spessore"
+                  v-model:raggioPiega="raggioPiega"
+                  :fattoreK="fattoreKEffettivo"
+                  :processo="processo"
+                  v-model:tipoMatrice="tipoMatrice"
+                  v-model:larghezzaMatrice="larghezzaMatrice"
+                  v-model:tipoCava="tipoCava"
+                />
+              </div>
+            </section>
           </div>
+        </div>
 
+        <!-- Sezioni secondarie (Accordion) -->
+        <div class="sections-container mt-4">
           <!-- Confronto calcoli standard vs avanzati (collassabile, full width) -->
           <AccordionSection
             class="comparison-fullwidth"
@@ -244,11 +276,27 @@
               </div>
             </div>
 
-            <div class="recommendation" v-if="isAdvancedRecommended">
-              <p>
+            <div class="alert alert-info recommendation" v-if="isAdvancedRecommended">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="alert-icon"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4" />
+                <path d="M12 8h.01" />
+              </svg>
+              <span>
                 <strong>Consiglio:</strong> In base ai parametri attuali, è consigliabile utilizzare
                 i calcoli avanzati per risultati più precisi.
-              </p>
+              </span>
             </div>
           </AccordionSection>
         </div>
@@ -257,6 +305,7 @@
       <!-- Calcoli avanzati e verifiche (collassabili, nella tab Calcolatore) -->
       <div v-if="activeTab === 'base'" class="tab-pane advanced-extra">
         <AccordionSection
+          class="card mb-4"
           title="Calcoli avanzati"
           hint="Ritorno elastico, forza di piega, apertura matrice ottimale, raggio effettivo"
         >
@@ -286,16 +335,21 @@
                 {{ usaCalcoliAvanzati ? 'Attivi' : 'Non attivi' }}
               </span>
             </div>
-            <button @click="applicaCalcoliAvanzati" class="btn-apply-advanced">
+            <button @click="applicaCalcoliAvanzati" class="btn btn-primary">
               {{ usaCalcoliAvanzati ? 'Aggiorna calcoli avanzati' : 'Applica calcoli avanzati' }}
             </button>
-            <button v-if="usaCalcoliAvanzati" @click="disattivaCalcoliAvanzati" class="btn-reset">
+            <button
+              v-if="usaCalcoliAvanzati"
+              @click="disattivaCalcoliAvanzati"
+              class="btn btn-secondary"
+            >
               Torna a calcoli standard
             </button>
           </div>
         </AccordionSection>
 
         <AccordionSection
+          class="card mb-4"
           title="Compensazione piega (fattore K)"
           hint="Calcola il fattore K da una piega di prova"
         >
@@ -307,6 +361,7 @@
         </AccordionSection>
 
         <AccordionSection
+          class="card mb-4"
           title="Verifica con metodo Di Furio"
           hint="Bend deduction da misure esterne delle flange"
         >
@@ -320,91 +375,95 @@
 
       <!-- Tab Guida ai Materiali -->
       <div v-if="activeTab === 'materials'" class="tab-pane">
-        <section class="materials-reference">
-          <h2>Guida ai Materiali</h2>
-          <p class="materials-intro">
-            Valori di riferimento per la piegatura (fattore K, raggio minimo, ritorno elastico)
-            usati dal calcolo dello sviluppo lamiera. Sono valori tipici: verifica sempre con prove
-            reali sulla tua pressa.
-          </p>
+        <section class="materials-reference card">
+          <div class="card-header">
+            <h2 class="card-title">Guida ai Materiali</h2>
+          </div>
+          <div class="card-body">
+            <p class="materials-intro">
+              Valori di riferimento per la piegatura (fattore K, raggio minimo, ritorno elastico)
+              usati dal calcolo dello sviluppo lamiera. Sono valori tipici: verifica sempre con
+              prove reali sulla tua pressa.
+            </p>
 
-          <table class="materials-table">
-            <thead>
-              <tr>
-                <th>Materiale</th>
-                <th>Fattore K</th>
-                <th>Raggio Minimo (x T)</th>
-                <th>Ritorno elastico</th>
-                <th>Note</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(mat, index) in materialsData" :key="index">
-                <td>{{ mat.name }}</td>
-                <td>{{ mat.bending.kFactor }}</td>
-                <td>{{ mat.bending.minRadiusParallel }}T</td>
-                <td>{{ (mat.bending.springback * 100).toFixed(0) }}%</td>
-                <td>{{ mat.notes }}</td>
-              </tr>
-            </tbody>
-          </table>
+            <table class="materials-table">
+              <thead>
+                <tr>
+                  <th>Materiale</th>
+                  <th>Fattore K</th>
+                  <th>Raggio Minimo (x T)</th>
+                  <th>Ritorno elastico</th>
+                  <th>Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(mat, index) in materialsData" :key="index">
+                  <td>{{ mat.name }}</td>
+                  <td>{{ mat.bending.kFactor }}</td>
+                  <td>{{ mat.bending.minRadiusParallel }}T</td>
+                  <td>{{ (mat.bending.springback * 100).toFixed(0) }}%</td>
+                  <td>{{ mat.notes }}</td>
+                </tr>
+              </tbody>
+            </table>
 
-          <h3>Formule di Riferimento</h3>
-          <div class="formulas-reference">
-            <div class="formula-card">
-              <h4>Bend Allowance (BA)</h4>
-              <div class="formula">BA = α × (R + K × T)</div>
-              <p>
-                Dove:<br />
-                α = angolo in radianti<br />
-                R = raggio interno<br />
-                K = fattore K<br />
-                T = spessore
-              </p>
-            </div>
+            <h3>Formule di Riferimento</h3>
+            <div class="formulas-reference">
+              <div class="formula-card">
+                <h4>Bend Allowance (BA)</h4>
+                <div class="formula">BA = α × (R + K × T)</div>
+                <p>
+                  Dove:<br />
+                  α = angolo in radianti<br />
+                  R = raggio interno<br />
+                  K = fattore K<br />
+                  T = spessore
+                </p>
+              </div>
 
-            <div class="formula-card">
-              <h4>Setback (SB)</h4>
-              <div class="formula">SB = (R + T) × tan(α/2)</div>
-              <p>
-                Dove:<br />
-                α = angolo in radianti<br />
-                R = raggio interno<br />
-                T = spessore
-              </p>
-            </div>
+              <div class="formula-card">
+                <h4>Setback (SB)</h4>
+                <div class="formula">SB = (R + T) × tan(α/2)</div>
+                <p>
+                  Dove:<br />
+                  α = angolo in radianti<br />
+                  R = raggio interno<br />
+                  T = spessore
+                </p>
+              </div>
 
-            <div class="formula-card">
-              <h4>Bend Deduction (BD)</h4>
-              <div class="formula">BD = 2 × SB - BA</div>
-              <p>
-                Dove:<br />
-                SB = setback<br />
-                BA = bend allowance
-              </p>
-            </div>
+              <div class="formula-card">
+                <h4>Bend Deduction (BD)</h4>
+                <div class="formula">BD = 2 × SB - BA</div>
+                <p>
+                  Dove:<br />
+                  SB = setback<br />
+                  BA = bend allowance
+                </p>
+              </div>
 
-            <div class="formula-card highlight">
-              <h4>Sviluppo Lamiera</h4>
-              <div class="formula">L = L₁ + L₂ + ... - BD₁ - BD₂ - ...</div>
-              <p>
-                <strong>Lunghezza piatta da tagliare</strong><br />
-                L = lunghezza totale<br />
-                BD = bend deduction per ogni piega
-              </p>
-            </div>
+              <div class="formula-card highlight">
+                <h4>Sviluppo Lamiera</h4>
+                <div class="formula">L = L₁ + L₂ + ... - BD₁ - BD₂ - ...</div>
+                <p>
+                  <strong>Lunghezza piatta da tagliare</strong><br />
+                  L = lunghezza totale<br />
+                  BD = bend deduction per ogni piega
+                </p>
+              </div>
 
-            <div class="formula-card">
-              <h4>Forza di Piegatura</h4>
-              <div class="formula">F = (K × S × T² × L) / V</div>
-              <p>
-                Dove:<br />
-                K = coefficiente (~ 1.33)<br />
-                S = resistenza materiale<br />
-                T = spessore<br />
-                L = lunghezza piega<br />
-                V = apertura matrice
-              </p>
+              <div class="formula-card">
+                <h4>Forza di Piegatura</h4>
+                <div class="formula">F = (K × S × T² × L) / V</div>
+                <p>
+                  Dove:<br />
+                  K = coefficiente (~ 1.33)<br />
+                  S = resistenza materiale<br />
+                  T = spessore<br />
+                  L = lunghezza piega<br />
+                  V = apertura matrice
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -535,6 +594,9 @@ import { materialsDatabase } from '@/utils/MaterialsDatabase';
 import { fattoriKMaterialiDefault, resolveMaterial } from '@/utils/materials.js';
 import { logger } from '@/utils/logger.js';
 import { calcoliAvanzatiPerPiega, calcolaAperturaMatrice } from '@/utils/bendingEngine.js';
+import { useHead } from '@unhead/vue';
+
+const SITE_URL = 'https://www.sviluppolamiera.it';
 
 export default {
   name: 'CalculatorView',
@@ -549,6 +611,33 @@ export default {
     AccordionSection,
   },
   setup() {
+    useHead({
+      title: 'Calcolatore Piegatura Lamiera | Bend Allowance Calculator Online',
+      meta: [
+        {
+          name: 'description',
+          content:
+            'Calcola bend allowance, bend deduction e setback per piegatura lamiera. Strumento professionale con formule DIN 6935, supporto multi-materiale e ottimizzazione apertura matrice.',
+        },
+        {
+          name: 'keywords',
+          content:
+            'calcolatore piegatura lamiera, bend allowance online, bend deduction calculator, calcolo setback lamiera, formula piegatura',
+        },
+        {
+          property: 'og:title',
+          content: 'Calcolatore Piegatura Lamiera | Bend Allowance Calculator',
+        },
+        {
+          property: 'og:description',
+          content:
+            'Calcola bend allowance, bend deduction e setback per piegatura lamiera professionale. Formule DIN 6935, multi-materiale.',
+        },
+        { property: 'og:url', content: `${SITE_URL}/calcolatore-sviluppo-lamiera` },
+      ],
+      link: [{ rel: 'canonical', href: `${SITE_URL}/calcolatore-sviluppo-lamiera` }],
+    });
+
     // Tabs
     const activeTab = ref('base');
     const tabs = [
