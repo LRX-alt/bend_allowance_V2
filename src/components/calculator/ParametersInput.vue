@@ -10,12 +10,15 @@
         class="parameter-select"
         @change="updateMateriale"
       >
-        <option value="acciaio">Acciaio</option>
-        <option value="alluminio">Alluminio</option>
-        <option value="rame">Rame</option>
-        <option value="ottone">Ottone</option>
-        <option value="inox">Acciaio Inox</option>
-        <option value="titanio">Titanio</option>
+        <optgroup
+          v-for="gruppo in materialiPerCategoria"
+          :key="gruppo.categoria"
+          :label="gruppo.categoria"
+        >
+          <option v-for="lega in gruppo.voci" :key="lega.id" :value="lega.id">
+            {{ lega.name }}
+          </option>
+        </optgroup>
       </select>
     </div>
 
@@ -38,7 +41,7 @@
           @input="updateSpessore"
         />
       </div>
-      <div class="parameter-input-group" style="margin-top: 8px;">
+      <div class="parameter-input-group" style="margin-top: 8px">
         <select
           v-model.number="quickSpessoreSelezionato"
           class="parameter-select"
@@ -49,7 +52,8 @@
         </select>
       </div>
       <div v-if="isSpessoreAlto" class="thickness-warning">
-        ⚠️ Spessore elevato: usa V più ampie (es. {{ matriceConsigliata }} mm) e verifica la forza pressa.
+        ⚠️ Spessore elevato: usa V più ampie (es. {{ matriceConsigliata }} mm) e verifica la forza
+        pressa.
       </div>
       <div v-if="materialeAvviso" class="material-warning">
         {{ materialeAvviso }}
@@ -126,7 +130,11 @@
           class="parameter-select matrix-select"
           @change="aggiornaMatriceStandard"
         >
-          <option v-for="matrice in matriciStandardIndustriali" :key="matrice.value" :value="matrice.value">
+          <option
+            v-for="matrice in matriciStandardIndustriali"
+            :key="matrice.value"
+            :value="matrice.value"
+          >
             {{ matrice.label }}
           </option>
           <option value="custom">Personalizzata</option>
@@ -144,14 +152,20 @@
           @input="updateLarghezzaMatriceCustom"
         />
 
-        <button class="btn-auto" @click="calcolaMatriceOttimale" title="Seleziona matrice ottimale per lo spessore">
+        <button
+          class="btn-auto"
+          @click="calcolaMatriceOttimale"
+          title="Seleziona matrice ottimale per lo spessore"
+        >
           Auto
         </button>
       </div>
 
       <!-- Info matrici consigliate -->
       <div class="matrix-hint">
-        <small>Consigliata per {{ spessoreLocal }}mm: <strong>{{ matriceConsigliata }}mm</strong></small>
+        <small
+          >Consigliata per {{ spessoreLocal }}mm: <strong>{{ matriceConsigliata }}mm</strong></small
+        >
       </div>
     </div>
   </div>
@@ -159,7 +173,12 @@
 
 <script>
 import { ref, watch, computed } from 'vue';
-import { calcolaAperturaMatrice } from '@/utils/BendingCalculatorAdvanced.js';
+import {
+  resolveMaterial,
+  normalizeMaterialKey,
+  toDatabaseId,
+  materialsDatabase,
+} from '@/utils/materials.js';
 
 export default {
   name: 'ParametersInput',
@@ -215,7 +234,6 @@ export default {
       type: String,
       default: 'mm',
     },
-    
   },
   emits: [
     'update:spessore',
@@ -225,8 +243,8 @@ export default {
     'update:fattoreKDinamico',
     'update:metodoDiCalcolo',
     'update:processo',
-          'update:larghezzaMatrice',
-      'update:fattoriKMateriali',
+    'update:larghezzaMatrice',
+    'update:fattoriKMateriali',
   ],
   setup(props, { emit }) {
     // Definizione delle matrici V-die standard industriali
@@ -250,9 +268,7 @@ export default {
 
     // Lista di spessori standard per lamiera (mm)
     const spessoriStandard = [
-      0.5, 0.6, 0.7, 0.8, 0.9,
-      1.0, 1.2, 1.5, 2.0, 2.5,
-      3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 15.0, 20.0
+      0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 15.0, 20.0,
     ];
 
     // Quick select: spessori comuni
@@ -263,16 +279,26 @@ export default {
     const spessoreLocal = ref(props.spessore);
     const spessoreIndex = ref(0);
     const raggioPiegaLocal = ref(props.raggioPiega);
-    const materialeSelezionatoLocal = ref(props.materialeSelezionato);
+    const materialeSelezionatoLocal = ref(toDatabaseId(props.materialeSelezionato));
+
+    // Leghe del database raggruppate per categoria (per il menu a tendina).
+    const materialiPerCategoria = computed(() => {
+      const gruppi = {};
+      for (const m of materialsDatabase) {
+        if (!gruppi[m.category]) gruppi[m.category] = [];
+        gruppi[m.category].push({ id: m.id, name: m.name });
+      }
+      return Object.entries(gruppi).map(([categoria, voci]) => ({ categoria, voci }));
+    });
     const fattoreKLocal = ref(props.fattoreK);
     const processoLocal = ref(props.processo);
     const larghezzaMatriceLocal = ref(props.larghezzaMatrice);
-    
+
     // Trova la matrice standard corrispondente al valore attuale
-    const trovaMatriceStandard = (larghezza) => {
+    const trovaMatriceStandard = larghezza => {
       return matriciStandardIndustriali.find(m => m.value === larghezza);
     };
-    
+
     const matriceStandardSelezionata = ref(
       trovaMatriceStandard(props.larghezzaMatrice)?.value || 'custom'
     );
@@ -281,14 +307,14 @@ export default {
     // Calcola la matrice consigliata per lo spessore attuale
     const matriceConsigliata = computed(() => {
       const spessore = spessoreLocal.value;
-      const matrice = matriciStandardIndustriali.find(m => 
-        spessore >= m.spessoreMin && spessore <= m.spessoreMax
+      const matrice = matriciStandardIndustriali.find(
+        m => spessore >= m.spessoreMin && spessore <= m.spessoreMax
       );
       return matrice ? matrice.value : Math.max(16, Math.round(spessore * 8));
     });
 
     // Helper: trova l'indice nello slider più vicino allo spessore richiesto
-    const findClosestIndex = (value) => {
+    const findClosestIndex = value => {
       let closestIdx = 0;
       let minDiff = Infinity;
       for (let i = 0; i < spessoriStandard.length; i++) {
@@ -309,7 +335,7 @@ export default {
 
     // Avvisi dinamici per materiale
     const materialeAvviso = computed(() => {
-      const m = (materialeSelezionatoLocal.value || '').toLowerCase();
+      const m = normalizeMaterialKey(materialeSelezionatoLocal.value);
       if (m === 'inox') {
         return 'Acciaio Inox: maggiore forza e springback (~7–10%). Preferisci V più ampia e raggio ≥ 1.0×T.';
       }
@@ -341,10 +367,12 @@ export default {
 
     const updateMateriale = () => {
       emit('update:materialeSelezionato', materialeSelezionatoLocal.value);
-      // Aggiorna anche il fattore K in base al materiale selezionato
-      if (props.fattoriKMateriali[materialeSelezionatoLocal.value]) {
-        fattoreKLocal.value = props.fattoriKMateriali[materialeSelezionatoLocal.value];
+      // Aggiorna il fattore K con quello della lega selezionata (dal database).
+      const k = resolveMaterial(materialeSelezionatoLocal.value).kFactor;
+      if (k) {
+        fattoreKLocal.value = k;
         emit('update:fattoreK', fattoreKLocal.value);
+        emit('update:fattoreKDinamico', false);
       }
     };
 
@@ -355,9 +383,10 @@ export default {
 
     const setDynamicK = () => {
       emit('update:fattoreKDinamico', true);
-      // Ricarica il fattore K dal materiale come valore iniziale
-      if (props.fattoriKMateriali[materialeSelezionatoLocal.value]) {
-        fattoreKLocal.value = props.fattoriKMateriali[materialeSelezionatoLocal.value];
+      // Ricarica il fattore K dalla lega come valore iniziale
+      const k = resolveMaterial(materialeSelezionatoLocal.value).kFactor;
+      if (k) {
+        fattoreKLocal.value = k;
         emit('update:fattoreK', fattoreKLocal.value);
       }
     };
@@ -372,7 +401,9 @@ export default {
 
     const aggiornaMatriceStandard = () => {
       if (matriceStandardSelezionata.value !== 'custom') {
-        const matrice = matriciStandardIndustriali.find(m => m.value === matriceStandardSelezionata.value);
+        const matrice = matriciStandardIndustriali.find(
+          m => m.value === matriceStandardSelezionata.value
+        );
         if (matrice) {
           larghezzaMatriceLocal.value = matrice.value;
           updateLarghezzaMatrice();
@@ -388,7 +419,7 @@ export default {
     const calcolaMatriceOttimale = () => {
       const matriceOttimale = matriceConsigliata.value;
       const matriceStandard = trovaMatriceStandard(matriceOttimale);
-      
+
       if (matriceStandard) {
         // Usa matrice standard
         matriceStandardSelezionata.value = matriceStandard.value;
@@ -399,7 +430,7 @@ export default {
         larghezzaMatriceCustom.value = matriceOttimale;
         larghezzaMatriceLocal.value = matriceOttimale;
       }
-      
+
       updateLarghezzaMatrice();
     };
 
@@ -424,7 +455,7 @@ export default {
     watch(
       () => props.materialeSelezionato,
       newValue => {
-        materialeSelezionatoLocal.value = newValue;
+        materialeSelezionatoLocal.value = toDatabaseId(newValue);
       }
     );
 
@@ -449,8 +480,6 @@ export default {
       }
     );
 
-
-
     return {
       spessoreLocal,
       spessoreIndex,
@@ -459,6 +488,7 @@ export default {
       quickSpessoreSelezionato,
       isSpessoreAlto,
       materialeAvviso,
+      materialiPerCategoria,
       raggioPiegaLocal,
       materialeSelezionatoLocal,
       fattoreKLocal,

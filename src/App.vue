@@ -11,7 +11,7 @@
             </div>
             <div class="brand-text">
               <h1 class="brand-title">Bend Allowance</h1>
-              <p class="brand-subtitle">Calcolatore Lamiera</p>
+              <p class="brand-subtitle">Sviluppo e piegatura lamiera</p>
             </div>
           </div>
 
@@ -26,8 +26,6 @@
               Calcolatore
             </router-link>
           </nav>
-
-
         </div>
       </div>
     </header>
@@ -42,8 +40,12 @@
       <div class="container">
         <div class="footer-content">
           <div class="footer-main">
-            <p class="footer-text">© 2025 Bend Allowance Calculator - Ideato e sviluppato da Loris Di Furio</p>
-            <p class="footer-subtitle">Calcolatore professionale per bend deduction e sviluppo lamiera</p>
+            <p class="footer-text">
+              © 2025 Bend Allowance Calculator - Ideato e sviluppato da Loris Di Furio
+            </p>
+            <p class="footer-subtitle">
+              Calcolatore professionale per bend deduction e sviluppo lamiera
+            </p>
           </div>
         </div>
       </div>
@@ -53,8 +55,8 @@
 
 <script>
 export default {
-  name: 'App'
-}
+  name: 'App',
+};
 </script>
 
 <style>
@@ -81,8 +83,6 @@ body {
   transition: all var(--transition-fast);
 }
 
-
-
 .container {
   max-width: var(--container-max-width);
   margin: 0 auto;
@@ -99,8 +99,6 @@ body {
   z-index: var(--z-sticky);
   transition: all var(--transition-fast);
 }
-
-
 
 .header-content {
   display: flex;
@@ -158,8 +156,6 @@ body {
   line-height: var(--leading-tight);
 }
 
-
-
 /* Navigation */
 .main-nav {
   display: flex;
@@ -207,10 +203,6 @@ body {
   font-size: var(--text-lg);
 }
 
-
-
-
-
 /* === MAIN CONTENT === */
 .main-content {
   flex: 1;
@@ -224,8 +216,6 @@ body {
   margin-top: auto;
   transition: all var(--transition-fast);
 }
-
-
 
 .footer-content {
   padding: var(--space-6) 0;
@@ -252,8 +242,6 @@ body {
   font-size: var(--text-xs);
   font-style: italic;
 }
-
-
 
 /* === RESPONSIVE === */
 @media (max-width: 768px) {

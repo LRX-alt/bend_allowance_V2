@@ -2,68 +2,68 @@
   <div class="di-furio-calculator">
     <h3>🏭 Calcolatore Di Furio</h3>
     <p class="subtitle">Metodo industriale con misure esterne delle flange</p>
-    
+
     <div class="input-grid">
       <div class="input-group">
         <label for="angolo">Angolo O [°]:</label>
-        <input 
+        <input
           id="angolo"
-          type="number" 
-          v-model.number="angolo" 
-          min="1" 
-          max="180" 
+          type="number"
+          v-model.number="angolo"
+          min="1"
+          max="180"
           step="1"
           @input="calcolaRisultato"
         />
       </div>
-      
+
       <div class="input-group">
         <label for="latoA">Lato A [mm]:</label>
-        <input 
+        <input
           id="latoA"
-          type="number" 
-          v-model.number="latoA" 
-          min="0.1" 
+          type="number"
+          v-model.number="latoA"
+          min="0.1"
           step="0.1"
           @input="calcolaRisultato"
         />
         <small>Misura esterna prima flangia</small>
       </div>
-      
+
       <div class="input-group">
         <label for="latoB">Lato B [mm]:</label>
-        <input 
+        <input
           id="latoB"
-          type="number" 
-          v-model.number="latoB" 
-          min="0.1" 
+          type="number"
+          v-model.number="latoB"
+          min="0.1"
           step="0.1"
           @input="calcolaRisultato"
         />
         <small>Misura esterna seconda flangia</small>
       </div>
-      
+
       <div class="input-group">
         <label for="fattoreK">Fattore K:</label>
-        <input 
+        <input
           id="fattoreK"
-          type="number" 
-          v-model.number="fattoreK" 
-          min="0.2" 
-          max="0.6" 
+          type="number"
+          v-model.number="fattoreK"
+          min="0.2"
+          max="0.6"
           step="0.01"
           @input="calcolaRisultato"
         />
         <small>Range tipico: 0.2 0.6. Cambia automaticamente con il materiale.</small>
       </div>
-      
+
       <div class="input-group">
         <label for="raggioPiega">Raggio interno R [mm]:</label>
-        <input 
+        <input
           id="raggioPiega"
-          type="number" 
-          v-model.number="raggioPiega" 
-          min="0.1" 
+          type="number"
+          v-model.number="raggioPiega"
+          min="0.1"
           step="0.1"
           @input="calcolaRisultato"
         />
@@ -76,14 +76,14 @@
           </button>
         </div>
       </div>
-      
+
       <div class="input-group">
         <label for="spessore">Spessore T [mm]:</label>
-        <input 
+        <input
           id="spessore"
-          type="number" 
-          v-model.number="spessore" 
-          min="0.1" 
+          type="number"
+          v-model.number="spessore"
+          min="0.1"
           step="0.1"
           @input="calcolaRisultato"
         />
@@ -98,10 +98,11 @@
         </select>
       </div>
     </div>
-    
+
     <div class="validation-warning" v-if="raggioNonValido">
-      ⚠️ Attenzione: Il raggio di piega inserito ({{ raggioPiega }} mm) è inferiore al raggio minimo consigliato 
-      ({{ raggioMinimoConsigliato.toFixed(2) }} mm) per questo materiale e spessore. La piega potrebbe causare cricche.
+      ⚠️ Attenzione: Il raggio di piega inserito ({{ raggioPiega }} mm) è inferiore al raggio minimo
+      consigliato ({{ raggioMinimoConsigliato.toFixed(2) }} mm) per questo materiale e spessore. La
+      piega potrebbe causare cricche.
     </div>
 
     <div class="work-suggestions">
@@ -116,9 +117,13 @@
           <span>{{ angoloPressaConsigliato.toFixed(1) }}°</span>
         </div>
       </div>
-      <small class="hint-note">Basato su materiale selezionato (V ≈ fattore × T, springback ≈ {{ (springbackPercent*100).toFixed(0) }}%).</small>
+      <small class="hint-note"
+        >Basato su materiale selezionato (V ≈ fattore × T, springback ≈
+        {{ (springbackPercent * 100).toFixed(0) }}%).</small
+      >
       <div v-if="isSpessoreAlto" class="thickness-warning">
-        ⚠️ Spessore elevato: usa V più ampie (es. {{ vDieConsigliata.toFixed(1) }} mm) e verifica la forza pressa.
+        ⚠️ Spessore elevato: usa V più ampie (es. {{ vDieConsigliata.toFixed(1) }} mm) e verifica la
+        forza pressa.
       </div>
       <div v-if="materialeAvviso" class="material-warning">
         {{ materialeAvviso }}
@@ -127,19 +132,19 @@
 
     <div class="results-section" v-if="risultato">
       <h4>📊 Risultati</h4>
-      
+
       <div class="results-grid">
         <div class="result-card primary">
           <label>Bend Deduction:</label>
           <span class="value">{{ risultato.bendDeduction.toFixed(2) }} mm</span>
         </div>
-        
+
         <div class="result-card primary">
           <label>Lunghezza da tagliare L:</label>
           <span class="value highlight">{{ risultato.lunghezzaDaTagliare.toFixed(2) }} mm</span>
         </div>
       </div>
-      
+
       <div class="details-section">
         <h5>Dettagli calcoli</h5>
         <div class="details-grid">
@@ -173,16 +178,16 @@ export default {
     // Props dal calcolatore principale per confronto
     currentSpessore: {
       type: Number,
-      default: 2.0
+      default: 2.0,
     },
     currentRaggioPiega: {
       type: Number,
-      default: 1.0
+      default: 1.0,
     },
     currentFattoreK: {
       type: Number,
-      default: 0.33
-    }
+      default: 0.33,
+    },
   },
   setup(props) {
     // Stati locali del calcolatore Gasparini
@@ -192,7 +197,7 @@ export default {
     const fattoreK = ref(props.currentFattoreK);
     const raggioPiega = ref(props.currentRaggioPiega);
     const spessore = ref(props.currentSpessore);
-    
+
     const risultato = ref(null);
     const materiali = ref(materialsDatabase);
     const materialeSelezionatoId = ref('steel_mild'); // Default
@@ -220,23 +225,32 @@ export default {
       if (id.startsWith('titanium_')) return 'titanio';
       return 'acciaio';
     });
-    
+
     // Sincronizza con i props quando cambiano
-    watch(() => props.currentSpessore, (newVal) => {
-      spessore.value = newVal;
-      calcolaRisultato();
-    });
-    
-    watch(() => props.currentRaggioPiega, (newVal) => {
-      raggioPiega.value = newVal;
-      calcolaRisultato();
-    });
-    
-    watch(() => props.currentFattoreK, (newVal) => {
-      fattoreK.value = newVal;
-      calcolaRisultato();
-    });
-    
+    watch(
+      () => props.currentSpessore,
+      newVal => {
+        spessore.value = newVal;
+        calcolaRisultato();
+      }
+    );
+
+    watch(
+      () => props.currentRaggioPiega,
+      newVal => {
+        raggioPiega.value = newVal;
+        calcolaRisultato();
+      }
+    );
+
+    watch(
+      () => props.currentFattoreK,
+      newVal => {
+        fattoreK.value = newVal;
+        calcolaRisultato();
+      }
+    );
+
     const onMaterialChange = () => {
       materialeSelezionato.value = getMaterialById(materialeSelezionatoId.value);
       if (materialeSelezionato.value) {
@@ -247,9 +261,14 @@ export default {
     };
 
     const calcolaRisultato = () => {
-      if (angolo.value > 0 && latoA.value > 0 && latoB.value > 0 && 
-          fattoreK.value > 0 && raggioPiega.value > 0 && spessore.value > 0) {
-        
+      if (
+        angolo.value > 0 &&
+        latoA.value > 0 &&
+        latoB.value > 0 &&
+        fattoreK.value > 0 &&
+        raggioPiega.value > 0 &&
+        spessore.value > 0
+      ) {
         risultato.value = calcolaBendDeductionDiFurio(
           angolo.value,
           latoA.value,
@@ -260,7 +279,7 @@ export default {
         );
       }
     };
-    
+
     const impostaRaggioConsigliato = () => {
       if (raggioMinimoConsigliato.value > 0) {
         raggioPiega.value = Number(raggioMinimoConsigliato.value.toFixed(2));
@@ -273,11 +292,7 @@ export default {
     });
 
     const vDieConsigliata = computed(() => {
-      const apertura = calcolaAperturaMatrice(
-        spessore.value || 0,
-        'airBend',
-        materialeKey.value
-      );
+      const apertura = calcolaAperturaMatrice(spessore.value || 0, 'airBend', materialeKey.value);
       return apertura.aperturaOttimale;
     });
 
@@ -302,12 +317,12 @@ export default {
       }
       return null;
     });
-    
+
     // Calcolo iniziale all'avvio
     onMounted(() => {
       onMaterialChange(); // Per impostare i valori iniziali del materiale di default
     });
-    
+
     return {
       angolo,
       latoA,
@@ -327,9 +342,9 @@ export default {
       vDieConsigliata,
       angoloPressaConsigliato,
       isSpessoreAlto,
-      materialeAvviso
+      materialeAvviso,
     };
-  }
+  },
 };
 </script>
 
@@ -400,7 +415,7 @@ export default {
   border-radius: 8px;
   padding: 20px;
   margin-top: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .work-suggestions {
@@ -549,4 +564,4 @@ export default {
 .set-radius-btn:hover {
   background: #125a9c;
 }
-</style> 
+</style>

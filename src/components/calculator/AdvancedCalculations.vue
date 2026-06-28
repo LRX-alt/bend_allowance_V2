@@ -197,6 +197,7 @@ import {
   calcolaRaggioEffettivo,
 } from '@/utils/BendingCalculatorAdvanced';
 import { calcolaDettagliSegmenti } from '@/utils/BendingCalculator';
+import { logger } from '@/utils/logger.js';
 
 export default {
   name: 'AdvancedCalculations',
@@ -291,7 +292,9 @@ export default {
     // Funzione per calcolare la larghezza matrice consigliata (preferisci standard)
     function calcolaAperturaMatriceDefault() {
       // Cerca una matrice standard per lo spessore
-      const m = matriciStandardIndustriali.find(m => props.spessore >= m.spessoreMin && props.spessore <= m.spessoreMax);
+      const m = matriciStandardIndustriali.find(
+        m => props.spessore >= m.spessoreMin && props.spessore <= m.spessoreMax
+      );
       if (m) return m.value;
       // Fallback alla funzione avanzata se fuori range
       const apertura = calcolaAperturaMatrice(props.spessore, props.processo, materiale.value);
@@ -353,7 +356,7 @@ export default {
         );
         return sviluppoTotale;
       } catch (error) {
-        console.error('Errore nel calcolo sviluppo totale:', error);
+        logger.error('Errore nel calcolo sviluppo totale:', error);
         return 0;
       }
     });
@@ -432,7 +435,7 @@ export default {
           tipoCava: props.tipoCava || 'standard',
         };
 
-        console.log('Parametri usati per calcoli avanzati:', params);
+        logger.log('Parametri usati per calcoli avanzati:', params);
 
         // Esegui i calcoli
         const nuoviRisultati = calcoliAvanzatiPiegatura(params);
@@ -440,9 +443,9 @@ export default {
         // Aggiorna la copia locale e monitora eventuali problemi
         risultatiInterni.value = JSON.parse(JSON.stringify(nuoviRisultati));
 
-        console.log('Risultati avanzati aggiornati');
+        logger.log('Risultati avanzati aggiornati');
       } catch (error) {
-        console.error('Errore nei calcoli avanzati:', error);
+        logger.error('Errore nei calcoli avanzati:', error);
       }
     };
 
@@ -458,7 +461,7 @@ export default {
           larghezzaMatrice: matriceWidth.value,
           processo: processoAttuale.value,
         });
-        console.log('Risultati applicati al componente padre');
+        logger.log('Risultati applicati al componente padre');
       }
     };
 
@@ -494,7 +497,7 @@ export default {
         () => props.tipoCava,
       ],
       () => {
-        console.log('Parametri dal componente padre cambiati, aggiornamento...');
+        logger.log('Parametri dal componente padre cambiati, aggiornamento...');
         nextTick(() => {
           aggiornaCalcoli();
         });
@@ -504,7 +507,7 @@ export default {
 
     // Aggiorna i miei risultati interni quando cambiano i parametri locali
     watch([metodo, materiale], () => {
-      console.log('Parametri locali cambiati, aggiornamento...');
+      logger.log('Parametri locali cambiati, aggiornamento...');
       nextTick(() => {
         aggiornaCalcoli();
       });

@@ -1,9 +1,7 @@
 <template>
-      <div class="calculator-container">
+  <div class="calculator-container">
     <header class="calculator-header">
-      <!-- Titolo semplificato -->
-      <h1>Calcolatore Bend Allowance Lamiera Online</h1>
-      <UnitsSelector @update:unit="updateUnits" />
+      <h1>Calcolo sviluppo lamiera e piegatura (Bend Allowance / Deduction)</h1>
     </header>
 
     <div class="tabs">
@@ -18,32 +16,120 @@
     </div>
 
     <div class="tab-content">
-      <!-- Tab Calcolatore Base -->
+      <!-- Tab Calcolatore -->
       <div v-if="activeTab === 'base'" class="tab-pane">
         <div class="main-calculator-layout">
           <div class="left-column">
-            <ParametersInput
-              v-model:spessore="spessore"
-              v-model:raggioPiega="raggioPiega"
-              v-model:materialeSelezionato="materialeSelezionato"
-              v-model:fattoreK="fattoreK"
-              v-model:fattoreKDinamico="fattoreKDinamico"
-              v-model:metodoDiCalcolo="metodoDiCalcolo"
-              :fattoriKMateriali="fattoriKMateriali"
-              @update:fattoriKMateriali="updateFattoriKMateriali"
-              :unitFactor="unitFactor"
-            />
+            <!-- Step 1: Materiale, parametri e utensile -->
+            <section class="step-card">
+              <div class="step-header">
+                <span class="step-num">1</span>
+                <h2 class="step-title">Materiale &amp; Utensile</h2>
+              </div>
+              <ParametersInput
+                v-model:spessore="spessore"
+                v-model:raggioPiega="raggioPiega"
+                v-model:materialeSelezionato="materialeSelezionato"
+                v-model:fattoreK="fattoreK"
+                v-model:fattoreKDinamico="fattoreKDinamico"
+                v-model:metodoDiCalcolo="metodoDiCalcolo"
+                v-model:processo="processo"
+                v-model:larghezzaMatrice="larghezzaMatrice"
+                :fattoriKMateriali="fattoriKMateriali"
+                @update:fattoriKMateriali="updateFattoriKMateriali"
+                :unitFactor="unitFactor"
+                :unitLabel="unitLabel"
+              />
 
-            <SegmentsList
-              v-model="segments"
-              @add="aggiungiLato"
-              @remove="rimuoviLato"
-              :unitFactor="unitFactor"
-              :unitLabel="unitLabel"
-            />
+              <AccordionSection
+                title="Opzioni avanzate"
+                hint="Direzione grana, tipo matrice e modalità di calcolo"
+              >
+                <div class="parameters-grid">
+                  <div class="form-row">
+                    <label>Direzione grana:</label>
+                    <select v-model="direzione">
+                      <option value="parallelaPiega">Parallela alla piega</option>
+                      <option value="perpendicolarePiega">Perpendicolare alla piega</option>
+                    </select>
+                  </div>
+
+                  <div class="form-row">
+                    <label>Tipo di matrice:</label>
+                    <select v-model="tipoMatrice">
+                      <option value="vDie">V-Die</option>
+                      <option value="gooseneck">Gooseneck</option>
+                      <option value="offset">Offset</option>
+                      <option value="zDie">Z-Die</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="raggio-effettivo-info" v-if="larghezzaMatrice && larghezzaMatrice > 0">
+                  <strong>Raggio effettivo:</strong> {{ raggioEffettivoFormattato }}
+                </div>
+
+                <div class="calculation-mode-toggle" v-if="hasBendAndAdvanced">
+                  <label class="toggle-label">
+                    <span class="mode-text">Modalità di calcolo:</span>
+                    <span class="toggle-switch">
+                      <input
+                        type="checkbox"
+                        v-model="usaCalcoliAvanzati"
+                        @change="toggleCalcoliAvanzati"
+                      />
+                      <span class="slider"></span>
+                    </span>
+                    <span class="mode-text">{{
+                      usaCalcoliAvanzati ? 'Avanzata' : 'Standard'
+                    }}</span>
+                  </label>
+                </div>
+              </AccordionSection>
+            </section>
+
+            <!-- Step 2: Geometria -->
+            <section class="step-card">
+              <div class="step-header">
+                <span class="step-num">2</span>
+                <h2 class="step-title">Geometria</h2>
+              </div>
+              <SegmentsList
+                v-model="segments"
+                @add="aggiungiLato"
+                @remove="rimuoviLato"
+                :unitFactor="unitFactor"
+                :unitLabel="unitLabel"
+              />
+            </section>
           </div>
 
           <div class="right-column">
+            <!-- Step 3: Risultati -->
+            <section class="step-card">
+              <div class="step-header">
+                <span class="step-num">3</span>
+                <h2 class="step-title">Risultati</h2>
+                <span v-if="usaCalcoliAvanzati" class="badge-small advanced-badge">Avanzati</span>
+              </div>
+              <ResultsDisplay
+                :dettagli="dettagli"
+                :risultato="sviluppoTotale"
+                :segments="segments"
+                :unitFactor="unitFactor"
+                :unitLabel="unitLabel"
+                v-model:usaCalcoliAvanzati="usaCalcoliAvanzati"
+                :risultatiAvanzati="risultatiAvanzati"
+                :dettagliStandard="dettagliStandard"
+                :isAdvancedRecommended="isAdvancedRecommended"
+                :raggioEffettivo="raggioEffettivo"
+                :raggioEffettivoFormattato="raggioEffettivoFormattato"
+                :larghezzaMatrice="larghezzaMatrice"
+              />
+            </section>
+
+            <!-- Anteprima grafica -->
             <PreviewCanvas
               :segments="segments"
               :spessore="spessore"
@@ -54,297 +140,193 @@
               v-model:larghezzaMatrice="larghezzaMatrice"
               v-model:tipoCava="tipoCava"
             />
-
-            <!-- Parametri di piegatura unificati -->
-            <div class="bend-parameters-card">
-              <h3>
-                Parametri di Piegatura
-                <span v-if="usaCalcoliAvanzati" class="badge-small advanced-badge">Avanzati</span>
-              </h3>
-
-              <!-- Parametri base sempre visibili -->
-              <div class="parameters-grid">
-                <div class="form-row">
-                  <label>Processo di piega:</label>
-                  <select v-model="processo" @change="aggiornaCalcoliAvanzati">
-                    <option value="airBend">Air Bending</option>
-                    <option value="bottoming">Bottoming</option>
-                    <option value="coining">Coining</option>
-                  </select>
-                  <i class="info-icon" title="Metodo utilizzato per la piegatura">i</i>
-                </div>
-
-                <div class="form-row">
-                  <label>Direzione grana:</label>
-                  <select v-model="direzione" @change="aggiornaCalcoliAvanzati">
-                    <option value="parallelaPiega">Parallela alla piega</option>
-                    <option value="perpendicolarePiega">Perpendicolare alla piega</option>
-                  </select>
-                  <i
-                    class="info-icon"
-                    title="Orientamento della grana del materiale rispetto alla linea di piega"
-                    >i</i
-                  >
-                </div>
-
-                <div class="form-row">
-                  <label>Tipo di matrice:</label>
-                  <select v-model="tipoMatrice" @change="aggiornaCalcoliAvanzati">
-                    <option value="vDie">V-Die</option>
-                    <option value="gooseneck">Gooseneck</option>
-                    <option value="offset">Offset</option>
-                    <option value="zDie">Z-Die</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                  <i class="info-icon" title="Tipo di matrice utilizzata per la piegatura">i</i>
-                </div>
-
-                <div class="form-row">
-                  <label>Larghezza matrice (mm):</label>
-                  <input
-                    v-model.number="larghezzaMatrice"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    @change="aggiornaCalcoliAvanzati"
-                  />
-                  <button @click="calcolaMatriceOttimale" class="btn-small">Auto</button>
-                  <i class="info-icon" title="Larghezza dell'apertura della matrice">i</i>
-                </div>
-              </div>
-
-              <!-- Mostra il raggio effettivo se la larghezza matrice è specificata -->
-              <div v-if="larghezzaMatrice && larghezzaMatrice > 0" class="raggio-effettivo-info">
-                <strong>Raggio effettivo:</strong> {{ raggioEffettivoFormattato }}
-              </div>
-
-              <!-- Toggle per modalità avanzata/standard -->
-              <div class="calculation-mode-toggle" v-if="hasBendAndAdvanced">
-                <label class="toggle-label">
-                  <span class="mode-text">Modalità di calcolo:</span>
-                  <span class="toggle-switch">
-                    <input
-                      type="checkbox"
-                      v-model="usaCalcoliAvanzati"
-                      @change="toggleCalcoliAvanzati"
-                    />
-                    <span class="slider"></span>
-                  </span>
-                  <span class="mode-text">{{ usaCalcoliAvanzati ? 'Avanzata' : 'Standard' }}</span>
-                </label>
-                <i
-                  class="info-icon"
-                  title="La modalità avanzata considera più parametri per calcoli più precisi"
-                  >i</i
-                >
-              </div>
-
-              <!-- Indicatore di stato dei calcoli -->
-              <div
-                v-if="hasBendAndAdvanced"
-                class="calculation-status"
-                :class="{ active: usaCalcoliAvanzati }"
-              >
-                <div class="status-icon">
-                  <span class="icon-circle"></span>
-                </div>
-                <div class="status-text">
-                  {{ usaCalcoliAvanzati ? 'Calcoli avanzati attivi' : 'Calcoli standard' }}
-                </div>
-              </div>
-            </div>
-
-            <ResultsDisplay
-              :dettagli="dettagli"
-              :risultato="sviluppoTotale"
-              :segments="segments"
-              :unitFactor="unitFactor"
-              :unitLabel="unitLabel"
-              :usaCalcoliAvanzati="usaCalcoliAvanzati"
-              :risultatiAvanzati="risultatiAvanzati"
-              :dettagliStandard="dettagliStandard"
-              :isAdvancedRecommended="isAdvancedRecommended"
-              :raggioEffettivo="raggioEffettivo"
-              :raggioEffettivoFormattato="raggioEffettivoFormattato"
-              :larghezzaMatrice="larghezzaMatrice"
-            />
-
-            <!-- Sezione di confronto calcoli standard vs avanzati -->
-            <div
-              class="comparison-section"
-              v-if="risultatiAvanzati && dettagliStandard.length > 1 && hasBend"
-            >
-              <h3>Confronto Calcoli</h3>
-              <div class="comparison-grid">
-                <div class="comparison-row header">
-                  <div class="comparison-cell">Parametro</div>
-                  <div class="comparison-cell">Standard</div>
-                  <div class="comparison-cell">Avanzato</div>
-                  <div class="comparison-cell">Differenza</div>
-                </div>
-
-                <div class="comparison-row">
-                  <div class="comparison-cell">Bend Allowance</div>
-                  <div class="comparison-cell">
-                    {{ dettagliStandard[1]?.bendAllowance?.toFixed(2) || '-' }} mm
-                  </div>
-                  <div class="comparison-cell">
-                    {{ risultatiAvanzati.bendAllowance?.toFixed(2) || '-' }} mm
-                  </div>
-                  <div
-                    class="comparison-cell"
-                    :class="{
-                      significant: isDifferenceSignificant(
-                        dettagliStandard[1]?.bendAllowance,
-                        risultatiAvanzati.bendAllowance
-                      ),
-                    }"
-                  >
-                    {{
-                      calculateDifference(
-                        dettagliStandard[1]?.bendAllowance,
-                        risultatiAvanzati.bendAllowance
-                      )
-                    }}
-                  </div>
-                </div>
-
-                <div class="comparison-row">
-                  <div class="comparison-cell">Setback</div>
-                  <div class="comparison-cell">
-                    {{ dettagliStandard[1]?.setback?.toFixed(2) || '-' }} mm
-                  </div>
-                  <div class="comparison-cell">
-                    {{ risultatiAvanzati.setback?.toFixed(2) || '-' }} mm
-                  </div>
-                  <div
-                    class="comparison-cell"
-                    :class="{
-                      significant: isDifferenceSignificant(
-                        dettagliStandard[1]?.setback,
-                        risultatiAvanzati.setback
-                      ),
-                    }"
-                  >
-                    {{
-                      calculateDifference(dettagliStandard[1]?.setback, risultatiAvanzati.setback)
-                    }}
-                  </div>
-                </div>
-
-                <div class="comparison-row">
-                  <div class="comparison-cell">Bend Deduction</div>
-                  <div class="comparison-cell">
-                    {{ dettagliStandard[1]?.bendDeduction?.toFixed(2) || '-' }} mm
-                  </div>
-                  <div class="comparison-cell">
-                    {{ risultatiAvanzati.bendDeduction?.toFixed(2) || '-' }} mm
-                  </div>
-                  <div
-                    class="comparison-cell"
-                    :class="{
-                      significant: isDifferenceSignificant(
-                        dettagliStandard[1]?.bendDeduction,
-                        risultatiAvanzati.bendDeduction
-                      ),
-                    }"
-                  >
-                    {{
-                      calculateDifference(
-                        dettagliStandard[1]?.bendDeduction,
-                        risultatiAvanzati.bendDeduction
-                      )
-                    }}
-                  </div>
-                </div>
-
-                <!-- Aggiungi riga per il raggio effettivo -->
-                <div class="comparison-row" v-if="larghezzaMatrice && larghezzaMatrice > 0">
-                  <div class="comparison-cell">Raggio Effettivo</div>
-                  <div class="comparison-cell">{{ raggioPiega.toFixed(2) }} mm</div>
-                  <div class="comparison-cell">{{ raggioEffettivo.toFixed(2) }} mm</div>
-                  <div
-                    class="comparison-cell"
-                    :class="{ significant: isDifferenceSignificant(raggioPiega, raggioEffettivo) }"
-                  >
-                    {{ calculateDifference(raggioPiega, raggioEffettivo) }}
-                  </div>
-                </div>
-              </div>
-
-              <div class="recommendation" v-if="isAdvancedRecommended">
-                <p>
-                  <strong>Consiglio:</strong> In base ai parametri attuali, è consigliabile
-                  utilizzare i calcoli avanzati per risultati più precisi.
-                </p>
-              </div>
-            </div>
           </div>
+
+          <!-- Confronto calcoli standard vs avanzati (collassabile, full width) -->
+          <AccordionSection
+            class="comparison-fullwidth"
+            v-if="risultatiAvanzati && dettagliStandard.length > 1 && hasBend"
+            title="Confronto standard / avanzato"
+            hint="Differenze sulla prima piega"
+          >
+            <div class="comparison-grid">
+              <div class="comparison-row header">
+                <div class="comparison-cell">Parametro</div>
+                <div class="comparison-cell">Standard</div>
+                <div class="comparison-cell">Avanzato</div>
+                <div class="comparison-cell">Differenza</div>
+              </div>
+
+              <div class="comparison-row">
+                <div class="comparison-cell">Bend Allowance</div>
+                <div class="comparison-cell">
+                  {{ dettagliStandard[1]?.bendAllowance?.toFixed(2) || '-' }} mm
+                </div>
+                <div class="comparison-cell">
+                  {{ risultatiAvanzati.bendAllowance?.toFixed(2) || '-' }} mm
+                </div>
+                <div
+                  class="comparison-cell"
+                  :class="{
+                    significant: isDifferenceSignificant(
+                      dettagliStandard[1]?.bendAllowance,
+                      risultatiAvanzati.bendAllowance
+                    ),
+                  }"
+                >
+                  {{
+                    calculateDifference(
+                      dettagliStandard[1]?.bendAllowance,
+                      risultatiAvanzati.bendAllowance
+                    )
+                  }}
+                </div>
+              </div>
+
+              <div class="comparison-row">
+                <div class="comparison-cell">Setback</div>
+                <div class="comparison-cell">
+                  {{ dettagliStandard[1]?.setback?.toFixed(2) || '-' }} mm
+                </div>
+                <div class="comparison-cell">
+                  {{ risultatiAvanzati.setback?.toFixed(2) || '-' }} mm
+                </div>
+                <div
+                  class="comparison-cell"
+                  :class="{
+                    significant: isDifferenceSignificant(
+                      dettagliStandard[1]?.setback,
+                      risultatiAvanzati.setback
+                    ),
+                  }"
+                >
+                  {{ calculateDifference(dettagliStandard[1]?.setback, risultatiAvanzati.setback) }}
+                </div>
+              </div>
+
+              <div class="comparison-row">
+                <div class="comparison-cell">Bend Deduction</div>
+                <div class="comparison-cell">
+                  {{ dettagliStandard[1]?.bendDeduction?.toFixed(2) || '-' }} mm
+                </div>
+                <div class="comparison-cell">
+                  {{ risultatiAvanzati.bendDeduction?.toFixed(2) || '-' }} mm
+                </div>
+                <div
+                  class="comparison-cell"
+                  :class="{
+                    significant: isDifferenceSignificant(
+                      dettagliStandard[1]?.bendDeduction,
+                      risultatiAvanzati.bendDeduction
+                    ),
+                  }"
+                >
+                  {{
+                    calculateDifference(
+                      dettagliStandard[1]?.bendDeduction,
+                      risultatiAvanzati.bendDeduction
+                    )
+                  }}
+                </div>
+              </div>
+
+              <!-- Aggiungi riga per il raggio effettivo -->
+              <div class="comparison-row" v-if="larghezzaMatrice && larghezzaMatrice > 0">
+                <div class="comparison-cell">Raggio Effettivo</div>
+                <div class="comparison-cell">{{ raggioPiega.toFixed(2) }} mm</div>
+                <div class="comparison-cell">{{ raggioEffettivo.toFixed(2) }} mm</div>
+                <div
+                  class="comparison-cell"
+                  :class="{ significant: isDifferenceSignificant(raggioPiega, raggioEffettivo) }"
+                >
+                  {{ calculateDifference(raggioPiega, raggioEffettivo) }}
+                </div>
+              </div>
+            </div>
+
+            <div class="recommendation" v-if="isAdvancedRecommended">
+              <p>
+                <strong>Consiglio:</strong> In base ai parametri attuali, è consigliabile utilizzare
+                i calcoli avanzati per risultati più precisi.
+              </p>
+            </div>
+          </AccordionSection>
         </div>
       </div>
 
-      <!-- Tab Calcoli Avanzati -->
-      <div v-if="activeTab === 'advanced'" class="tab-pane">
-        <AdvancedCalculations
-          :spessore="spessore"
-          :raggioPiega="raggioPiega"
-          :segments="segments"
-          :fattoreK="fattoreKEffettivo"
-          :unitFactor="unitFactor"
-          :unitLabel="unitLabel"
-          :processo="processo"
-          :direzione="direzione"
-          :tipoMatrice="tipoMatrice"
-          :larghezzaMatrice="larghezzaMatrice"
-          :tipoCava="tipoCava"
-          v-model:risultatiAvanzati="risultatiAvanzati"
-          @update:risultatiAvanzati="updateRisultatiAvanzati"
-          @update:larghezzaMatrice="updateLarghezzaMatrice"
-          @update:processo="updateProcesso"
-          @calcoliAggiornati="handleCalcoliAggiornati"
-        />
+      <!-- Calcoli avanzati e verifiche (collassabili, nella tab Calcolatore) -->
+      <div v-if="activeTab === 'base'" class="tab-pane advanced-extra">
+        <AccordionSection
+          title="Calcoli avanzati"
+          hint="Springback, forza di piega, V-die ottimale, raggio effettivo"
+        >
+          <AdvancedCalculations
+            :spessore="spessore"
+            :raggioPiega="raggioPiega"
+            :segments="segments"
+            :fattoreK="fattoreKEffettivo"
+            :unitFactor="unitFactor"
+            :unitLabel="unitLabel"
+            :processo="processo"
+            :direzione="direzione"
+            :tipoMatrice="tipoMatrice"
+            :larghezzaMatrice="larghezzaMatrice"
+            :tipoCava="tipoCava"
+            v-model:risultatiAvanzati="risultatiAvanzati"
+            @update:risultatiAvanzati="updateRisultatiAvanzati"
+            @update:larghezzaMatrice="updateLarghezzaMatrice"
+            @update:processo="updateProcesso"
+            @calcoliAggiornati="handleCalcoliAggiornati"
+          />
 
-        <div class="apply-advanced-section" v-if="hasBendAndAdvanced">
-          <div class="apply-status">
-            <span class="status-label">Stato calcoli avanzati:</span>
-            <span class="status-value" :class="{ active: usaCalcoliAvanzati }">
-              {{ usaCalcoliAvanzati ? 'Attivi' : 'Non attivi' }}
-            </span>
+          <div class="apply-advanced-section" v-if="hasBendAndAdvanced">
+            <div class="apply-status">
+              <span class="status-label">Stato calcoli avanzati:</span>
+              <span class="status-value" :class="{ active: usaCalcoliAvanzati }">
+                {{ usaCalcoliAvanzati ? 'Attivi' : 'Non attivi' }}
+              </span>
+            </div>
+            <button @click="applicaCalcoliAvanzati" class="btn-apply-advanced">
+              {{ usaCalcoliAvanzati ? 'Aggiorna calcoli avanzati' : 'Applica calcoli avanzati' }}
+            </button>
+            <button v-if="usaCalcoliAvanzati" @click="disattivaCalcoliAvanzati" class="btn-reset">
+              Torna a calcoli standard
+            </button>
           </div>
-          <button @click="applicaCalcoliAvanzati" class="btn-apply-advanced">
-            {{ usaCalcoliAvanzati ? 'Aggiorna calcoli avanzati' : 'Applica calcoli avanzati' }}
-          </button>
-          <button v-if="usaCalcoliAvanzati" @click="disattivaCalcoliAvanzati" class="btn-reset">
-            Torna a calcoli standard
-          </button>
-        </div>
+        </AccordionSection>
 
-        <BendCompensationCalculator
-          @update:fattoreK="updateFattoreK"
-          :unitFactor="unitFactor"
-          :unitLabel="unitLabel"
-        />
+        <AccordionSection
+          title="Compensazione piega (fattore K)"
+          hint="Calcola il fattore K da una piega di prova"
+        >
+          <BendCompensationCalculator
+            @update:fattoreK="updateFattoreK"
+            :unitFactor="unitFactor"
+            :unitLabel="unitLabel"
+          />
+        </AccordionSection>
 
-        <!-- Sezione Di Furio Calculator -->
-        <div class="advanced-section">
-          <h3>🏭 Verifica con Metodo Di Furio</h3>
-          <p class="section-description">
-            Confronta i risultati con il metodo industriale Di Furio utilizzando misure esterne delle flange.
-            Metodo validato secondo standard industriali per calcoli di bend deduction.
-          </p>
-          
+        <AccordionSection
+          title="Verifica con metodo Di Furio"
+          hint="Bend deduction da misure esterne delle flange"
+        >
           <DiFurioCalculator
             :currentSpessore="spessore"
             :currentRaggioPiega="raggioPiega"
             :currentFattoreK="fattoreKEffettivo"
           />
-        </div>
+        </AccordionSection>
       </div>
 
       <!-- Tab Guida ai Materiali -->
       <div v-if="activeTab === 'materials'" class="tab-pane">
         <section class="materials-reference">
           <h2>Guida ai Materiali</h2>
+          <p class="materials-intro">
+            Valori di riferimento per la piegatura (fattore K, raggio minimo, ritorno elastico)
+            usati dal calcolo dello sviluppo lamiera. Sono valori tipici: verifica sempre con prove
+            reali sulla tua pressa.
+          </p>
 
           <table class="materials-table">
             <thead>
@@ -453,7 +435,6 @@
         <div class="settings-section">
           <h3>Personalizzazione</h3>
 
-
           <div class="form-row">
             <label>Modalità di calcolo predefinita:</label>
             <div class="radio-group">
@@ -487,14 +468,15 @@
     <!-- Sezione SEO con contenuto ottimizzato -->
     <div class="seo-calculator-section">
       <div class="container">
-        <h2>Formula Piegatura Lamiera: Calcolo Bend Allowance</h2>
+        <h2>Calcolo Sviluppo Lamiera: Piegatura, Bend Allowance e Bend Deduction</h2>
 
         <div class="seo-content-blocks">
           <div class="seo-block">
             <h3>Come Calcolare il Bend Allowance</h3>
             <p>
-              Il bend allowance lamiera è la lunghezza aggiuntiva necessaria per ottenere l'angolo desiderato dopo la piegatura.
-              La formula principale per il calcolo bend allowance è: <strong>BA = α × (R + K × T)</strong>
+              Il bend allowance lamiera è la lunghezza aggiuntiva necessaria per ottenere l'angolo
+              desiderato dopo la piegatura. La formula principale per il calcolo bend allowance è:
+              <strong>BA = α × (R + K × T)</strong>
               dove α è l'angolo in radianti, R il raggio interno, K il fattore K e T lo spessore.
             </p>
           </div>
@@ -502,35 +484,35 @@
           <div class="seo-block">
             <h3>Bend Deduction Calculator Online</h3>
             <p>
-              Il bend deduction rappresenta la differenza tra la lunghezza sviluppata e la lunghezza finale del pezzo piegato.
-              Formula standard: <strong>BD = 2 × SB - BA</strong> dove SB è il setback calcolato come
-              <strong>SB = (R + T) × tan(α/2)</strong>.
+              Il bend deduction rappresenta la differenza tra la lunghezza sviluppata e la lunghezza
+              finale del pezzo piegato. Formula standard: <strong>BD = 2 × SB - BA</strong> dove SB
+              è il setback calcolato come <strong>SB = (R + T) × tan(α/2)</strong>.
             </p>
           </div>
 
           <div class="seo-block">
             <h3>Calcolo Sviluppo Lamiera Professionale</h3>
             <p>
-              Il mio calcolatore piegatura lamiera utilizza algoritmi avanzati basati su standard industriali
-              DIN 6935 e ANSI per garantire risultati precisi. Supporta tutti i principali materiali:
-              acciaio S235, alluminio 1100/5052/6061, acciaio inox AISI 304, rame, ottone e titanio.
+              Il mio calcolatore piegatura lamiera utilizza algoritmi avanzati basati su standard
+              industriali DIN 6935 e ANSI per garantire risultati precisi. Supporta tutti i
+              principali materiali: acciaio S235, alluminio 1100/5052/6061, acciaio inox AISI 304,
+              rame, ottone e titanio.
             </p>
           </div>
 
           <div class="seo-block">
             <h3>Fattore K per Materiali Lamiera</h3>
             <p>
-              Il fattore K dipende dal materiale utilizzato e influenza direttamente il calcolo del bend allowance.
-              Valori tipici: acciaio dolce K=0.33, alluminio K=0.40, acciaio inox K=0.38, rame K=0.45.
-              Il mio strumento seleziona automaticamente il valore corretto per ogni materiale.
+              Il fattore K dipende dal materiale utilizzato e influenza direttamente il calcolo del
+              bend allowance. Valori tipici: acciaio dolce K=0.33, alluminio K=0.40, acciaio inox
+              K=0.38, rame K=0.45. Il mio strumento seleziona automaticamente il valore corretto per
+              ogni materiale.
             </p>
           </div>
         </div>
 
         <div class="back-to-home">
-          <router-link to="/" class="btn btn-secondary">
-            ← Torna alla Home
-          </router-link>
+          <router-link to="/" class="btn btn-secondary"> ← Torna alla Home </router-link>
         </div>
       </div>
     </div>
@@ -546,15 +528,13 @@ import ResultsDisplay from '@/components/calculator/ResultsDisplay.vue';
 import AdvancedCalculations from '@/components/calculator/AdvancedCalculations.vue';
 import BendCompensationCalculator from '@/components/calculator/BendCompensationCalculator.vue';
 import DiFurioCalculator from '@/components/calculator/DiFurioCalculator.vue';
-import UnitsSelector from '@/components/common/UnitsSelector.vue';
+import AccordionSection from '@/components/common/AccordionSection.vue';
 import { calcolaDettagliSegmenti } from '@/utils/BendingCalculator.js';
 import { useBendCalculator } from '@/composables/useBendCalculator';
 import { materialsDatabase } from '@/utils/MaterialsDatabase';
-import {
-  calcoliAvanzatiPiegatura,
-  calcolaAperturaMatrice,
-  calcolaRaggioEffettivo,
-} from '@/utils/BendingCalculatorAdvanced.js';
+import { fattoriKMaterialiDefault, resolveMaterial } from '@/utils/materials.js';
+import { logger } from '@/utils/logger.js';
+import { calcoliAvanzatiPerPiega, calcolaAperturaMatrice } from '@/utils/bendingEngine.js';
 
 export default {
   name: 'CalculatorView',
@@ -566,23 +546,20 @@ export default {
     AdvancedCalculations,
     BendCompensationCalculator,
     DiFurioCalculator,
-    UnitsSelector,
+    AccordionSection,
   },
   setup() {
     // Tabs
     const activeTab = ref('base');
     const tabs = [
       { id: 'base', label: 'Calcolatore' },
-      { id: 'advanced', label: 'Calcoli Avanzati' },
       { id: 'materials', label: 'Guida Materiali' },
       { id: 'settings', label: 'Impostazioni' },
     ];
 
-    // Unità di misura
-    const unitFactor = ref(1); // 1 per mm (default)
+    // Unità di misura: l'app lavora esclusivamente in millimetri.
+    const unitFactor = ref(1);
     const unitLabel = ref('mm');
-
-
 
     // Preferenze utente
     const calcoliAvanzatiDefault = ref(false);
@@ -597,18 +574,11 @@ export default {
     // Stato principale
     const spessore = ref(2.0);
     const raggioPiega = ref(1.0);
-    const materialeSelezionato = ref('acciaio');
+    const materialeSelezionato = ref('steel_mild');
     const fattoreK = ref(0.33);
     const fattoreKDinamico = ref(false);
     const metodoDiCalcolo = ref('standard');
-    const fattoriKMateriali = ref({
-      acciaio: 0.33,
-      alluminio: 0.4,
-      rame: 0.45,
-      ottone: 0.42,
-      inox: 0.38,
-      titanio: 0.35,
-    });
+    const fattoriKMateriali = ref(fattoriKMaterialiDefault());
 
     // Nuovi parametri per la piegatura
     const processo = ref('airBend');
@@ -638,7 +608,7 @@ export default {
       if (rapporto < 0.5) {
         return 0.25; // Raggi molto piccoli - piega severa
       } else if (rapporto < 1) {
-        return 0.30; // Raggi piccoli - comune per lamiere spesse
+        return 0.3; // Raggi piccoli - comune per lamiere spesse
       } else if (rapporto < 2) {
         return 0.33; // Rapporto standard industriale
       } else if (rapporto < 4) {
@@ -662,55 +632,13 @@ export default {
       return hasBend.value && risultatiAvanzati.value !== null;
     });
 
-    const currentBendAngle = computed(() => {
-      if (!hasBend.value || !segments.value) {
-        return 0;
-      }
-
-      for (let i = 0; i < segments.value.length; i++) {
-        const segment = segments.value[i];
-        if (segment && typeof segment.angle === 'number' && Math.abs(segment.angle) > 0) {
-          return Math.abs(segment.angle);
-        }
-      }
-      return 0;
-    });
-
-    const currentBendLength = computed(() => {
-      if (!hasBend.value || !segments.value || segments.value.length < 2) {
-        return 100;
-      }
-
-      for (let i = 1; i < segments.value.length; i++) {
-        const prevSegment = segments.value[i - 1];
-        const currSegment = segments.value[i];
-
-        if (
-          prevSegment &&
-          currSegment &&
-          typeof prevSegment.angle === 'number' &&
-          typeof currSegment.length === 'number' &&
-          Math.abs(prevSegment.angle) > 0
-        ) {
-          return currSegment.length;
-        }
-      }
-      return 100;
-    });
-
-    // Utilizziamo il composable useBendCalculator con i nuovi parametri
-    const {
-      dettagli: dettagliCalcolati,
-      sviluppoTotale: sviluppoCalcolato,
-      lunghezzaLineare,
-      calcolaFattoreKDinamico: calcolaFattoreK,
-      raggioEffettivo,
-    } = useBendCalculator(
+    // Composable useBendCalculator: usiamo solo il raggio effettivo calcolato;
+    // dettagli/sviluppo standard sono ricalcolati piu sotto (bendCalculatorResult).
+    const { raggioEffettivo } = useBendCalculator(
       segments,
       spessore,
       raggioPiega,
       fattoreKEffettivo,
-      metodoDiCalcolo,
       larghezzaMatrice,
       processo
     );
@@ -739,7 +667,7 @@ export default {
           metodoDiCalcolo.value || 'standard'
         );
       } catch (error) {
-        console.error('Errore nel calcolo dettagli:', error);
+        logger.error('Errore nel calcolo dettagli:', error);
         return { dettagli: [], sviluppoTotale: 0 };
       }
     });
@@ -776,81 +704,37 @@ export default {
       return isDifferenceSignificant(standardBA, advancedBA);
     });
 
-    // Computed per dettagli che considera i calcoli avanzati con protezione
+    // Dettagli per-piega: in modalita avanzata usa i risultati per-piega del
+    // motore (ogni piega calcolata col proprio angolo/raggio), non un singolo
+    // valore spalmato su tutte le pieghe.
     const dettagli = computed(() => {
-      // Se non abbiamo dettagli di base, restituisci un array vuoto
       if (!dettagliStandard.value || dettagliStandard.value.length === 0) {
         return [];
       }
 
-      if (usaCalcoliAvanzati.value && risultatiAvanzati.value) {
-        // Modifica i dettagli con i risultati avanzati
-        return dettagliStandard.value.map((det, idx) => {
-          if (
-            idx > 0 &&
-            segments.value &&
-            segments.value[idx - 1] &&
-            typeof segments.value[idx - 1].angle === 'number' &&
-            segments.value[idx - 1].angle !== 0
-          ) {
-            return {
-              ...det,
-              bendAllowance: risultatiAvanzati.value.bendAllowance,
-              setback: risultatiAvanzati.value.setback,
-              bendDeduction: risultatiAvanzati.value.bendDeduction,
-              calcoliAvanzati: true, // Aggiungiamo un flag per sapere se usiamo calcoli avanzati
-            };
-          }
-          return {
-            ...det,
-            calcoliAvanzati: false,
-          };
-        });
-      } else {
-        // Usa i calcoli standard
-        return dettagliStandard.value.map(det => ({
-          ...det,
-          calcoliAvanzati: false, // Aggiungiamo un flag per sapere che usiamo calcoli standard
+      if (usaCalcoliAvanzati.value && risultatiAvanzati.value?.dettagli?.length) {
+        return risultatiAvanzati.value.dettagli.map(d => ({
+          ...d,
+          calcoliAvanzati: d.bendDeduction !== null && d.bendDeduction !== undefined,
         }));
       }
+
+      return dettagliStandard.value.map(det => ({
+        ...det,
+        calcoliAvanzati: false,
+      }));
     });
 
-    // Computed per sviluppo totale che considera i calcoli avanzati con protezione
+    // Sviluppo totale: in modalita avanzata usa l'aggregato per-piega del motore.
     const sviluppoTotale = computed(() => {
-      // Forza un nuovo calcolo includendo tutte le dipendenze rilevanti
-      const shouldUseAdvanced = usaCalcoliAvanzati.value;
-      const advancedResultsExist = !!risultatiAvanzati.value;
-      const standardDetails = dettagliStandard.value;
-
       if (
-        shouldUseAdvanced &&
-        advancedResultsExist &&
-        dettagli.value &&
-        dettagli.value.length > 0
+        usaCalcoliAvanzati.value &&
+        risultatiAvanzati.value &&
+        typeof risultatiAvanzati.value.sviluppoTotale === 'number'
       ) {
-        try {
-          // Ricalcoliamo manualmente lo sviluppo totale con i valori avanzati
-          let sviluppo = 0;
-          dettagli.value.forEach(d => {
-            if (d && typeof d.lunghezzaEffettiva === 'number') {
-              // Per la lunghezza piatta sottraiamo la bend deduction
-              if (d.bendDeduction !== null && d.bendDeduction !== undefined) {
-                sviluppo += d.lunghezzaEffettiva - d.bendDeduction;
-              } else {
-                sviluppo += d.lunghezzaEffettiva;
-              }
-            }
-          });
-          // Sviluppo con calcoli avanzati: sviluppo
-          return sviluppo;
-        } catch (error) {
-          console.error('Errore nel calcolo sviluppo avanzato:', error);
-          return sviluppoTotaleStandard.value || 0;
-        }
-      } else {
-        // Sviluppo con calcoli standard: sviluppoTotaleStandard.value
-        return sviluppoTotaleStandard.value || 0;
+        return risultatiAvanzati.value.sviluppoTotale;
       }
+      return sviluppoTotaleStandard.value || 0;
     });
 
     // Funzione di debug per verificare i valori correnti (rimuovere in produzione)
@@ -906,97 +790,54 @@ export default {
       }
     };
 
-    // Metodi per calcoli avanzati con protezione
+    // Calcoli avanzati PER OGNI piega del profilo.
     const aggiornaCalcoliAvanzati = () => {
       if (!hasBend.value) {
         return;
       }
 
       try {
-        // Calcola il raggio effettivo basato sulla larghezza matrice
-        let raggioCalcolo = raggioPiega.value;
-        if (larghezzaMatrice.value && larghezzaMatrice.value > 0) {
-          raggioCalcolo = calcolaRaggioEffettivo(
-            spessore.value,
-            larghezzaMatrice.value,
-            raggioPiega.value,
-            processo.value
-          );
-        }
-
-        // Creiamo un nuovo oggetto params con tutti i parametri rilevanti
-        const params = {
+        const adv = calcoliAvanzatiPerPiega({
+          segments: segments.value,
           spessore: spessore.value || 0,
-          raggioPiega: raggioCalcolo, // Usa il raggio effettivo qui
-          angolo: currentBendAngle.value || 0,
-          lunghezzaPiega: currentBendLength.value || 100,
+          raggioPiega: raggioPiega.value || 0,
+          fattoreK: fattoreKEffettivo.value || 0.33,
+          metodo: metodoDiCalcolo.value || 'standard',
           materiale: materialeSelezionato.value || 'acciaio',
           processo: processo.value || 'airBend',
-          metodo: metodoDiCalcolo.value || 'standard',
-          fattoreK: fattoreKEffettivo.value || 0.33,
           direzione: direzione.value || 'parallelaPiega',
-          tipoMatrice: tipoMatrice.value || 'vDie',
-          larghezzaMatrice: larghezzaMatrice.value || 8 * spessore.value,
-          tipoCava: tipoCava.value || 'standard',
-        };
-
-        // Log per debug
-        // Parametri per calcoli avanzati preparati
-
-        // Eseguiamo i calcoli avanzati
-        const nuoviRisultati = calcoliAvanzatiPiegatura(params);
-
-        // Forza l'aggiornamento con una nuova copia profonda dell'oggetto
-        risultatiAvanzati.value = JSON.parse(JSON.stringify(nuoviRisultati));
-
-        // Forziamo il ricalcolo immediato
-        nextTick(() => {
-          // Log per debug
-          console.log(
-            'Calcoli avanzati aggiornati:',
-            usaCalcoliAvanzati.value ? 'Modalità avanzata' : 'Modalità standard',
-            'Sviluppo totale:',
-            sviluppoTotale.value,
-            'Raggio effettivo:',
-            raggioEffettivo.value
-          );
+          larghezzaMatrice: larghezzaMatrice.value || 0,
         });
+
+        // Valori della prima piega esposti a livello top per le viste di
+        // riepilogo/confronto (che mostrano una singola piega).
+        const primaPiega =
+          adv.dettagli.find(d => d.bendDeduction !== null && d.bendDeduction !== undefined) || {};
+
+        risultatiAvanzati.value = {
+          ...adv,
+          bendAllowance: primaPiega.bendAllowance ?? 0,
+          setback: primaPiega.setback ?? 0,
+          bendDeduction: primaPiega.bendDeduction ?? 0,
+          springback: primaPiega.springback ?? 0,
+          angoloEffettivo: primaPiega.angoloEffettivo ?? 0,
+        };
       } catch (error) {
-        console.error("Errore nell'aggiornamento calcoli avanzati:", error);
-        console.error(error);
+        logger.error("Errore nell'aggiornamento calcoli avanzati:", error);
       }
     };
 
     // Metodo per gestire gli aggiornamenti dei risultati avanzati
     const updateRisultatiAvanzati = newValue => {
-      if (newValue !== undefined) {
-        // Crea una deep copy per evitare problemi di referenza
+      if (newValue !== undefined && newValue !== null) {
         risultatiAvanzati.value = JSON.parse(JSON.stringify(newValue));
-
-        // Forza il ricalcolo
-        nextTick(() => {
-          console.log('Risultati avanzati aggiornati da evento esterno');
-        });
       }
     };
 
-    // Miglioriamo la gestione del toggle tra modalità standard e avanzata
+    // Gestione del toggle tra modalità standard e avanzata
     const toggleCalcoliAvanzati = () => {
-      // Aggiorna i calcoli con i parametri correnti
       aggiornaCalcoliAvanzati();
-
-      // Salva la preferenza dell'utente
       localStorage.setItem('calcoliAvanzatiDefault', usaCalcoliAvanzati.value);
-
-      // Forza il ricalcolo nella prossima iterazione del ciclo di renderizzazione
-      nextTick(() => {
-        console.log(
-          'Modalità di calcolo cambiata:',
-          usaCalcoliAvanzati.value ? 'Avanzata' : 'Standard',
-          'Sviluppo totale aggiornato:',
-          sviluppoTotale.value
-        );
-      });
     };
 
     const calcolaMatriceOttimale = () => {
@@ -1012,7 +853,7 @@ export default {
           aggiornaCalcoliAvanzati();
         });
       } catch (error) {
-        console.error('Errore nel calcolo matrice ottimale:', error);
+        logger.error('Errore nel calcolo matrice ottimale:', error);
       }
     };
 
@@ -1030,10 +871,6 @@ export default {
     const disattivaCalcoliAvanzati = () => {
       usaCalcoliAvanzati.value = false;
       localStorage.setItem('calcoliAvanzatiDefault', 'false');
-      // Forza aggiornamento
-      nextTick(() => {
-        console.log('Modalità di calcolo standard attivata');
-      });
     };
 
     // Metodi
@@ -1081,13 +918,6 @@ export default {
       }
     };
 
-    const updateUnits = unitInfo => {
-      if (unitInfo) {
-        unitFactor.value = unitInfo.factor || 1;
-        unitLabel.value = unitInfo.unit || 'mm';
-      }
-    };
-
     // Gestione progetti
     const salvaProgetto = () => {
       const nomeProg = prompt('Inserisci un nome per il progetto:');
@@ -1122,7 +952,7 @@ export default {
         localStorage.setItem('bendingProjects', JSON.stringify(progettiSalvati));
         alert(`Progetto "${nomeProg}" salvato con successo!`);
       } catch (error) {
-        console.error('Errore nel salvataggio del progetto:', error);
+        logger.error('Errore nel salvataggio del progetto:', error);
         alert('Si è verificato un errore durante il salvataggio del progetto.');
       }
     };
@@ -1153,7 +983,7 @@ export default {
         // Carica i dati del progetto
         spessore.value = progetto.spessore || 2.0;
         raggioPiega.value = progetto.raggioPiega || 1.0;
-        materialeSelezionato.value = progetto.materialeSelezionato || 'acciaio';
+        materialeSelezionato.value = progetto.materialeSelezionato || 'steel_mild';
         fattoreK.value = progetto.fattoreK || 0.33;
         fattoreKDinamico.value = progetto.fattoreKDinamico || false;
         metodoDiCalcolo.value = progetto.metodoDiCalcolo || 'standard';
@@ -1181,7 +1011,7 @@ export default {
         // Passa alla tab principale
         activeTab.value = 'base';
       } catch (error) {
-        console.error('Errore durante il caricamento del progetto:', error);
+        logger.error('Errore durante il caricamento del progetto:', error);
         alert('Si è verificato un errore durante il caricamento del progetto.');
       }
     };
@@ -1196,8 +1026,8 @@ export default {
       // Reset dei valori
       spessore.value = 2.0;
       raggioPiega.value = 1.0;
-      materialeSelezionato.value = 'acciaio';
-      fattoreK.value = 0.33;
+      materialeSelezionato.value = 'steel_mild';
+      fattoreK.value = resolveMaterial('steel_mild').kFactor;
       fattoreKDinamico.value = false;
       metodoDiCalcolo.value = 'standard';
       segments.value = [
@@ -1226,20 +1056,47 @@ export default {
       });
     };
 
-    // Funzioni di esportazione
-    const esportaPDF = () => {
-      // Implementazione dell'esportazione PDF
-      alert('Funzionalità di esportazione PDF in implementazione.');
+    // Funzioni di esportazione (PDF/DXF/SVG reali)
+    const datiExport = () => ({
+      spessore: spessore.value,
+      raggioPiega: raggioPiega.value,
+      fattoreK: fattoreKEffettivo.value,
+      materiale: resolveMaterial(materialeSelezionato.value).name,
+      sviluppoTotale: sviluppoTotale.value,
+      segments: segments.value,
+      dettagli: dettagli.value,
+      unitLabel: unitLabel.value,
+    });
+
+    // Export caricati on-demand (code-splitting) per non gonfiare il bundle iniziale.
+    const esportaPDF = async () => {
+      try {
+        const { esportaPDF: exportPDF } = await import('@/utils/exporters.js');
+        exportPDF(datiExport());
+      } catch (error) {
+        logger.error("Errore nell'esportazione PDF:", error);
+        alert("Si è verificato un errore durante l'esportazione PDF.");
+      }
     };
 
-    const esportaDXF = () => {
-      // Implementazione dell'esportazione DXF
-      alert('Funzionalità di esportazione DXF in implementazione.');
+    const esportaDXF = async () => {
+      try {
+        const { esportaDXF: exportDXF } = await import('@/utils/exporters.js');
+        exportDXF(datiExport());
+      } catch (error) {
+        logger.error("Errore nell'esportazione DXF:", error);
+        alert("Si è verificato un errore durante l'esportazione DXF.");
+      }
     };
 
-    const esportaSVG = () => {
-      // Implementazione dell'esportazione SVG
-      alert('Funzionalità di esportazione SVG in implementazione.');
+    const esportaSVG = async () => {
+      try {
+        const { esportaSVG: exportSVG } = await import('@/utils/exporters.js');
+        exportSVG(datiExport());
+      } catch (error) {
+        logger.error("Errore nell'esportazione SVG:", error);
+        alert("Si è verificato un errore durante l'esportazione SVG.");
+      }
     };
 
     // Condivisione
@@ -1270,7 +1127,7 @@ export default {
         shareUrl.value = `${window.location.origin}${window.location.pathname}?share=${encoded}`;
         shareUrlCopied.value = false;
       } catch (error) {
-        console.error('Errore nella generazione del link di condivisione:', error);
+        logger.error('Errore nella generazione del link di condivisione:', error);
         alert('Si è verificato un errore durante la generazione del link di condivisione.');
       }
     };
@@ -1287,28 +1144,28 @@ export default {
           }, 3000);
         })
         .catch(err => {
-          console.error('Impossibile copiare il link: ', err);
+          logger.error('Impossibile copiare il link: ', err);
         });
     };
 
     // Gestione tema scuro e preferenze
 
-
     watch(calcoliAvanzatiDefault, newValue => {
       localStorage.setItem('calcoliAvanzatiDefault', newValue);
     });
 
-    // Watch specifico per aggiornare automaticamente la larghezza matrice quando cambia lo spessore
-    watch(spessore, (newSpessore) => {
-      if (newSpessore > 0) {
-        const nuovaLarghezzaMatrice = 8 * newSpessore;
-        // Aggiorna automaticamente la larghezza matrice basata sullo spessore
-        larghezzaMatrice.value = nuovaLarghezzaMatrice;
-        console.log(`Spessore cambiato: ${newSpessore}mm → Larghezza matrice: ${nuovaLarghezzaMatrice}mm`);
-      }
-    }, { immediate: true });
+    // Aggiorna automaticamente la larghezza matrice quando cambia lo spessore.
+    watch(
+      spessore,
+      newSpessore => {
+        if (newSpessore > 0) {
+          larghezzaMatrice.value = 8 * newSpessore;
+        }
+      },
+      { immediate: true }
+    );
 
-    // Watch per tutti i parametri che possono influenzare i calcoli
+    // Un unico watch per tutti i parametri che influenzano i calcoli avanzati.
     watch(
       [
         spessore,
@@ -1323,22 +1180,9 @@ export default {
         larghezzaMatrice,
         tipoCava,
         usaCalcoliAvanzati,
+        segments,
       ],
       () => {
-        // Log per debug - mostra quando un parametro è cambiato
-        console.log('Parametro cambiato, aggiornamento calcoli...');
-
-        // Forza un aggiornamento completo
-        aggiornaCalcoliAvanzati();
-      },
-      { deep: true }
-    );
-
-    // Watch separata per i segmenti
-    watch(
-      () => segments.value,
-      () => {
-        console.log('Segmenti cambiati, aggiornamento calcoli...');
         aggiornaCalcoliAvanzati();
       },
       { deep: true }
@@ -1348,7 +1192,6 @@ export default {
     onMounted(() => {
       try {
         // Carica tema e preferenze
-        
 
         // Carica preferenza per calcoli avanzati
         const savedCalcoliAvanzati = localStorage.getItem('calcoliAvanzatiDefault') === 'true';
@@ -1422,11 +1265,11 @@ export default {
               activeTab.value = 'base';
             }
           } catch (error) {
-            console.error('Errore durante la decodifica del progetto condiviso:', error);
+            logger.error('Errore durante la decodifica del progetto condiviso:', error);
           }
         }
       } catch (error) {
-        console.error("Errore durante l'inizializzazione:", error);
+        logger.error("Errore durante l'inizializzazione:", error);
         // Inizializzazione sicura in caso di errore
         if (!segments.value || segments.value.length === 0) {
           segments.value = [
@@ -1483,7 +1326,6 @@ export default {
       rimuoviLato,
       updateFattoriKMateriali,
       updateFattoreK,
-      updateUnits,
       aggiornaCalcoliAvanzati,
       updateRisultatiAvanzati,
       updateLarghezzaMatrice,
@@ -1539,6 +1381,60 @@ export default {
   flex-direction: column;
   gap: 20px;
   width: 100%; /* Assicura che ogni colonna utilizzi tutta la larghezza disponibile */
+}
+
+/* Flusso guidato a step: Materiale -> Geometria -> Risultati */
+.step-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #0d6efd;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.step-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: #212529;
+}
+
+.step-card .accordion-section {
+  margin-top: 16px;
+}
+
+.advanced-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+/* Il confronto standard/avanzato deve occupare l'intera larghezza della
+   griglia a due colonne, allineandosi agli accordion sottostanti. */
+.comparison-fullwidth {
+  grid-column: 1 / -1;
 }
 
 .bend-parameters-card {
@@ -1674,6 +1570,12 @@ export default {
   margin-bottom: 20px;
   width: 100%;
   box-sizing: border-box;
+}
+
+.materials-intro {
+  margin: 0 0 14px;
+  color: #6c757d;
+  font-size: 14px;
 }
 
 .materials-table {
@@ -2047,8 +1949,6 @@ input:checked + .slider:before {
   display: inline-block;
 }
 
-
-
 @media (max-width: 768px) {
   .tabs {
     flex-wrap: wrap;
@@ -2159,7 +2059,7 @@ input:checked + .slider:before {
   background: white;
   padding: 25px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .seo-block h3 {

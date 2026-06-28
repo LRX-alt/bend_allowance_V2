@@ -49,15 +49,24 @@
         <span class="toggle-slider"></span>
         <span class="toggle-label">Modalità avanzata</span>
       </label>
-      
+
       <div class="calculation-mode-info" v-if="hasRaggioEffettivo">
         <div class="info-card warning">
           <h4>⚠️ Attenzione</h4>
-          <p><strong>Modalità Standard:</strong> Usa il raggio interno nominale ({{ formatValue(raggioPiega) }})</p>
-          <p><strong>Modalità Avanzata:</strong> Usa il raggio effettivo dalla matrice ({{ formatValue(raggioEffettivo) }})</p>
+          <p>
+            <strong>Modalità Standard:</strong> Usa il raggio interno nominale ({{
+              formatValue(raggioPiega)
+            }})
+          </p>
+          <p>
+            <strong>Modalità Avanzata:</strong> Usa il raggio effettivo dalla matrice ({{
+              formatValue(raggioEffettivo)
+            }})
+          </p>
           <p class="recommendation">
-            💡 <strong>Consiglio:</strong> Usa la modalità standard per confronti con tabelle/referenze industriali, 
-            e la modalità avanzata per calcoli precisi con la tua macchina specifica.
+            💡 <strong>Consiglio:</strong> Usa la modalità standard per confronti con
+            tabelle/referenze industriali, e la modalità avanzata per calcoli precisi con la tua
+            macchina specifica.
           </p>
         </div>
       </div>

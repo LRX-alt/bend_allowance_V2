@@ -10,40 +10,53 @@
         <div class="segment-cell">Azioni</div>
       </div>
 
-      <div v-for="(segment, index) in modelValue" :key="index" class="segment-row">
-        <div class="segment-cell">{{ index + 1 }}</div>
-        <div class="segment-cell">
-          <input
-            type="number"
-            v-model.number="segment.length"
-            min="0.1"
-            step="1"
-            class="segment-input"
-            @input="updateModel"
-          />
+      <template v-for="(segment, index) in modelValue" :key="index">
+        <div class="segment-row">
+          <div class="segment-cell">{{ index + 1 }}</div>
+          <div class="segment-cell">
+            <input
+              type="number"
+              v-model.number="segment.length"
+              min="0.1"
+              step="1"
+              class="segment-input"
+              :class="{ invalid: isLengthInvalid(segment) }"
+              @input="updateModel"
+            />
+          </div>
+          <div class="segment-cell">
+            <input
+              type="number"
+              v-model.number="segment.angle"
+              min="-180"
+              max="180"
+              step="1"
+              class="segment-input"
+              :class="{ invalid: isAngleInvalid(segment) }"
+              :disabled="index === 0"
+              :title="index === 0 ? 'Il primo segmento non ha piega in ingresso' : ''"
+              @input="updateModel"
+            />
+          </div>
+          <div class="segment-cell">
+            <button @click="$emit('remove', index)" class="btn-icon" title="Rimuovi segmento">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
         </div>
-        <div class="segment-cell">
-          <input
-            type="number"
-            v-model.number="segment.angle"
-            min="-180"
-            max="180"
-            step="1"
-            class="segment-input"
-            @input="updateModel"
-          />
+        <div v-if="rowMessage(segment, index)" class="segment-message">
+          {{ rowMessage(segment, index) }}
         </div>
-        <div class="segment-cell">
-          <button @click="$emit('remove', index)" class="btn-icon" title="Rimuovi segmento">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-      </div>
+      </template>
     </div>
 
     <div class="segments-actions">
       <button @click="$emit('add')" class="btn-primary">+ Aggiungi Segmento</button>
     </div>
+
+    <p v-if="modelValue.length === 0" class="segments-empty">
+      Aggiungi almeno un segmento per calcolare lo sviluppo.
+    </p>
   </div>
 </template>
 
@@ -70,8 +83,31 @@ export default {
       emit('update:modelValue', props.modelValue);
     };
 
+    const isLengthInvalid = segment =>
+      typeof segment.length !== 'number' || Number.isNaN(segment.length) || segment.length <= 0;
+
+    const isAngleInvalid = segment => {
+      const a = segment.angle;
+      if (typeof a !== 'number' || Number.isNaN(a)) return true;
+      return a < -180 || a > 180;
+    };
+
+    // Messaggio per riga (validazione non bloccante: il calcolo prosegue).
+    const rowMessage = (segment, index) => {
+      if (isLengthInvalid(segment)) {
+        return 'Lunghezza non valida: deve essere maggiore di 0.';
+      }
+      if (index > 0 && isAngleInvalid(segment)) {
+        return 'Angolo non valido: usa un valore tra -180 e 180 gradi.';
+      }
+      return '';
+    };
+
     return {
       updateModel,
+      isLengthInvalid,
+      isAngleInvalid,
+      rowMessage,
     };
   },
 };
@@ -90,6 +126,8 @@ export default {
 }
 
 .segments-table {
+  width: 100%;
+  border: 1px solid #e9ecef;
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 15px;
@@ -98,7 +136,7 @@ export default {
 
 .segments-header {
   display: grid;
-  grid-template-columns: 50px 1fr 1fr 50px;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) 48px;
   background-color: #f8f9fa;
   border-bottom: 1px solid #e9ecef;
   font-weight: 600;
@@ -107,7 +145,7 @@ export default {
 
 .segment-row {
   display: grid;
-  grid-template-columns: 50px 1fr 1fr 50px;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) 48px;
   border-bottom: 1px solid #e9ecef;
 }
 
@@ -116,13 +154,31 @@ export default {
 }
 
 .segment-cell {
-  padding: 10px;
+  min-width: 0;
+  padding: 8px;
   display: flex;
   align-items: center;
 }
 
+/* Colonne numero e azioni: contenuto centrato e compatto */
+.segment-header-num,
+.segment-cell:first-child {
+  justify-content: center;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.segments-header .segment-cell:last-child,
+.segment-row .segment-cell:last-child {
+  justify-content: center;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
 .segment-input {
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 6px 8px;
   border: 1px solid #ced4da;
   border-radius: 4px;
@@ -133,6 +189,37 @@ export default {
   border-color: #86b7fe;
   outline: 0;
   box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.segment-input:disabled {
+  background-color: #f1f3f5;
+  color: #adb5bd;
+  cursor: not-allowed;
+}
+
+.segment-input.invalid {
+  border-color: #dc3545;
+  background-color: #fff5f5;
+}
+
+.segment-input.invalid:focus {
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.2);
+}
+
+.segment-message {
+  grid-column: 1 / -1;
+  padding: 6px 10px;
+  margin: -6px 0 6px;
+  font-size: 12px;
+  color: #b21f2d;
+  background: #fce8e6;
+  border-radius: 4px;
+}
+
+.segments-empty {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #6c757d;
 }
 
 .btn-icon {
