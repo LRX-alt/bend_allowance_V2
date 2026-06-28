@@ -33,7 +33,7 @@
         <div class="result-label">Raggio Effettivo</div>
         <div class="result-value">{{ formatValue(raggioEffettivo) }}</div>
         <div class="result-note">
-          Calcolato dalla matrice (V-die: {{ formatValue(larghezzaMatrice) }})
+          Calcolato dalla matrice (V: {{ formatValue(larghezzaMatrice) }})
         </div>
       </div>
     </div>

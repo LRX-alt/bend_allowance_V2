@@ -5,7 +5,7 @@
 
     <div class="input-grid">
       <div class="input-group">
-        <label for="angolo">Angolo O [°]:</label>
+        <label for="angolo">Angolo di piega α [°]:</label>
         <input
           id="angolo"
           type="number"
@@ -92,9 +92,15 @@
       <div class="input-group">
         <label for="materiale">Materiale:</label>
         <select id="materiale" v-model="materialeSelezionatoId" @change="onMaterialChange">
-          <option v-for="materiale in materiali" :key="materiale.id" :value="materiale.id">
-            {{ materiale.name }}
-          </option>
+          <optgroup
+            v-for="gruppo in materialiPerCategoria"
+            :key="gruppo.categoria"
+            :label="gruppo.categoria"
+          >
+            <option v-for="lega in gruppo.voci" :key="lega.id" :value="lega.id">
+              {{ lega.name }}
+            </option>
+          </optgroup>
         </select>
       </div>
     </div>
@@ -113,12 +119,12 @@
           <span>{{ vDieConsigliata.toFixed(1) }} mm</span>
         </div>
         <div class="suggestion-item">
-          <span>Angolo pressa (comp. springback):</span>
+          <span>Angolo pressa (comp. ritorno elastico):</span>
           <span>{{ angoloPressaConsigliato.toFixed(1) }}°</span>
         </div>
       </div>
       <small class="hint-note"
-        >Basato su materiale selezionato (V ≈ fattore × T, springback ≈
+        >Basato su materiale selezionato (V ≈ fattore × T, ritorno elastico ≈
         {{ (springbackPercent * 100).toFixed(0) }}%).</small
       >
       <div v-if="isSpessoreAlto" class="thickness-warning">
@@ -199,9 +205,18 @@ export default {
     const spessore = ref(props.currentSpessore);
 
     const risultato = ref(null);
-    const materiali = ref(materialsDatabase);
     const materialeSelezionatoId = ref('steel_mild'); // Default
     const materialeSelezionato = ref(getMaterialById(materialeSelezionatoId.value));
+
+    // Leghe del database raggruppate per categoria (per il menu a tendina).
+    const materialiPerCategoria = computed(() => {
+      const gruppi = {};
+      for (const m of materialsDatabase) {
+        if (!gruppi[m.category]) gruppi[m.category] = [];
+        gruppi[m.category].push({ id: m.id, name: m.name });
+      }
+      return Object.entries(gruppi).map(([categoria, voci]) => ({ categoria, voci }));
+    });
 
     const raggioMinimoConsigliato = computed(() => {
       if (!materialeSelezionato.value || !spessore.value) return 0;
@@ -307,13 +322,13 @@ export default {
     const materialeAvviso = computed(() => {
       const m = (materialeKey.value || '').toLowerCase();
       if (m === 'inox') {
-        return 'Acciaio Inox: maggiore forza e springback (~7–10%). Preferisci V più ampia e raggio ≥ 1.0×T.';
+        return 'Acciaio Inox: maggiore forza e ritorno elastico (~7–10%). Preferisci V più ampia e raggio ≥ 1.0×T.';
       }
       if (m === 'titanio') {
-        return 'Titanio: forza elevata e springback (~12%). Usa V molto ampia (+20%) e raggio ≥ 2.5–3.5×T.';
+        return 'Titanio: forza elevata e ritorno elastico (~12%). Usa V molto ampia (+20%) e raggio ≥ 2.5–3.5×T.';
       }
       if (m === 'alluminio') {
-        return 'Alluminio: springback ~8%. Considera sovra-piega e protezioni anti-segno.';
+        return 'Alluminio: ritorno elastico ~8%. Considera sovra-piega e protezioni anti-segno.';
       }
       return null;
     });
@@ -332,7 +347,7 @@ export default {
       spessore,
       risultato,
       calcolaRisultato,
-      materiali,
+      materialiPerCategoria,
       materialeSelezionatoId,
       onMaterialChange,
       raggioMinimoConsigliato,

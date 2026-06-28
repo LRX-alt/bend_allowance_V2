@@ -20,7 +20,7 @@ export const materialsDatabase = [
       minRadiusParallel: 0.5, // x spessore
       minRadiusPerpendicular: 0.8, // x spessore
       springback: 0.04, // 4%
-      grainDirection: true, // tiene conto della direzione della grana?
+      grainDirection: true, // tiene conto del senso di laminazione?
     },
     tooling: {
       recommendedVDie: 8, // x spessore
@@ -142,7 +142,8 @@ export const materialsDatabase = [
       recommendedVDie: 10, // x spessore
       maxPressure: 50, // N/mm²
     },
-    notes: 'HSLA EN 10149, decapato. Richiede raggi piu ampi e sovra-piega per lo springback.',
+    notes:
+      'HSLA EN 10149, decapato. Richiede raggi piu ampi e sovra-piega per il ritorno elastico.',
   },
   {
     id: 'steel_s500mc',
@@ -188,7 +189,8 @@ export const materialsDatabase = [
       recommendedVDie: 14, // x spessore
       maxPressure: 70, // N/mm²
     },
-    notes: 'Acciaio ad altissima resistenza (EN 10149), decapato. Springback marcato, raggi ampi.',
+    notes:
+      'Acciaio ad altissima resistenza (EN 10149), decapato. Ritorno elastico marcato, raggi ampi.',
   },
   {
     id: 'steel_stainless_304',
@@ -211,7 +213,7 @@ export const materialsDatabase = [
       recommendedVDie: 10, // x spessore
       maxPressure: 45, // N/mm²
     },
-    notes: 'Soggetto a incrudimento durante la piegatura, richiede più forza di pressione',
+    notes: 'Soggetto a incrudimento durante la piegatura, richiede maggiore forza di piegatura',
   },
   {
     id: 'aluminum_1100',

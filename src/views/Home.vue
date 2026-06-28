@@ -78,7 +78,7 @@
             <ul class="feature-list">
               <li>Formula piegatura DIN 6935 e ANSI standard</li>
               <li>Fattore K dinamico per materiale</li>
-              <li>Compensazione springback automatica</li>
+              <li>Compensazione ritorno elastico automatica</li>
               <li>Calcolo sviluppo lamiera accurato</li>
             </ul>
           </div>
@@ -89,12 +89,12 @@
             <h3 class="feature-title">Calcolo Piegatura Lamiera Avanzata</h3>
             <p class="feature-description">
               Parametri avanzati per processi piegatura lamiera professionali con calcolo automatico
-              matrice V-die ottimale e forza pressa.
+              matrice ottimale e forza pressa.
             </p>
             <ul class="feature-list">
               <li>Processi: air bending, bottoming, coining</li>
               <li>Calcolo forza piegatura pressopiegatrice</li>
-              <li>Ottimizzazione apertura matrice V-die</li>
+              <li>Ottimizzazione apertura matrice (V)</li>
               <li>Raggio effettivo calcolato dalla matrice</li>
             </ul>
           </div>
@@ -113,8 +113,8 @@
                 titanio
               </li>
               <li>Fattori K specifici per ogni materiale lamiera</li>
-              <li>Valori springback e raggi minimi di piegatura</li>
-              <li>Raggi consigliati per direzione grana</li>
+              <li>Valori di ritorno elastico e raggi minimi di piegatura</li>
+              <li>Raggi consigliati per senso di laminazione</li>
             </ul>
           </div>
 

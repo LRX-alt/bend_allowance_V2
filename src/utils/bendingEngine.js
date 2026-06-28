@@ -213,7 +213,7 @@ export function calcolaSpringback(angolo, materiale, spessore, raggioPiega, proc
  *  - k: coefficiente empirico (~1.3) per V-die standard
  *  - S: resistenza a trazione (N/mm^2)
  *  - T: spessore (mm), L: lunghezza piega (mm), V: apertura matrice (mm)
- * @returns {{forzaKN:number, forzaTon:number, pressioneMax:number}}
+ * @returns {{forzaKN:number, forzaTon:number, forzaSpecificaKNm:number, forzaSpecificaTm:number}}
  */
 export function calcolaForzaPiega(lunghezzaPiega, spessore, materiale, larghezzaMatrice) {
   const mat = resolveMaterial(materiale);
@@ -223,10 +223,12 @@ export function calcolaForzaPiega(lunghezzaPiega, spessore, materiale, larghezza
 
   const forzaKN = (k * resistenza * Math.pow(spessore, 2) * lunghezzaPiega) / (vDie * 1000);
   const forzaTon = forzaKN * 0.1019;
-  const pressioneMax =
-    lunghezzaPiega > 0 && spessore > 0 ? (forzaKN * 1000) / (lunghezzaPiega * spessore) : 0;
 
-  return { forzaKN, forzaTon, pressioneMax };
+  // Forza per metro lineare (kN/m e t/m)
+  const forzaSpecificaKNm = lunghezzaPiega > 0 ? (forzaKN * 1000) / lunghezzaPiega : 0;
+  const forzaSpecificaTm = lunghezzaPiega > 0 ? (forzaTon * 1000) / lunghezzaPiega : 0;
+
+  return { forzaKN, forzaTon, forzaSpecificaKNm, forzaSpecificaTm };
 }
 
 /**

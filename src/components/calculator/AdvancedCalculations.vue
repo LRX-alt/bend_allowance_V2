@@ -10,7 +10,10 @@
       </p>
       <div class="current-params">
         <div><strong>Processo di piega:</strong> {{ processo }}</div>
-        <div><strong>Direzione grana:</strong> {{ direzione }}</div>
+        <div>
+          <strong>Senso di laminazione:</strong>
+          {{ direzione === 'parallelaPiega' ? 'Parallelo' : 'Perpendicolare' }}
+        </div>
         <div><strong>Tipo di matrice:</strong> {{ tipoMatrice }}</div>
         <div><strong>Larghezza matrice:</strong> {{ larghezzaMatrice }} mm</div>
       </div>
@@ -23,15 +26,15 @@
       <div class="form-row">
         <label>Processo di Piegatura:</label>
         <select v-model="processoAttuale" @change="updateProcesso">
-          <option value="airBend">Air Bending</option>
-          <option value="bottoming">Bottoming</option>
-          <option value="coining">Coining</option>
+          <option value="airBend">Piega in aria</option>
+          <option value="bottoming">Piega a fondo cava</option>
+          <option value="coining">Coniatura</option>
         </select>
         <i class="info-icon" title="Il processo di piegatura influenza il raggio effettivo">i</i>
       </div>
 
       <div class="form-row">
-        <label>Larghezza Matrice (V-die):</label>
+        <label>Apertura matrice (V):</label>
         <div class="input-with-unit">
           <input
             type="number"
@@ -83,12 +86,15 @@
       <div class="form-row">
         <label>Materiale:</label>
         <select v-model="materiale" @change="aggiornaCalcoli">
-          <option value="acciaio">Acciaio</option>
-          <option value="alluminio">Alluminio</option>
-          <option value="rame">Rame</option>
-          <option value="ottone">Ottone</option>
-          <option value="inox">Acciaio Inox</option>
-          <option value="titanio">Titanio</option>
+          <optgroup
+            v-for="gruppo in materialiPerCategoria"
+            :key="gruppo.categoria"
+            :label="gruppo.categoria"
+          >
+            <option v-for="lega in gruppo.voci" :key="lega.id" :value="lega.id">
+              {{ lega.name }}
+            </option>
+          </optgroup>
         </select>
         <i class="info-icon" title="Materiale utilizzato per calcoli avanzati">i</i>
       </div>
@@ -103,13 +109,13 @@
         </div>
 
         <div class="result-card">
-          <h3>Springback</h3>
+          <h3>Ritorno elastico</h3>
           <div class="result-value">{{ risultatiInterni.springback.toFixed(2) }}°</div>
           <div class="result-note">Compensazione necessaria</div>
         </div>
 
         <div class="result-card">
-          <h3>Angolo Macchina</h3>
+          <h3>Angolo programmato (CNC)</h3>
           <div class="result-value">{{ risultatiInterni.angoloEffettivo.toFixed(2) }}°</div>
           <div class="result-note">Per ottenere {{ currentBendAngle }}°</div>
         </div>
@@ -123,7 +129,7 @@
         </div>
 
         <div class="result-card">
-          <h3>V-Die Ottimale</h3>
+          <h3>Apertura matrice (V) ottimale</h3>
           <div class="result-value">
             {{ risultatiInterni.aperturaMatrice.aperturaOttimale.toFixed(2) }} mm
           </div>
@@ -161,8 +167,8 @@
         <table>
           <tbody>
             <tr>
-              <td>Pressione Massima:</td>
-              <td>{{ risultatiInterni.forzaPiega.pressioneMax.toFixed(2) }} N/mm²</td>
+              <td>Forza specifica:</td>
+              <td>{{ risultatiInterni.forzaPiega.forzaSpecificaTm.toFixed(1) }} t/m</td>
             </tr>
             <tr>
               <td>Setback:</td>
@@ -198,6 +204,7 @@ import {
 } from '@/utils/BendingCalculatorAdvanced';
 import { calcolaDettagliSegmenti } from '@/utils/BendingCalculator';
 import { logger } from '@/utils/logger.js';
+import { materialsDatabase, toDatabaseId } from '@/utils/materials.js';
 
 export default {
   name: 'AdvancedCalculations',
@@ -261,7 +268,17 @@ export default {
   setup(props, { emit }) {
     // Utilizziamo solo i parametri che sono esclusivi di questo componente
     const metodo = ref('standard');
-    const materiale = ref('acciaio');
+    const materiale = ref(toDatabaseId('acciaio'));
+
+    // Leghe del database raggruppate per categoria (per il menu a tendina).
+    const materialiPerCategoria = computed(() => {
+      const gruppi = {};
+      for (const m of materialsDatabase) {
+        if (!gruppi[m.category]) gruppi[m.category] = [];
+        gruppi[m.category].push({ id: m.id, name: m.name });
+      }
+      return Object.entries(gruppi).map(([categoria, voci]) => ({ categoria, voci }));
+    });
 
     // Tabella matrici standard per spessore (allineata a ParametersInput.vue)
     const matriciStandardIndustriali = [
@@ -407,9 +424,9 @@ export default {
     // Funzione helper per mostrare il nome del processo
     const getProcessoLabel = processo => {
       const labels = {
-        airBend: 'Air Bending',
-        bottoming: 'Bottoming',
-        coining: 'Coining',
+        airBend: 'Piega in aria',
+        bottoming: 'Piega a fondo cava',
+        coining: 'Coniatura',
       };
       return labels[processo] || processo;
     };
@@ -425,7 +442,7 @@ export default {
           raggioPiega: props.raggioPiega || 0,
           angolo: currentBend.value?.angolo || 0,
           lunghezzaPiega: currentBend.value?.lunghezza || 100,
-          materiale: materiale.value || 'acciaio',
+          materiale: materiale.value || toDatabaseId('acciaio'),
           processo: processoAttuale.value || 'airBend',
           metodo: metodo.value || 'standard',
           fattoreK: props.fattoreK || 0.33,
@@ -521,6 +538,7 @@ export default {
     return {
       metodo,
       materiale,
+      materialiPerCategoria,
       matriceWidth,
       processoAttuale,
       risultatiInterni,

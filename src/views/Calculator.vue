@@ -43,13 +43,13 @@
 
               <AccordionSection
                 title="Opzioni avanzate"
-                hint="Direzione grana, tipo matrice e modalità di calcolo"
+                hint="Senso di laminazione, tipo matrice e modalità di calcolo"
               >
                 <div class="parameters-grid">
                   <div class="form-row">
-                    <label>Direzione grana:</label>
+                    <label>Senso di laminazione:</label>
                     <select v-model="direzione">
-                      <option value="parallelaPiega">Parallela alla piega</option>
+                      <option value="parallelaPiega">Parallelo alla piega</option>
                       <option value="perpendicolarePiega">Perpendicolare alla piega</option>
                     </select>
                   </div>
@@ -57,7 +57,7 @@
                   <div class="form-row">
                     <label>Tipo di matrice:</label>
                     <select v-model="tipoMatrice">
-                      <option value="vDie">V-Die</option>
+                      <option value="vDie">Matrice (V)</option>
                       <option value="gooseneck">Gooseneck</option>
                       <option value="offset">Offset</option>
                       <option value="zDie">Z-Die</option>
@@ -258,7 +258,7 @@
       <div v-if="activeTab === 'base'" class="tab-pane advanced-extra">
         <AccordionSection
           title="Calcoli avanzati"
-          hint="Springback, forza di piega, V-die ottimale, raggio effettivo"
+          hint="Ritorno elastico, forza di piega, apertura matrice ottimale, raggio effettivo"
         >
           <AdvancedCalculations
             :spessore="spessore"
@@ -334,7 +334,7 @@
                 <th>Materiale</th>
                 <th>Fattore K</th>
                 <th>Raggio Minimo (x T)</th>
-                <th>Springback</th>
+                <th>Ritorno elastico</th>
                 <th>Note</th>
               </tr>
             </thead>

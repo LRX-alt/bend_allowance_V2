@@ -25,7 +25,7 @@ const routes = [
     meta: {
       title: 'Calcolatore Piegatura Lamiera | Bend Allowance Calculator Online',
       description:
-        'Calcola bend allowance, bend deduction e setback per piegatura lamiera. Strumento professionale con formule DIN 6935, supporto multi-materiale e ottimizzazione matrice V-die.',
+        'Calcola bend allowance, bend deduction e setback per piegatura lamiera. Strumento professionale con formule DIN 6935, supporto multi-materiale e ottimizzazione apertura matrice.',
       keywords:
         'calcolatore piegatura lamiera, bend allowance online, bend deduction calculator, calcolo setback lamiera, formula piegatura',
       ogTitle: 'Calcolatore Piegatura Lamiera | Bend Allowance Calculator',

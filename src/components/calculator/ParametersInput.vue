@@ -107,16 +107,16 @@
     <div class="parameter-row">
       <label class="parameter-label">Processo</label>
       <select v-model="processoLocal" class="parameter-select" @change="updateProcesso">
-        <option value="airBend">Air Bending</option>
-        <option value="bottoming">Bottoming</option>
-        <option value="coining">Coining</option>
+        <option value="airBend">Piega in aria</option>
+        <option value="bottoming">Piega a fondo cava</option>
+        <option value="coining">Coniatura</option>
       </select>
     </div>
 
     <!-- Larghezza matrice -->
     <div class="parameter-row">
       <div class="parameter-header">
-        <label class="parameter-label">Larghezza Matrice (V-die)</label>
+        <label class="parameter-label">Apertura Matrice (V)</label>
         <span class="parameter-value formula-indicator">
           {{ (larghezzaMatriceLocal * unitFactor).toFixed(1) }} {{ unitLabel }}
           <small v-if="matriceStandardSelezionata !== 'custom'">(Standard)</small>
@@ -337,13 +337,13 @@ export default {
     const materialeAvviso = computed(() => {
       const m = normalizeMaterialKey(materialeSelezionatoLocal.value);
       if (m === 'inox') {
-        return 'Acciaio Inox: maggiore forza e springback (~7–10%). Preferisci V più ampia e raggio ≥ 1.0×T.';
+        return 'Acciaio Inox: maggiore forza e ritorno elastico (~7–10%). Preferisci V più ampia e raggio ≥ 1.0×T.';
       }
       if (m === 'titanio') {
-        return 'Titanio: forza elevata e springback (~12%). Usa V molto ampia (+20%) e raggio ≥ 2.5–3.5×T.';
+        return 'Titanio: forza elevata e ritorno elastico (~12%). Usa V molto ampia (+20%) e raggio ≥ 2.5–3.5×T.';
       }
       if (m === 'alluminio') {
-        return 'Alluminio: springback ~8%. Considera sovra-piega e protezioni anti-segno.';
+        return 'Alluminio: ritorno elastico ~8%. Considera sovra-piega e protezioni anti-segno.';
       }
       return null;
     });
