@@ -182,29 +182,6 @@ export default {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.segments-header {
-  display: none;
-}
-
-.segment-row {
-  display: none;
-}
-
-.segment-cell {
-  display: none;
-}
-
-/* Colonne numero e azioni: contenuto centrato e compatto */
-.segment-header-num,
-.segment-cell:first-child {
-  display: none;
-}
-
-.segments-header .segment-cell:last-child,
-.segment-row .segment-cell:last-child {
-  display: none;
-}
-
 .segment-input {
   min-width: 0;
   box-sizing: border-box;

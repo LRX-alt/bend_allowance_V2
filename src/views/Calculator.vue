@@ -176,7 +176,7 @@
         <div class="sections-container mt-4">
           <!-- Confronto calcoli standard vs avanzati (collassabile, full width) -->
           <AccordionSection
-            class="comparison-fullwidth"
+            class="card mb-4 comparison-fullwidth"
             v-if="risultatiAvanzati && dettagliStandard.length > 1 && hasBend"
             title="Confronto standard / avanzato"
             hint="Differenze sulla prima piega"
