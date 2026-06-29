@@ -263,6 +263,27 @@ export function calcolaAperturaMatrice(spessore, processo = 'airBend', materiale
 }
 
 /**
+ * Lunghezza minima del lato (lembo) in funzione dell'apertura cava V.
+ *
+ * Fondamento geometrico: in piega in aria la lamiera poggia sulle due spalle
+ * della matrice a V, distanti V/2 dall'asse di piega. Da qui:
+ * - geometrico = V/2 * n -> limite fisico: sotto questo valore il bordo cade
+ *   nella luce della cava e la piega e impossibile.
+ * - consigliato = 0.63 * V * n -> limite pratico (catalogo Wila/Rolleri/Amada
+ *   per pieghe a ~88-90 gradi), con margine ~26% su V/2 per un lembo stabile.
+ * Il moltiplicatore n e il numero di pieghe adiacenti al lato (1 = lato di
+ * estremita, 2 = lato compreso tra due pieghe).
+ * @param {{V:number, pieghe?:number}} params
+ * @returns {{geometrico:number, consigliato:number}}
+ */
+export function calcolaLatoMinimo({ V, pieghe = 1 }) {
+  const n = Math.max(1, pieghe);
+  const geometrico = (V / 2) * n;
+  const consigliato = 0.63 * V * n;
+  return { geometrico, consigliato };
+}
+
+/**
  * Raggio di piega effettivo stimato dalla larghezza della matrice.
  * EMPIRICO: costanti (V/6.6, V/8, V/9, -0.1*T) valide per acciai comuni in air
  * bending; rappresentano una stima e non un valore normativo.

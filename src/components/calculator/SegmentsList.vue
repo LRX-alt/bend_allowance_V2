@@ -23,7 +23,7 @@
                   min="0.1"
                   step="1"
                   class="form-control segment-input"
-                  :class="{ invalid: isLengthInvalid(segment) }"
+                  :class="{ invalid: isLengthCellInvalid(segment, index) }"
                   @input="updateModel"
                 />
               </td>
@@ -51,9 +51,16 @@
                 </button>
               </td>
             </tr>
-            <tr v-if="rowMessage(segment, index)" class="segment-message-row">
+            <tr v-if="rowAlert(segment, index)" class="segment-message-row">
               <td colspan="4">
-                <div class="segment-message validation-warning d-flex">
+                <div
+                  class="segment-message d-flex"
+                  :class="
+                    rowAlert(segment, index).level === 'error'
+                      ? 'segment-message-error'
+                      : 'validation-warning'
+                  "
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -72,7 +79,7 @@
                     <line x1="12" x2="12" y1="9" y2="13" />
                     <line x1="12" x2="12.01" y1="17" y2="17" />
                   </svg>
-                  <span>{{ rowMessage(segment, index) }}</span>
+                  <span>{{ rowAlert(segment, index).text }}</span>
                 </div>
               </td>
             </tr>
@@ -109,12 +116,18 @@
 </template>
 
 <script>
+import { calcolaLatoMinimo } from '@/utils/bendingEngine.js';
+
 export default {
   name: 'SegmentsList',
   props: {
     modelValue: {
       type: Array,
       required: true,
+    },
+    larghezzaMatrice: {
+      type: Number,
+      default: 0,
     },
     unitFactor: {
       type: Number,
@@ -140,22 +153,72 @@ export default {
       return a < -180 || a > 180;
     };
 
-    // Messaggio per riga (validazione non bloccante: il calcolo prosegue).
-    const rowMessage = (segment, index) => {
+    const hasBend = segment =>
+      segment && typeof segment.angle === 'number' && Math.abs(segment.angle) > 0;
+
+    // Numero di pieghe adiacenti al lato: angle e la piega al giunto che PRECEDE
+    // il segmento (tra index-1 e index). Quindi un lato confina con una piega a
+    // sinistra se ha angle != 0, a destra se il segmento successivo ha angle != 0.
+    const pieghAdiacenti = index => {
+      const list = props.modelValue;
+      const sinistra = index > 0 && hasBend(list[index]) ? 1 : 0;
+      const destra = index < list.length - 1 && hasBend(list[index + 1]) ? 1 : 0;
+      return sinistra + destra;
+    };
+
+    // Verifica lunghezza minima del lato rispetto all'apertura cava V.
+    // Restituisce { level: 'error' | 'warning', text } oppure null.
+    const latoCortoInfo = (segment, index) => {
+      const V = props.larghezzaMatrice;
+      if (!V || V <= 0 || isLengthInvalid(segment)) return null;
+
+      const pieghe = pieghAdiacenti(index);
+      if (pieghe < 1) return null;
+
+      const { geometrico, consigliato } = calcolaLatoMinimo({ V, pieghe });
+      const u = props.unitLabel;
+
+      if (segment.length < geometrico) {
+        return {
+          level: 'error',
+          text: `Lato troppo corto per l'apertura cava V=${V.toFixed(1)} ${u}: minimo fisico ${geometrico.toFixed(1)} ${u} (il bordo cade nella cava).`,
+        };
+      }
+      if (segment.length < consigliato) {
+        return {
+          level: 'warning',
+          text: `Lato corto per la cava V=${V.toFixed(1)} ${u}: consigliati almeno ${consigliato.toFixed(1)} ${u} per una piega stabile.`,
+        };
+      }
+      return null;
+    };
+
+    // Avviso per riga (validazione non bloccante: il calcolo prosegue).
+    // Restituisce { level: 'error' | 'warning', text } oppure null.
+    const rowAlert = (segment, index) => {
       if (isLengthInvalid(segment)) {
-        return 'Lunghezza non valida: deve essere maggiore di 0.';
+        return { level: 'error', text: 'Lunghezza non valida: deve essere maggiore di 0.' };
       }
       if (index > 0 && isAngleInvalid(segment)) {
-        return 'Angolo non valido: usa un valore tra -180 e 180 gradi.';
+        return {
+          level: 'error',
+          text: 'Angolo non valido: usa un valore tra -180 e 180 gradi.',
+        };
       }
-      return '';
+      return latoCortoInfo(segment, index);
+    };
+
+    const isLengthCellInvalid = (segment, index) => {
+      if (isLengthInvalid(segment)) return true;
+      return latoCortoInfo(segment, index) !== null;
     };
 
     return {
       updateModel,
       isLengthInvalid,
       isAngleInvalid,
-      rowMessage,
+      isLengthCellInvalid,
+      rowAlert,
     };
   },
 };
@@ -197,6 +260,18 @@ export default {
   margin: -6px 0 6px;
   font-size: 12px;
   border-radius: 4px;
+}
+
+.segment-message.validation-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.segment-message.segment-message-error {
+  background-color: #f8d7da;
+  color: #842029;
+  border: 1px solid #f5c2c7;
 }
 
 .segments-empty {

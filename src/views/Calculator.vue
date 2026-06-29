@@ -121,6 +121,7 @@
                   v-model="segments"
                   @add="aggiungiLato"
                   @remove="rimuoviLato"
+                  :larghezzaMatrice="larghezzaMatrice"
                   :unitFactor="unitFactor"
                   :unitLabel="unitLabel"
                 />
