@@ -364,6 +364,59 @@ export default {
         { property: 'og:url', content: `${SITE_URL}/` },
       ],
       link: [{ rel: 'canonical', href: `${SITE_URL}/` }],
+      script: [
+        {
+          type: 'application/ld+json',
+          innerHTML: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebApplication',
+            name: 'Calcolatore Sviluppo Lamiera',
+            url: 'https://www.sviluppolamiera.it',
+            description:
+              'Calcolatore professionale per sviluppo lamiera, bend allowance, bend deduction e setback. Strumento avanzato per calcolo piegatura lamiera, ottimizzato per industria metalmeccanica.',
+            applicationCategory: 'EngineeringApplication',
+            operatingSystem: 'All',
+            offers: {
+              '@type': 'Offer',
+              price: '0',
+              priceCurrency: 'EUR',
+            },
+          }),
+        },
+        {
+          type: 'application/ld+json',
+          innerHTML: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: [
+              {
+                '@type': 'Question',
+                name: 'Come si calcola il Bend Allowance?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: "Il bend allowance rappresenta la lunghezza aggiuntiva necessaria per ottenere l'angolo desiderato dopo la piegatura. Si calcola con la formula: BA = α × (R + K × T), dove α è l'angolo in radianti, R è il raggio interno, K è il fattore K e T è lo spessore della lamiera.",
+                },
+              },
+              {
+                '@type': 'Question',
+                name: "Cos'è il Bend Deduction e come si calcola?",
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'Il bend deduction è la differenza tra la lunghezza sviluppata e la lunghezza finale del pezzo piegato. Si calcola con la formula: Bend Deduction = 2 × Setback - Bend Allowance.',
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'Come calcolare il Setback lamiera?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: "Il setback lamiera si calcola con la formula: Setback = (R + T) × tan(α/2), dove R è il raggio interno, T lo spessore e α l'angolo di piegatura.",
+                },
+              },
+            ],
+          }),
+        },
+      ],
     });
 
     const featuresSection = ref(null);

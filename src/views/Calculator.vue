@@ -636,6 +636,26 @@ export default {
         { property: 'og:url', content: `${SITE_URL}/calcolatore-sviluppo-lamiera` },
       ],
       link: [{ rel: 'canonical', href: `${SITE_URL}/calcolatore-sviluppo-lamiera` }],
+      script: [
+        {
+          type: 'application/ld+json',
+          innerHTML: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebApplication',
+            name: 'Calcolatore Piegatura Lamiera',
+            url: 'https://www.sviluppolamiera.it/calcolatore-sviluppo-lamiera',
+            description:
+              'Calcola bend allowance, bend deduction e setback per piegatura lamiera. Strumento professionale con formule DIN 6935, supporto multi-materiale e ottimizzazione apertura matrice.',
+            applicationCategory: 'EngineeringApplication',
+            operatingSystem: 'All',
+            offers: {
+              '@type': 'Offer',
+              price: '0',
+              priceCurrency: 'EUR',
+            },
+          }),
+        },
+      ],
     });
 
     // Tabs

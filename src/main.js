@@ -9,11 +9,7 @@ import './assets/styles/design-system.css';
 // (con createWebHistory) e gestisce sia il pre-render statico (build) sia
 // l'idratazione lato client. La gestione del <head> avviene tramite
 // @unhead/vue (useHead) nei singoli componenti.
-export const createApp = ViteSSG(
-  App,
-  { routes },
-  ({ app, router }) => {
-    void app;
-    void router;
-  }
-);
+export const createApp = ViteSSG(App, { routes }, ({ app, router }) => {
+  void app;
+  void router;
+});
