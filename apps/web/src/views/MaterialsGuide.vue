@@ -26,6 +26,7 @@
       </tbody>
     </table>
     <router-link to="/calcolatore-sviluppo-lamiera">Torna al calcolatore</router-link>
+    <router-link to="/fattore-k">Come si legge il fattore K</router-link>
   </div>
 </template>
 
@@ -62,8 +63,8 @@ const materials = materialsDatabase;
   padding: 24px;
   max-width: 960px;
 }
-.materials-page p {
-  max-width: 68ch;
+.materials-page a {
+  margin-right: 16px;
 }
 table {
   width: 100%;

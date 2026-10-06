@@ -243,6 +243,8 @@
           </p>
         </div>
       </div>
+      <router-link to="/bend-allowance">Bend allowance</router-link>
+      <router-link to="/bend-deduction">Bend deduction</router-link>
       <router-link to="/">← Torna alla Home</router-link>
     </section>
   </div>

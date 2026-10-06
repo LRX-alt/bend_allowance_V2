@@ -121,6 +121,11 @@
               <router-link to="/calcolatore-sviluppo-lamiera">Calcolatore</router-link>
               <router-link to="/editor">Modifica DXF</router-link>
               <router-link to="/guida-materiali">Fattore K</router-link>
+              <router-link to="/bend-allowance">Bend allowance</router-link>
+              <router-link to="/bend-deduction">Bend deduction</router-link>
+              <router-link to="/cava-v-pressopiegatrice">Cava V</router-link>
+              <router-link to="/ritorno-elastico">Ritorno elastico</router-link>
+              <router-link to="/modifica-sviluppo-dxf">Sviluppo DXF</router-link>
             </nav>
             <p class="footer-text">
               © {{ currentYear }} SviluppoLamiera - Ideato e sviluppato da Loris Di Furio

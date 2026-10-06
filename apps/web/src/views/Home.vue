@@ -257,9 +257,9 @@
             </p>
             <p>
               Il bend allowance rappresenta la lunghezza aggiuntiva necessaria per ottenere l'angolo
-              desiderato dopo la piegatura. Il mio strumento calcola automaticamente il bend
-              allowance in base al materiale selezionato, allo spessore della lamiera, al raggio di
-              piegatura e all'angolo richiesto.
+              desiderato dopo la piegatura. Il calcolatore lo ricava dal materiale selezionato,
+              dallo spessore, dal raggio interno e dall'angolo.
+              <router-link to="/bend-allowance">Formula ed esempio</router-link>
             </p>
           </div>
 
@@ -272,8 +272,8 @@
             </p>
             <p>
               Utilizziamo la formula standard:
-              <strong>Bend Deduction = 2 × Setback - Bend Allowance</strong>. Lo sviluppo da tagliare,
-              con le quote esterne, è la somma dei lati meno questa deduzione.
+              <strong>Bend Deduction = 2 × Setback - Bend Allowance</strong>. Lo sviluppo da
+              tagliare, con le quote esterne, è la somma dei lati meno questa deduzione.
             </p>
           </div>
 
@@ -286,8 +286,8 @@
               spessore e α l'angolo di piegatura.
             </p>
             <p>
-              Questa misura colloca le flange rispetto allo spigolo teorico. Nel CAD le quote esterne e
-              lo sviluppo non sono la stessa lunghezza.
+              Questa misura colloca le flange rispetto allo spigolo teorico. Nel CAD le quote
+              esterne e lo sviluppo non sono la stessa lunghezza.
             </p>
           </div>
 

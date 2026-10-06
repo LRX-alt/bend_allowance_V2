@@ -115,6 +115,7 @@
         materiale, misura con due clic e correggi una quota. Le linee di piega si selezionano sul
         disegno; la scheda di piega riepiloga angolo e direzione. Non è un programma CNC della
         pressa.
+        <router-link to="/modifica-sviluppo-dxf">Come funziona la modifica DXF</router-link>
       </p>
     </section>
   </div>
