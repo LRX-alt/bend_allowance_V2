@@ -1,0 +1,45 @@
+{
+  "note": "Corpus di riferimento per i test di import. Sostituibile con DXF di officina nello stesso formato.",
+  "files": [
+    {
+      "name": "01-rettangolo-mm.dxf",
+      "bytes": 241
+    },
+    {
+      "name": "02-fori.dxf",
+      "bytes": 311
+    },
+    {
+      "name": "03-senza-unita-80x50.dxf",
+      "bytes": 168
+    },
+    {
+      "name": "04-pollici.dxf",
+      "bytes": 205
+    },
+    {
+      "name": "05-spline.dxf",
+      "bytes": 284
+    },
+    {
+      "name": "06-ellisse.dxf",
+      "bytes": 282
+    },
+    {
+      "name": "07-aperto.dxf",
+      "bytes": 147
+    },
+    {
+      "name": "08-piega.dxf",
+      "bytes": 288
+    },
+    {
+      "name": "09-duplicati.dxf",
+      "bytes": 245
+    },
+    {
+      "name": "10-asola.dxf",
+      "bytes": 303
+    }
+  ]
+}

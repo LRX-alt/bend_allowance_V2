@@ -1,0 +1,15 @@
+{
+  "name": "@sviluppolamiera/dxf",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@sviluppolamiera/geom2d": "*",
+    "@sviluppolamiera/part-model": "*",
+    "@tarikjabiri/dxf": "^2.8.7",
+    "dxf-parser": "^1.1.2"
+  }
+}

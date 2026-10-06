@@ -1,0 +1,250 @@
+.editor-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: calc(100vh - var(--header-height) - 92px);
+  background: var(--steel-50);
+}
+
+.editor-toolbar,
+.editor-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+  background: white;
+  border-bottom: 1px solid var(--steel-200);
+}
+
+.editor-banner {
+  justify-content: flex-start;
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.file-name {
+  margin: 0;
+  color: var(--gray-700);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.toolbar-group,
+.side-actions,
+.dialog-fields {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.editor-toolbar input[type='file'],
+.canvas-empty input[type='file'] {
+  display: none;
+}
+
+.editor-workspace {
+  flex: 1;
+  min-height: 560px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+
+.canvas-stage {
+  position: relative;
+  min-height: 560px;
+  background:
+    linear-gradient(to right, rgb(28 36 48 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(28 36 48 / 0.04) 1px, transparent 1px), #f7f8fa;
+  background-size: 24px 24px;
+}
+
+.canvas-stage canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
+
+.canvas-empty {
+  position: absolute;
+  inset: 48px 48px 72px;
+  padding: 24px;
+  background: rgb(255 255 255 / 0.92);
+  border: 1px dashed var(--steel-200);
+  border-radius: 16px;
+}
+
+.canvas-legend {
+  position: absolute;
+  left: 16px;
+  bottom: 12px;
+  display: flex;
+  gap: 12px;
+  padding: 6px 10px;
+  background: rgb(255 255 255 / 0.92);
+  border: 1px solid var(--steel-200);
+  border-radius: 999px;
+  color: var(--gray-700);
+  font-size: 12px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.swatch.sheet {
+  background: #1c2430;
+}
+.swatch.bend {
+  background: #c2410c;
+}
+.swatch.preview {
+  background: #9aa8b8;
+}
+
+.editor-side {
+  background: white;
+  border-left: 1px solid var(--steel-200);
+  overflow: auto;
+}
+
+.sheet-data {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid var(--steel-200);
+  background: var(--steel-50);
+}
+
+.sheet-data h2,
+.sheet-data label {
+  margin: 0;
+}
+
+.side-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--steel-200);
+}
+
+.side-tabs button {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--gray-600);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.side-tabs button[aria-selected='true'] {
+  color: var(--ink);
+  box-shadow: inset 0 -2px 0 var(--primary-700);
+}
+
+.side-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.side-section h2 {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.sheet-data label,
+.side-section label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.section-note,
+.side-message,
+.measure-readout {
+  margin: 0;
+  color: var(--gray-600);
+  font-size: 0.875rem;
+}
+
+.measure-readout {
+  color: var(--ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.proposal {
+  justify-content: flex-start;
+  white-space: normal;
+  text-align: left;
+}
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+}
+
+.compare-grid div {
+  padding: 8px;
+  background: var(--steel-50);
+  border-radius: 8px;
+}
+
+.compare-grid dt {
+  color: var(--gray-500);
+  font-size: 0.75rem;
+}
+
+.compare-grid dd {
+  margin: 2px 0 0;
+  font-weight: 700;
+}
+
+.finding-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dialog-copy {
+  margin: 0;
+  color: var(--gray-700);
+}
+
+@media (max-width: 980px) {
+  .editor-toolbar,
+  .editor-workspace {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .editor-side {
+    border-left: 0;
+    border-top: 1px solid var(--steel-200);
+  }
+
+  .canvas-stage,
+  .editor-page {
+    min-height: 70vh;
+  }
+
+  .canvas-empty {
+    inset: 16px 16px 64px;
+  }
+}

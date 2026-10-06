@@ -1,0 +1,10 @@
+{
+  "name": "@sviluppolamiera/geom2d",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,69 @@
+{
+  "name": "@sviluppolamiera/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite-ssg build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "lint": "eslint src --ext .vue,.js --fix",
+    "lint:check": "eslint src --ext .vue,.js",
+    "format": "prettier --write \"src/**/*.{vue,js}\"",
+    "format:check": "prettier --check \"src/**/*.{vue,js}\""
+  },
+  "dependencies": {
+    "@sviluppolamiera/analyze": "*",
+    "@sviluppolamiera/bend-core": "*",
+    "@sviluppolamiera/dxf": "*",
+    "@sviluppolamiera/ops": "*",
+    "@sviluppolamiera/part-model": "*",
+    "file-saver": "^2.0.5",
+    "jspdf": "^2.5.2",
+    "vue": "^3.5.39",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@unhead/vue": "^2.1.15",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "@vue/test-utils": "^2.4.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.0",
+    "eslint-plugin-vue": "^9.20.0",
+    "jsdom": "^24.0.0",
+    "prettier": "^3.2.0",
+    "vite": "^5.0.0",
+    "vite-ssg": "^28.3.0",
+    "vitest": "^1.6.1"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true,
+      "es2022": true,
+      "browser": true
+    },
+    "extends": [
+      "plugin:vue/vue3-essential",
+      "eslint:recommended",
+      "plugin:prettier/recommended"
+    ],
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "rules": {
+      "vue/multi-word-component-names": "off",
+      "no-console": "warn",
+      "no-debugger": "warn",
+      "no-unused-vars": "warn"
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}

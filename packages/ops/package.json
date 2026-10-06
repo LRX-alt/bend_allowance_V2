@@ -1,0 +1,14 @@
+{
+  "name": "@sviluppolamiera/ops",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@sviluppolamiera/bend-core": "*",
+    "@sviluppolamiera/geom2d": "*",
+    "@sviluppolamiera/part-model": "*"
+  }
+}
