@@ -4,6 +4,8 @@ import { redo, undo } from '@sviluppolamiera/part-model';
 export function useEditorHistory(state) {
   const canUndo = computed(() => (state.value?.past.length ?? 0) > 0);
   const canRedo = computed(() => (state.value?.future.length ?? 0) > 0);
+  const undoLabel = computed(() => state.value?.pastLabels?.at(-1) || '');
+  const redoLabel = computed(() => state.value?.futureLabels?.[0] || '');
 
   function onUndo() {
     state.value = undo(state.value);
@@ -13,5 +15,5 @@ export function useEditorHistory(state) {
     state.value = redo(state.value);
   }
 
-  return { canUndo, canRedo, onUndo, onRedo };
+  return { canUndo, canRedo, undoLabel, redoLabel, onUndo, onRedo };
 }

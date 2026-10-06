@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue';
 import { importDxf } from '@sviluppolamiera/dxf';
 import { commit, createEditorState } from '@sviluppolamiera/part-model';
-import { editorBanner, needsUnitConfirmation } from './editorStatus.js';
+import { editorBanner } from './editorStatus.js';
 
 export function useEditorDocument() {
   const source = ref('');
@@ -9,21 +9,22 @@ export function useEditorDocument() {
   const state = ref(null);
   const proposals = ref([]);
   const findings = ref([]);
-  const askUnits = ref(false);
   const askCurves = ref(false);
+  const askUnits = ref(false);
+  const unitChoice = ref('mm');
   const approxTol = ref(0.1);
+  const importFindings = ref([]);
 
   const part = computed(() => state.value?.current ?? null);
-  const needsUnits = computed(() => needsUnitConfirmation(part.value));
   const banner = computed(() => editorBanner(part.value));
 
-  function openSource(decisions) {
-    const result = importDxf(source.value, decisions);
+  function openSource(decisions = {}) {
+    const result = importDxf(source.value, { confirmUnits: 'mm', ...decisions });
+    importFindings.value = result.findings;
     findings.value = result.findings;
     proposals.value = result.groupProposals;
     if (!result.part) return null;
     state.value = createEditorState(result.part);
-    askUnits.value = !result.part.provenance.unitsConfirmedByUser;
     askCurves.value = Boolean(
       result.part.provenance.hadUnsupportedCurves &&
         !result.part.provenance.unsupportedCurvesDecision
@@ -31,23 +32,54 @@ export function useEditorDocument() {
     return result.part;
   }
 
+  function stageSource(name = fileName.value) {
+    fileName.value = name || fileName.value;
+    askCurves.value = false;
+    const probe = importDxf(source.value);
+    if (!probe.part) {
+      importFindings.value = probe.findings;
+      findings.value = probe.findings;
+      proposals.value = [];
+      state.value = null;
+      askUnits.value = false;
+      return { needsUnits: false, part: null };
+    }
+    const declared = probe.part.provenance.declaredUnits;
+    if (declared === 'inch' || declared === 'unknown') {
+      unitChoice.value = declared === 'inch' ? 'inch' : 'mm';
+      askUnits.value = true;
+      return { needsUnits: true, part: probe.part };
+    }
+    askUnits.value = false;
+    return { needsUnits: false, part: openSource({ confirmUnits: 'mm' }) };
+  }
+
   async function onFile(event) {
     const file = event.target.files?.[0];
     if (!file) return null;
     fileName.value = file.name;
     source.value = await file.text();
-    return openSource({});
+    return stageSource(file.name);
   }
 
-  function confirmUnits(unit) {
+  function applyUnits() {
     askUnits.value = false;
-    return openSource({ confirmUnits: unit });
+    return openSource({ confirmUnits: unitChoice.value === 'inch' ? 'inch' : 'mm' });
+  }
+
+  function cancelUnits() {
+    askUnits.value = false;
+    source.value = '';
+    fileName.value = '';
+    state.value = null;
+    findings.value = [];
+    importFindings.value = [];
   }
 
   function approximate() {
     askCurves.value = false;
     return openSource({
-      confirmUnits: 'mm',
+      confirmUnits: unitChoice.value === 'inch' ? 'inch' : 'mm',
       approximateUnsupported: { tolerance: approxTol.value },
     });
   }
@@ -68,15 +100,18 @@ export function useEditorDocument() {
     state,
     proposals,
     findings,
-    askUnits,
     askCurves,
+    askUnits,
+    unitChoice,
     approxTol,
+    importFindings,
     part,
-    needsUnits,
     banner,
     openSource,
+    stageSource,
     onFile,
-    confirmUnits,
+    applyUnits,
+    cancelUnits,
     approximate,
     rejectCurves,
   };

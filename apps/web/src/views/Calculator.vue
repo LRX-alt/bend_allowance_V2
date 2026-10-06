@@ -98,6 +98,24 @@
               max="0.5"
               step="0.01"
           /></label>
+          <label for="cava"
+            >Cava V
+            <select id="cava" v-model="cavaScelta">
+              <option value="consigliata">Consigliata ({{ apertura.toFixed(1) }} mm)</option>
+              <option v-for="opening in caveStandard" :key="opening" :value="String(opening)">
+                {{ opening }} mm
+              </option>
+              <option value="custom">Personalizzata</option>
+            </select>
+          </label>
+          <label v-if="cavaScelta === 'custom'" for="cava-custom"
+            >Apertura mm<input
+              id="cava-custom"
+              v-model.number="cavaCustom"
+              type="number"
+              min="1"
+              step="0.5"
+          /></label>
         </div>
         <div class="quick" aria-label="Spessori rapidi">
           <button
@@ -115,7 +133,7 @@
         <div v-if="mode === 'profilo'" class="profile-workspace">
           <SegmentsList
             v-model="segments"
-            :larghezza-matrice="apertura"
+            :larghezza-matrice="cavaUsata"
             @add="add"
             @remove="remove"
           />
@@ -125,7 +143,7 @@
             :raggio-piega="raggio"
             :fattore-k="fattoreK"
             tipo-matrice="V"
-            :larghezza-matrice="apertura"
+            :larghezza-matrice="cavaUsata"
             tipo-cava="standard"
           />
         </div>
@@ -135,7 +153,12 @@
             <p>{{ mode === 'esterne' ? 'Lunghezza da tagliare' : 'Sviluppo' }}</p>
             <strong>{{ resultNumber.toFixed(3) }} mm</strong>
           </div>
-          <p class="section-note">Cava V consigliata {{ apertura.toFixed(1) }} mm</p>
+          <p class="section-note">
+            Cava V {{ cavaUsata.toFixed(1) }} mm
+            <template v-if="Math.abs(cavaUsata - apertura) > 0.05">
+              · consigliata {{ apertura.toFixed(1) }} mm
+            </template>
+          </p>
         </div>
         <details class="explain">
           <summary>Come l'ho calcolato</summary>
@@ -151,6 +174,12 @@
             Sviluppo {{ profile.sviluppoTotale.toFixed(3) }} mm su lunghezza lineare
             {{ profile.lunghezzaLineare.toFixed(3) }} mm.
           </p>
+          <ul v-if="archi.length" class="arc-lengths">
+            <li v-for="(arco, index) in archi" :key="index">
+              Piega {{ index + 1 }}, {{ arco.angolo }}°: arco interno
+              {{ arco.interno.toFixed(3) }} mm, arco esterno {{ arco.esterno.toFixed(3) }} mm.
+            </li>
+          </ul>
         </details>
         <div v-if="shareUrl" class="share-row">
           <code>{{ shareUrl }}</code>
@@ -169,7 +198,10 @@
             type="search"
             placeholder="Nome progetto"
         /></label>
-        <p v-if="!filtered.length" class="project-empty">Nessun progetto salvato.</p>
+        <p v-if="saveState" class="section-note" role="status">{{ saveState }}</p>
+        <p v-if="!filtered.length" class="project-empty">
+          Nessun progetto salvato in questo browser.
+        </p>
         <ul v-else class="project-list">
           <li v-for="project in filtered" :key="project.nome + project.data">
             <div class="project-main">
@@ -205,7 +237,8 @@
       </aside>
     </div>
 
-    <section class="seo-calculator-section">
+    <details class="seo-calculator-section">
+      <summary>Formule e limiti del calcolo</summary>
       <h2>Calcolo Sviluppo Lamiera: Piegatura, Bend Allowance e Bend Deduction</h2>
       <div class="seo-content-blocks">
         <div>
@@ -245,8 +278,8 @@
       </div>
       <router-link to="/bend-allowance">Bend allowance</router-link>
       <router-link to="/bend-deduction">Bend deduction</router-link>
-      <router-link to="/">← Torna alla Home</router-link>
-    </section>
+      <router-link to="/">Torna alla Home</router-link>
+    </details>
   </div>
 </template>
 
@@ -261,6 +294,7 @@ import {
 import PreviewCanvas from '@/components/calculator/PreviewCanvas.vue';
 import SegmentsList from '@/components/calculator/SegmentsList.vue';
 import { computeExternal, computeProfile } from '@/calculator/compute.js';
+import { lunghezzeArco } from '@/calculator/profileGeometry.js';
 import { decodeShare, readProjects, writeProjects } from '@/calculator/projects.js';
 import { addSegment, removeSegment } from '@/calculator/segments.js';
 import '@/calculator/calculator.css';
@@ -320,6 +354,7 @@ const search = ref('');
 const projectName = ref('');
 const shareUrl = ref('');
 const copied = ref(false);
+const saveState = ref('');
 const editing = ref('');
 const draftName = ref('');
 
@@ -344,9 +379,36 @@ const profile = computed(() =>
 const resultNumber = computed(() =>
   mode.value === 'esterne' ? external.value.lunghezzaDaTagliare : profile.value.sviluppoTotale
 );
+const caveStandard = [6, 8, 12, 16, 20, 24, 32, 40, 50, 60, 80, 100, 120, 140, 160];
+const cavaScelta = ref('consigliata');
+const cavaCustom = ref(16);
 const apertura = computed(
   () => calcolaAperturaMatrice(spessore.value || 0, 'airBend', 'acciaio').aperturaOttimale
 );
+const cavaUsata = computed(() => {
+  if (cavaScelta.value === 'custom') {
+    const custom = Number(cavaCustom.value);
+    return custom > 0 ? custom : apertura.value;
+  }
+  if (cavaScelta.value === 'consigliata') return apertura.value;
+  const chosen = Number(cavaScelta.value);
+  return chosen > 0 ? chosen : apertura.value;
+});
+const archi = computed(() => {
+  if (mode.value === 'esterne') {
+    const angoloPiega = Math.abs(Number(angolo.value) || 0);
+    if (!angoloPiega) return [];
+    const lengths = lunghezzeArco(angoloPiega, raggio.value, spessore.value);
+    return [{ angolo: angoloPiega, ...lengths }];
+  }
+  return segments.value.flatMap((segment, index) => {
+    if (index === 0) return [];
+    const angoloPiega = Math.abs(Number(segment.angle) || 0);
+    if (!angoloPiega) return [];
+    const lengths = lunghezzeArco(angoloPiega, raggio.value, spessore.value);
+    return [{ angolo: angoloPiega, ...lengths }];
+  });
+});
 const filtered = computed(() =>
   projects.value.filter(project =>
     (project.nome || '').toLowerCase().includes(search.value.toLowerCase())
@@ -392,11 +454,18 @@ function currentProject(nome) {
 }
 
 function saveProject() {
-  if (!projectName.value.trim()) return;
-  const next = readProjects().filter(project => project.nome !== projectName.value.trim());
-  next.push(currentProject(projectName.value.trim()));
-  writeProjects(next);
+  const name = projectName.value.trim();
+  if (!name) {
+    saveState.value = 'Indica un nome prima di salvare.';
+    return;
+  }
+  const existing = readProjects();
+  const replaced = existing.some(project => project.nome === name);
+  writeProjects([...existing.filter(project => project.nome !== name), currentProject(name)]);
   refresh();
+  saveState.value = replaced
+    ? `Progetto “${name}” aggiornato in questo browser.`
+    : `Progetto “${name}” salvato in questo browser.`;
 }
 
 function loadProject(project) {
@@ -444,8 +513,9 @@ function removeProject(project) {
 
 function payload() {
   return {
-    v: 1,
+    v: 2,
     t: spessore.value,
+    mat: materialId.value,
     r: raggio.value,
     k: fattoreK.value,
     m: 'standard',
@@ -480,8 +550,24 @@ async function exportPdf() {
     fattoreK: fattoreK.value,
     materiale: resolveMaterial(materialId.value).name,
     sviluppoTotale: resultNumber.value,
-    segments: mode.value === 'profilo' ? segments.value : [],
-    dettagli: profile.value.dettagli,
+    segments:
+      mode.value === 'profilo'
+        ? segments.value
+        : [
+            { length: latoA.value, angle: 0 },
+            { length: latoB.value, angle: angolo.value },
+          ],
+    dettagli:
+      mode.value === 'esterne'
+        ? [
+            {
+              segmento: 1,
+              bendAllowance: external.value.bendAllowance,
+              setback: external.value.setback,
+              bendDeduction: external.value.bendDeduction,
+            },
+          ]
+        : profile.value.dettagli,
     unitLabel: 'mm',
   });
 }
@@ -510,26 +596,31 @@ onMounted(() => {
   refresh();
   const params = new URLSearchParams(window.location.search);
   const encoded = params.get('share');
-  if (!encoded) return;
-  try {
-    const shared = decodeShare(encoded);
-    const raw = JSON.parse(atob(encoded));
-    if (!shared) return;
-    spessore.value = shared.spessore;
-    raggio.value = shared.raggioPiega;
-    fattoreK.value = shared.fattoreK;
-    if (shared.segments.length) {
-      segments.value = shared.segments;
-      mode.value = 'profilo';
+  if (encoded) {
+    try {
+      const shared = decodeShare(encoded);
+      const raw = JSON.parse(atob(encoded));
+      if (shared) {
+        spessore.value = shared.spessore;
+        raggio.value = shared.raggioPiega;
+        fattoreK.value = shared.fattoreK;
+        if (shared.materialId) materialId.value = shared.materialId;
+        if (shared.segments.length) segments.value = shared.segments;
+        mode.value = shared.modo === 'esterne' || raw.modo === 'esterne' ? 'esterne' : 'profilo';
+        if (mode.value === 'esterne') {
+          latoA.value = shared.latoA ?? raw.la ?? latoA.value;
+          latoB.value = shared.latoB ?? raw.lb ?? latoB.value;
+          angolo.value = shared.angolo ?? raw.an ?? angolo.value;
+        }
+      }
+    } catch {
+      shareUrl.value = '';
     }
-    if (raw.modo === 'esterne') {
-      mode.value = 'esterne';
-      latoA.value = raw.la ?? latoA.value;
-      latoB.value = raw.lb ?? latoB.value;
-      angolo.value = raw.an ?? angolo.value;
-    }
-  } catch {
-    shareUrl.value = '';
+  }
+  const requested = params.get('progetto');
+  if (!encoded && requested) {
+    const found = readProjects().find(project => project.nome === requested);
+    if (found) loadProject(found);
   }
 });
 </script>

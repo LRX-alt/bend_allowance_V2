@@ -233,12 +233,12 @@ export default {
   font-size: 18px;
   font-weight: 600;
   margin: 0 0 15px 0;
-  color: #212529;
+  color: var(--ink);
 }
 
 .segments-table {
   width: 100%;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--line);
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 15px;
@@ -251,8 +251,8 @@ export default {
 }
 
 .segment-input.invalid {
-  border-color: #dc3545;
-  background-color: #fff5f5;
+  border-color: var(--error-600);
+  background-color: var(--error-50);
 }
 
 .segment-message {
@@ -263,26 +263,26 @@ export default {
 }
 
 .segment-message.validation-warning {
-  background-color: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
+  background-color: var(--warning-50);
+  color: var(--warning-800);
+  border: 1px solid var(--warning-200);
 }
 
 .segment-message.segment-message-error {
-  background-color: #f8d7da;
-  color: #842029;
-  border: 1px solid #f5c2c7;
+  background-color: var(--error-50);
+  color: var(--error-800);
+  border: 1px solid var(--error-200);
 }
 
 .segments-empty {
   margin-top: 10px;
   font-size: 13px;
-  color: #6c757d;
+  color: var(--gray-600);
 }
 
 .btn-icon {
   background-color: transparent;
-  color: #dc3545;
+  color: var(--error-600);
 }
 
 .btn-icon:hover {
@@ -303,6 +303,6 @@ export default {
 }
 
 .btn-primary:hover {
-  background-color: #0b5ed7;
+  background-color: var(--primary-700);
 }
 </style>

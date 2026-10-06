@@ -15,13 +15,19 @@ export function writeProjects(projects, storage = globalThis.localStorage) {
 
 export function decodeShare(encoded) {
   const data = JSON.parse(atob(encoded));
-  if (!data || data.v !== 1) return null;
+  if (!data || (data.v !== 1 && data.v !== 2)) return null;
   return {
     spessore: data.t ?? 2,
     raggioPiega: data.r ?? 1,
     fattoreK: data.k ?? 0.33,
     metodoDiCalcolo: data.m ?? 'standard',
-    segments: Array.isArray(data.s) ? data.s.map(row => ({ length: row[0] || 0, angle: row[1] || 0 })) : [],
-    modo: 'profilo',
+    segments: Array.isArray(data.s)
+      ? data.s.map(row => ({ length: row[0] || 0, angle: row[1] || 0 }))
+      : [],
+    modo: data.modo === 'esterne' ? 'esterne' : 'profilo',
+    materialId: typeof data.mat === 'string' ? data.mat : '',
+    latoA: data.la,
+    latoB: data.lb,
+    angolo: data.an,
   };
 }

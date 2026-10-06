@@ -46,8 +46,8 @@
     <h2>Domande</h2>
     <h3>La cava scelta cambia il raggio interno del calcolatore?</h3>
     <p>
-      Nella pagina del calcolatore no. Il raggio interno è un dato che inserisci. La cava è un
-      consiglio mostrato accanto al risultato, calcolato come 8 × spessore.
+      No. Il raggio interno resta il valore che inserisci. Nel calcolatore puoi lasciare la cava
+      consigliata, 8 × spessore, oppure sceglierne un'altra: serve al controllo del lembo.
     </p>
     <h3>SviluppoLamiera programma la pressa?</h3>
     <p>
@@ -69,7 +69,7 @@ import { techArticleHead } from '@/seo/techArticle.js';
 const faqs = [
   {
     q: 'La cava scelta cambia il raggio interno del calcolatore?',
-    a: 'Nella pagina del calcolatore no. Il raggio interno è un dato che inserisci. La cava è un consiglio mostrato accanto al risultato, calcolato come 8 × spessore.',
+    a: "No. Il raggio interno resta il valore che inserisci. Nel calcolatore puoi lasciare la cava consigliata, 8 × spessore, oppure sceglierne un'altra: serve al controllo del lembo.",
   },
   {
     q: 'SviluppoLamiera programma la pressa?',

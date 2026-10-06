@@ -22,6 +22,10 @@
       <span class="legend-item"><span class="swatch swatch-sheet"></span> Lamiera</span>
       <span class="legend-item"><span class="swatch swatch-start"></span> Inizio</span>
       <span class="legend-item"><span class="swatch swatch-bend"></span> Piega</span>
+      <label class="legend-item" for="lunghezza-arco">
+        <input id="lunghezza-arco" v-model="showRadius" type="checkbox" />
+        Lunghezza arco
+      </label>
     </div>
 
     <div class="zoom-controls">
@@ -43,6 +47,7 @@
 
 <script>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { buildProfileGeometry } from '@/calculator/profileGeometry.js';
 
 export default {
   name: 'PreviewCanvas',
@@ -87,6 +92,7 @@ export default {
     const zoom = ref(1);
     const panX = ref(0);
     const panY = ref(0);
+    const showRadius = ref(true);
     const isPanning = ref(false);
     const startPan = ref({ x: 0, y: 0 });
 
@@ -98,33 +104,8 @@ export default {
       () => Array.isArray(props.segments) && props.segments.some(s => (Number(s.length) || 0) > 0)
     );
 
-    // Costruisce la polilinea (centro lamiera) in coordinate "mondo" (y verso l'alto).
-    // Convenzione: la prima flangia non ha piega in ingresso; l'angolo del
-    // segmento i (i>0) e la piega tra il segmento i-1 e i. 'su' = senso antiorario.
-    const buildGeometry = () => {
-      const segs = props.segments || [];
-      const punti = [{ x: 0, y: 0 }];
-      const pieghe = [];
-      let dir = 0; // radianti
-
-      for (let i = 0; i < segs.length; i++) {
-        const L = Number(segs[i].length) || 0;
-        if (i > 0 && segs[i].angle) {
-          const tipo = segs[i].tipoPiega || 'su';
-          const sign = tipo === 'giu' ? -1 : 1;
-          dir += ((Number(segs[i].angle) || 0) * sign * Math.PI) / 180;
-          pieghe.push({
-            indice: pieghe.length + 1,
-            puntoIdx: i,
-            angolo: Number(segs[i].angle) || 0,
-            tipo,
-          });
-        }
-        const prev = punti[punti.length - 1];
-        punti.push({ x: prev.x + L * Math.cos(dir), y: prev.y + L * Math.sin(dir) });
-      }
-      return { punti, pieghe, segs };
-    };
+    const buildGeometry = () =>
+      buildProfileGeometry(props.segments, props.raggioPiega, props.spessore);
 
     // Disegna un'etichetta con sfondo "pill" centrata su (sx, sy).
     const drawPill = (ctx, text, sx, sy, color, bg) => {
@@ -187,14 +168,18 @@ export default {
 
       if (!hasSegments.value) return;
 
-      const { punti, pieghe, segs } = buildGeometry();
+      const { center, left, right, flanges, bends } = buildGeometry();
+      const cloud = [...center, ...left, ...right];
+      for (const bend of bends) {
+        if (bend.cx != null) cloud.push({ x: bend.cx, y: bend.cy });
+      }
 
       // Bounding box in mondo.
       let minX = Infinity;
       let maxX = -Infinity;
       let minY = Infinity;
       let maxY = -Infinity;
-      for (const p of punti) {
+      for (const p of cloud) {
         if (p.x < minX) minX = p.x;
         if (p.x > maxX) maxX = p.x;
         if (p.y < minY) minY = p.y;
@@ -219,64 +204,67 @@ export default {
         x: cx + (p.x - worldCx) * pxPerMm,
         y: cy - (p.y - worldCy) * pxPerMm,
       });
-      const pts = punti.map(toScreen);
+      const centerScreen = center.map(toScreen);
+      const leftScreen = left.map(toScreen);
+      const rightScreen = right.map(toScreen);
 
       // Centroide schermo per spingere le etichette verso l'esterno.
-      const centroid = pts.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 });
-      centroid.x /= pts.length;
-      centroid.y /= pts.length;
+      const centroid = centerScreen.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), {
+        x: 0,
+        y: 0,
+      });
+      centroid.x /= centerScreen.length;
+      centroid.y /= centerScreen.length;
 
-      // Spessore reso come banda (larghezza linea), con join arrotondati che
-      // approssimano il raggio di piega.
-      const bandPx = Math.max(props.spessore * pxPerMm, 4);
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-
+      // Lamiera: lato interno a raggio R, lato esterno a raggio R + spessore.
       ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.strokeStyle = 'rgba(13, 110, 253, 0.18)';
-      ctx.lineWidth = bandPx;
+      ctx.moveTo(leftScreen[0].x, leftScreen[0].y);
+      for (let i = 1; i < leftScreen.length; i++) ctx.lineTo(leftScreen[i].x, leftScreen[i].y);
+      for (let i = rightScreen.length - 1; i >= 0; i--)
+        ctx.lineTo(rightScreen[i].x, rightScreen[i].y);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(28, 36, 48, 0.16)';
+      ctx.fill();
+      ctx.strokeStyle = '#1c2430';
+      ctx.lineWidth = 1.25;
+      ctx.lineJoin = 'round';
       ctx.stroke();
 
-      // Linea di centro.
       ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.strokeStyle = '#0d6efd';
+      ctx.moveTo(centerScreen[0].x, centerScreen[0].y);
+      for (let i = 1; i < centerScreen.length; i++)
+        ctx.lineTo(centerScreen[i].x, centerScreen[i].y);
+      ctx.strokeStyle = '#1c2430';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Etichette lunghezza segmenti (al centro, spinte verso l'esterno).
-      for (let i = 0; i < segs.length; i++) {
-        const L = Number(segs[i].length) || 0;
-        if (L <= 0) continue;
-        const a = pts[i];
-        const b = pts[i + 1];
-        const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      for (const flange of flanges) {
+        const mid = toScreen(flange.mid);
         let ox = mid.x - centroid.x;
         let oy = mid.y - centroid.y;
         const len = Math.hypot(ox, oy) || 1;
         ox /= len;
         oy /= len;
-        const off = 20;
         drawPill(
           ctx,
-          `L${i + 1}: ${L} mm`,
-          mid.x + ox * off,
-          mid.y + oy * off,
-          '#0d6efd',
-          '#eaf2ff'
+          `L${flange.index + 1}: ${flange.length} mm`,
+          mid.x + ox * 20,
+          mid.y + oy * 20,
+          '#1c2430',
+          '#eef1f4'
         );
       }
 
-      // Pieghe: punto, numero, angolo/tipo e raggio.
-      for (const piega of pieghe) {
-        const sp = pts[piega.puntoIdx];
+      if (showRadius.value) {
+        for (const bend of bends) drawRadiusQuota(ctx, bend, toScreen);
+      }
+
+      bends.forEach((piega, index) => {
+        const sp = toScreen(piega);
 
         ctx.beginPath();
         ctx.arc(sp.x, sp.y, 4, 0, 2 * Math.PI);
-        ctx.fillStyle = '#dc3545';
+        ctx.fillStyle = '#15803d';
         ctx.fill();
 
         let ox = sp.x - centroid.x;
@@ -285,21 +273,57 @@ export default {
         ox /= len;
         oy /= len;
 
-        drawPill(ctx, `P${piega.indice}`, sp.x + ox * 26, sp.y + oy * 26 - 9, '#dc3545', '#fdeaec');
-        const dettaglio =
-          props.raggioPiega > 0
-            ? `${piega.angolo}° ${piega.tipo} · R${props.raggioPiega}`
-            : `${piega.angolo}° ${piega.tipo}`;
+        drawPill(ctx, `P${index + 1}`, sp.x + ox * 26, sp.y + oy * 26 - 9, '#15803d', '#dcfce7');
+        const dettaglio = `${piega.angolo}° ${piega.tipo}`;
         drawPill(ctx, dettaglio, sp.x + ox * 26, sp.y + oy * 26 + 9, '#495057', '#f1f3f5');
-      }
+      });
 
-      // Marker di inizio.
-      const start = pts[0];
+      const start = centerScreen[0];
       ctx.beginPath();
       ctx.arc(start.x, start.y, 5, 0, 2 * Math.PI);
-      ctx.fillStyle = '#28a745';
+      ctx.fillStyle = '#1d4ed8';
       ctx.fill();
-      drawPill(ctx, 'Inizio', start.x, start.y - 16, '#1e7e34', '#e6f4ea');
+      drawPill(ctx, 'Inizio', start.x, start.y - 16, '#1d4ed8', '#dbeafe');
+    };
+
+    const formatMm = value => (Math.round(value * 100) / 100).toFixed(2);
+
+    const drawRadiusQuota = (ctx, bend, toScreen) => {
+      if (bend.cx == null || bend.midAngle == null) return;
+      const marks = [];
+      if (bend.arcoInterno > 0.05) {
+        marks.push({
+          radius: bend.raggio,
+          label: `Int. ${formatMm(bend.arcoInterno)} mm`,
+          outward: -1,
+        });
+      }
+      if (bend.arcoEsterno > 0.05) {
+        marks.push({
+          radius: bend.raggioEsterno,
+          label: `Est. ${formatMm(bend.arcoEsterno)} mm`,
+          outward: 1,
+        });
+      }
+      if (!marks.length) return;
+
+      const origin = toScreen({ x: bend.cx, y: bend.cy });
+      const onInner = toScreen({
+        x: bend.cx + Math.cos(bend.midAngle) * Math.max(bend.raggio, 1),
+        y: bend.cy + Math.sin(bend.midAngle) * Math.max(bend.raggio, 1),
+      });
+      const ang = Math.atan2(onInner.y - origin.y, onInner.x - origin.x);
+      marks.forEach((mark, index) => {
+        const along = 28 + index * 22;
+        drawPill(
+          ctx,
+          mark.label,
+          onInner.x - Math.cos(ang) * along,
+          onInner.y - Math.sin(ang) * along,
+          '#0e7490',
+          '#f0fdfa'
+        );
+      });
     };
 
     const resetView = () => {
@@ -374,6 +398,7 @@ export default {
         () => props.tipoMatrice,
         () => props.larghezzaMatrice,
         () => props.tipoCava,
+        showRadius,
       ],
       () => {
         nextTick(() => drawPreview());
@@ -384,6 +409,7 @@ export default {
       canvas,
       wrapper,
       zoom,
+      showRadius,
       hasSegments,
       drawPreview,
       resetView,
@@ -453,7 +479,7 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6c757d;
+  color: var(--gray-600);
   font-size: 14px;
   text-align: center;
   padding: 16px;
@@ -466,13 +492,17 @@ canvas {
   gap: 18px;
   margin-top: 10px;
   font-size: 12px;
-  color: #495057;
+  color: var(--gray-700);
 }
 
 .legend-item {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.legend-item input {
+  margin: 0;
 }
 
 .swatch {
@@ -483,23 +513,23 @@ canvas {
 }
 
 .swatch-sheet {
-  background: rgba(13, 110, 253, 0.25);
-  border: 1px solid #0d6efd;
+  background: rgba(28, 36, 48, 0.16);
+  border: 1px solid #1c2430;
 }
 
 .swatch-start {
-  background: #28a745;
+  background: #1d4ed8;
   border-radius: 50%;
 }
 
 .swatch-bend {
-  background: #dc3545;
+  background: #15803d;
   border-radius: 50%;
 }
 
 .zoom-value {
   font-size: 12px;
-  color: #6c757d;
+  color: var(--gray-600);
   min-width: 42px;
   text-align: left;
 }

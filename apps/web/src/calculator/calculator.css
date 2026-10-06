@@ -12,7 +12,7 @@
 .seo-calculator-section {
   background: white;
   border: 1px solid var(--steel-200);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 .calc-top,
@@ -111,6 +111,11 @@
 
 .quick {
   margin-top: 12px;
+}
+
+.arc-lengths {
+  margin: 8px 0 0;
+  padding-left: 18px;
 }
 
 .profile-workspace {
@@ -236,6 +241,11 @@
 
 .seo-content-blocks p {
   margin: 0;
+}
+
+.seo-calculator-section summary {
+  cursor: pointer;
+  font-weight: 700;
 }
 
 .seo-calculator-section a {

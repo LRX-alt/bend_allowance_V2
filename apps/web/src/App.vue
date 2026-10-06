@@ -1,5 +1,5 @@
 <template>
-  <div class="app-root">
+  <div class="app-root" :class="{ 'is-editor': isEditor }">
     <!-- Header moderno -->
     <header class="app-header">
       <div class="container">
@@ -81,7 +81,7 @@
                   <path d="M8 15h8" />
                 </svg>
               </span>
-              Pezzo
+              Editor DXF
             </router-link>
             <router-link to="/guida-materiali" class="nav-link">
               <span class="nav-icon">
@@ -113,7 +113,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="app-footer">
+    <footer v-if="!isEditor" class="app-footer">
       <div class="container">
         <div class="footer-content">
           <div class="footer-main">
@@ -347,6 +347,24 @@ body {
 
 .main-content.is-tool {
   padding: var(--space-4) 0 var(--space-6);
+}
+
+.app-root.is-editor {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-root.is-editor .brand-subtitle,
+.app-root.is-editor .nav-icon {
+  display: none;
+}
+
+.app-root.is-editor .header-content {
+  height: 48px;
+}
+
+.app-root.is-editor .brand-title {
+  font-size: var(--text-base);
 }
 
 .main-content.is-editor {

@@ -7,15 +7,16 @@ export function useEditorExport(part, findings) {
     part.value ? exportDecision(part.value, findings.value) : { status: 'blocked', findings: [] }
   );
 
-  function onExport() {
+  function onExport(fileName = '') {
     if (!part.value) return false;
     const exported = exportDxf(part.value, findings.value);
     if (!exported.dxf) return false;
     const blob = new Blob([exported.dxf], { type: 'application/dxf' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
+    const base = String(fileName || 'sviluppo.dxf').replace(/\.dxf$/i, '');
     link.href = url;
-    link.download = 'sviluppo.dxf';
+    link.download = `${base}-sviluppo.dxf`;
     link.click();
     URL.revokeObjectURL(url);
     return true;
