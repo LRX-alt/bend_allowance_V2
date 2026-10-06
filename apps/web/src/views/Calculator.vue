@@ -228,10 +228,9 @@
         <div>
           <h3>Calcolo Sviluppo Lamiera Professionale</h3>
           <p>
-            Il mio calcolatore piegatura lamiera utilizza algoritmi avanzati basati su standard
-            industriali DIN 6935 e ANSI per garantire risultati precisi. Supporta tutti i principali
-            materiali: acciaio S235, alluminio 1100/5052/6061, acciaio inox AISI 304, rame, ottone e
-            titanio.
+            Il calcolatore usa BA = α × (R + K × T), con α in radianti. Il fattore K è quello del
+            materiale scelto. La cava V è un valore consigliato per lo spessore, non un programma
+            macchina.
           </p>
         </div>
         <div>
@@ -267,23 +266,17 @@ import '@/calculator/calculator.css';
 const SITE_URL = 'https://www.sviluppolamiera.it';
 
 useHead({
-  title: 'Calcolatore Piegatura Lamiera | Bend Allowance Calculator Online',
+  title: 'Calcolatore sviluppo lamiera | Bend allowance',
   meta: [
     {
       name: 'description',
       content:
-        'Calcola bend allowance, bend deduction e setback per piegatura lamiera. Strumento professionale con formule DIN 6935, supporto multi-materiale e ottimizzazione apertura matrice.',
+        'Calcola bend allowance e bend deduction da quote esterne o da un profilo. Fattore K del materiale e cava V consigliata.',
     },
-    {
-      name: 'keywords',
-      content:
-        'calcolatore piegatura lamiera, bend allowance online, bend deduction calculator, calcolo setback lamiera, formula piegatura',
-    },
-    { property: 'og:title', content: 'Calcolatore Piegatura Lamiera | Bend Allowance Calculator' },
+    { property: 'og:title', content: 'Calcolatore sviluppo lamiera | Bend allowance' },
     {
       property: 'og:description',
-      content:
-        'Calcola bend allowance, bend deduction e setback per piegatura lamiera professionale. Formule DIN 6935, multi-materiale.',
+      content: 'Calcola bend allowance e bend deduction. Il fattore K segue il materiale scelto.',
     },
     { property: 'og:url', content: `${SITE_URL}/calcolatore-sviluppo-lamiera` },
   ],
@@ -294,7 +287,9 @@ useHead({
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'WebApplication',
-        name: 'Calcolatore Piegatura Lamiera',
+        name: 'SviluppoLamiera — calcolatore',
+        description:
+          'Calcola bend allowance e bend deduction da quote esterne o da un profilo a segmenti. Il fattore K è quello del materiale scelto.',
         url: `${SITE_URL}/calcolatore-sviluppo-lamiera`,
         applicationCategory: 'EngineeringApplication',
         operatingSystem: 'All',

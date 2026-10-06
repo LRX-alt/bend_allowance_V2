@@ -623,7 +623,8 @@ select.form-control {
   margin: 0;
 }
 
-.empty-state h2 {
+.empty-state h2,
+.empty-state .empty-title {
   color: var(--ink);
   font-size: var(--text-xl);
 }

@@ -11,7 +11,7 @@
     ></canvas>
     <div v-if="!part" class="empty-state canvas-empty">
       <p class="page-kicker">Pezzo</p>
-      <h2>Apri uno sviluppo DXF</h2>
+      <p class="empty-title">Apri uno sviluppo DXF</p>
       <p>
         Trascina il file sull’area oppure sceglilo dal disco. Misura, controlla e modifica solo dopo
         la conferma delle dimensioni.

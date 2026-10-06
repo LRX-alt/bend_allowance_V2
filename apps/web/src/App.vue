@@ -7,10 +7,10 @@
           <!-- Logo e titolo -->
           <div class="brand">
             <div class="brand-logo">
-              <img src="@/assets/logo.png" alt="Bend Allowance Calculator" class="logo-image" />
+              <img src="@/assets/logo.png" alt="SviluppoLamiera" class="logo-image" />
             </div>
             <div class="brand-text">
-              <h1 class="brand-title">Bend Allowance</h1>
+              <p class="brand-title">Bend Allowance</p>
               <p class="brand-subtitle">Sviluppo e piegatura lamiera</p>
             </div>
           </div>
@@ -83,6 +83,25 @@
               </span>
               Pezzo
             </router-link>
+            <router-link to="/guida-materiali" class="nav-link">
+              <span class="nav-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+              </span>
+              Materiali
+            </router-link>
           </nav>
         </div>
       </div>
@@ -98,8 +117,13 @@
       <div class="container">
         <div class="footer-content">
           <div class="footer-main">
+            <nav class="footer-nav" aria-label="Pagine">
+              <router-link to="/calcolatore-sviluppo-lamiera">Calcolatore</router-link>
+              <router-link to="/editor">Modifica DXF</router-link>
+              <router-link to="/guida-materiali">Fattore K</router-link>
+            </nav>
             <p class="footer-text">
-              © {{ currentYear }} Bend Allowance Calculator - Ideato e sviluppato da Loris Di Furio
+              © {{ currentYear }} SviluppoLamiera - Ideato e sviluppato da Loris Di Furio
             </p>
             <p class="footer-subtitle">
               Calcolatore professionale per bend deduction e sviluppo lamiera
@@ -345,6 +369,24 @@ body {
   flex-direction: column;
   align-items: center;
   gap: var(--space-1);
+}
+
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.footer-nav a {
+  color: var(--gray-700);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.footer-nav a:hover {
+  color: var(--primary-700);
 }
 
 .footer-text {

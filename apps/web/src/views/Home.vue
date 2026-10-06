@@ -5,15 +5,11 @@
       <div class="container">
         <div class="hero-content">
           <div class="hero-text">
-            <h1 class="hero-title">
-              Calcola con precisione professionale i
-              <span class="highlight">parametri di piegatura</span>
-            </h1>
+            <h1 class="hero-title">Sviluppo lamiera: calcolatore di piega e modifica DXF</h1>
             <p class="hero-description">
-              Strumento avanzato sviluppato da un professionista con oltre 20 anni di esperienza
-              nella piegatura lamiera, per la determinazione dello sviluppo lamiera tramite Bend
-              Allowance, Bend Deduction, Setback e compensazioni di piegatura.
-              <span class="highlight">Ottimizzato per l'industria metalmeccanica moderna.</span>
+              SviluppoLamiera calcola bend allowance e bend deduction dalle quote esterne, propone
+              una cava V e apre uno sviluppo DXF per misurarlo e correggerne una quota. Il calcolo
+              usa il fattore K del materiale scelto.
             </p>
             <div class="hero-actions">
               <router-link to="/calcolatore-sviluppo-lamiera" class="btn btn-primary btn-lg">
@@ -42,9 +38,7 @@
                 </svg>
                 Inizia Calcolo
               </router-link>
-              <button @click="scrollToFeatures" class="btn btn-secondary btn-lg">
-                📖 Scopri di più
-              </button>
+              <router-link to="/editor" class="btn btn-secondary btn-lg">Apri un DXF</router-link>
             </div>
           </div>
           <div class="hero-visual">
@@ -79,7 +73,7 @@
     </section>
 
     <!-- Features Section -->
-    <section ref="featuresSection" class="features">
+    <section class="features">
       <div class="container">
         <div class="section-header">
           <h2 class="section-title">Calcolatore Piegatura Lamiera Professionale</h2>
@@ -95,30 +89,31 @@
             <div class="feature-icon">🎯</div>
             <h3 class="feature-title">Calcolo Bend Allowance Lamiera</h3>
             <p class="feature-description">
-              Algoritmi avanzati per calcolo bend allowance lamiera, bend deduction calculator e
-              setback lamiera con precisione al centesimo di millimetro.
+              Lo sviluppo usa bend allowance, bend deduction e setback. Il risultato è in
+              millimetri, con i decimali del calcolo.
             </p>
             <ul class="feature-list">
-              <li>Formula piegatura DIN 6935 e ANSI standard</li>
-              <li>Fattore K dinamico per materiale</li>
-              <li>Compensazione ritorno elastico automatica</li>
-              <li>Calcolo sviluppo lamiera accurato</li>
+              <li>BA = α × (R + K × T), con α in radianti</li>
+              <li>Bend deduction e setback dalle quote esterne</li>
+              <li>Fattore K del materiale selezionato</li>
+              <li>Sviluppo ricalcolato a ogni modifica</li>
             </ul>
           </div>
 
           <!-- Feature 2 -->
           <div class="feature-card">
             <div class="feature-icon">🔧</div>
-            <h3 class="feature-title">Calcolo Piegatura Lamiera Avanzata</h3>
+            <h3 class="feature-title">Quote esterne e cava V</h3>
             <p class="feature-description">
-              Parametri avanzati per processi piegatura lamiera professionali con calcolo automatico
-              matrice ottimale e forza pressa.
+              Il percorso principale parte dalle quote esterne. In alternativa si descrive un
+              profilo a segmenti. La cava V mostrata è un valore consigliato per lo spessore, non un
+              programma della pressa.
             </p>
             <ul class="feature-list">
-              <li>Processi: air bending, bottoming, coining</li>
-              <li>Calcolo forza piegatura pressopiegatrice</li>
-              <li>Ottimizzazione apertura matrice (V)</li>
-              <li>Raggio effettivo calcolato dalla matrice</li>
+              <li>Quote esterne oppure profilo a segmenti</li>
+              <li>Cava V consigliata in base allo spessore</li>
+              <li>Anteprima del profilo piegato</li>
+              <li>Non programma la pressopiegatrice</li>
             </ul>
           </div>
 
@@ -151,9 +146,11 @@
                 Materiali: acciaio S235, alluminio 1100/5052/6061, inox AISI 304, rame, ottone,
                 titanio
               </li>
-              <li>Fattori K specifici per ogni materiale lamiera</li>
-              <li>Valori di ritorno elastico e raggi minimi di piegatura</li>
-              <li>Raggi consigliati per senso di laminazione</li>
+              <li>Fattore K usato dal calcolatore</li>
+              <li>Ritorno elastico in tabella, non sottratto in automatico allo sviluppo</li>
+              <li>
+                <router-link to="/guida-materiali">Apri la guida ai materiali</router-link>
+              </li>
             </ul>
           </div>
 
@@ -166,10 +163,8 @@
               Calcola sviluppo e bend allowance online su desktop, tablet e smartphone.
             </p>
             <ul class="feature-list">
-              <li>Interfaccia touch-friendly per dispositivi mobili</li>
-              <li>Layout adattivo per ogni risoluzione schermo</li>
-              <li>Tema chiaro/scuro per comfort visivo</li>
-              <li>Accessibile da qualsiasi dispositivo connesso</li>
+              <li>Interfaccia usabile da desktop e telefono</li>
+              <li>Nessuna installazione</li>
             </ul>
           </div>
 
@@ -181,8 +176,8 @@
               Salva, carica e condividi i tuoi progetti di piegatura lamiera con colleghi e clienti.
             </p>
             <ul class="feature-list">
-              <li>Salvataggio locale</li>
-              <li>Esportazione PDF/DXF</li>
+              <li>Salvataggio nel browser</li>
+              <li>Esportazione PDF e DXF del calcolo</li>
               <li>Link di condivisione</li>
             </ul>
           </div>
@@ -198,7 +193,6 @@
             <ul class="feature-list">
               <li>Sviluppo ricalcolato in tempo reale</li>
               <li>Anteprima grafica del pezzo piegato</li>
-              <li>Confronto calcolo standard / avanzato</li>
             </ul>
           </div>
         </div>
@@ -238,10 +232,11 @@
 
           <div class="experience-card">
             <div class="experience-icon">🎯</div>
-            <h3 class="experience-title">Precisione Garantita</h3>
+            <h3 class="experience-title">Formule in chiaro</h3>
             <p class="experience-description">
-              Ogni formula e algoritmo è stato testato e validato attraverso anni di applicazione
-              pratica, garantendo risultati affidabili per ogni tipo di piegatura lamiera.
+              Lo sviluppo mostrato è il bend allowance classico con il fattore K del materiale. Va
+              verificato con una piega di prova sulla tua pressa: il programma non garantisce la
+              quota del pezzo finito.
             </p>
           </div>
         </div>
@@ -255,9 +250,10 @@
           <div class="seo-content-block">
             <h2>Calcolo Sviluppo Lamiera e Bend Allowance</h2>
             <p>
-              Il mio calcolatore di piegatura permette di determinare con precisione lo sviluppo
-              della lamiera e il bend allowance per qualsiasi tipo di lamiera. Utilizziamo formule
-              standard DIN 6935 e ANSI per garantire risultati accurati nel calcolo dello sviluppo.
+              Il calcolatore determina lo sviluppo con il bend allowance: BA = α × (R + K × T), dove
+              α è l'angolo di piega in radianti, R il raggio interno, K il fattore K e T lo
+              spessore. Il fattore K è quello del materiale selezionato, non una stima DIN 6935
+              calcolata dal rapporto raggio/spessore.
             </p>
             <p>
               Il bend allowance rappresenta la lunghezza aggiuntiva necessaria per ottenere l'angolo
@@ -276,8 +272,8 @@
             </p>
             <p>
               Utilizziamo la formula standard:
-              <strong>Bend Deduction = 2 × Setback - Bend Allowance</strong> per calcoli precisi e
-              affidabili nel calcolo sviluppo lamiera professionale.
+              <strong>Bend Deduction = 2 × Setback - Bend Allowance</strong>. Lo sviluppo da tagliare,
+              con le quote esterne, è la somma dei lati meno questa deduzione.
             </p>
           </div>
 
@@ -290,8 +286,8 @@
               spessore e α l'angolo di piegatura.
             </p>
             <p>
-              Questa misura è fondamentale per determinare con precisione le posizioni delle flange
-              nel progetto CAD e garantire un assemblaggio perfetto dei componenti in lamiera.
+              Questa misura colloca le flange rispetto allo spigolo teorico. Nel CAD le quote esterne e
+              lo sviluppo non sono la stessa lunghezza.
             </p>
           </div>
 
@@ -331,7 +327,6 @@
 </template>
 
 <script>
-import { ref } from 'vue';
 import { useHead } from '@unhead/vue';
 
 const SITE_URL = 'https://www.sviluppolamiera.it';
@@ -340,100 +335,28 @@ export default {
   name: 'Home',
   setup() {
     useHead({
-      title: 'Calcolatore Sviluppo Lamiera | Bend Allowance Calculator Online Gratuito',
+      title: 'Sviluppo lamiera: calcolatore di piega e DXF',
       meta: [
         {
           name: 'description',
           content:
-            'Calcolatore professionale per sviluppo lamiera, bend allowance, bend deduction e setback. Strumento avanzato per calcolo piegatura lamiera, ottimizzato per industria metalmeccanica.',
-        },
-        {
-          name: 'keywords',
-          content:
-            'calcolatore sviluppo lamiera, bend allowance calculator, calcolo piegatura lamiera, bend deduction, setback lamiera',
+            'Calcola bend allowance e bend deduction, consulta il fattore K dei materiali e modifica uno sviluppo DXF. Gratuito, nel browser.',
         },
         {
           property: 'og:title',
-          content: 'Calcolatore Sviluppo Lamiera | Bend Allowance Calculator Online',
+          content: 'Sviluppo lamiera: calcolatore di piega e DXF',
         },
         {
           property: 'og:description',
           content:
-            'Calcolatore professionale per calcolo piegatura lamiera. Bend allowance, bend deduction, setback online gratuitamente.',
+            'Bend allowance, bend deduction, fattore K e modifica di uno sviluppo DXF. SviluppoLamiera è gratuito e funziona nel browser.',
         },
         { property: 'og:url', content: `${SITE_URL}/` },
       ],
       link: [{ rel: 'canonical', href: `${SITE_URL}/` }],
-      script: [
-        {
-          type: 'application/ld+json',
-          innerHTML: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'WebApplication',
-            name: 'Calcolatore Sviluppo Lamiera',
-            url: 'https://www.sviluppolamiera.it',
-            description:
-              'Calcolatore professionale per sviluppo lamiera, bend allowance, bend deduction e setback. Strumento avanzato per calcolo piegatura lamiera, ottimizzato per industria metalmeccanica.',
-            applicationCategory: 'EngineeringApplication',
-            operatingSystem: 'All',
-            offers: {
-              '@type': 'Offer',
-              price: '0',
-              priceCurrency: 'EUR',
-            },
-          }),
-        },
-        {
-          type: 'application/ld+json',
-          innerHTML: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'FAQPage',
-            mainEntity: [
-              {
-                '@type': 'Question',
-                name: 'Come si calcola il Bend Allowance?',
-                acceptedAnswer: {
-                  '@type': 'Answer',
-                  text: "Il bend allowance rappresenta la lunghezza aggiuntiva necessaria per ottenere l'angolo desiderato dopo la piegatura. Si calcola con la formula: BA = α × (R + K × T), dove α è l'angolo in radianti, R è il raggio interno, K è il fattore K e T è lo spessore della lamiera.",
-                },
-              },
-              {
-                '@type': 'Question',
-                name: "Cos'è il Bend Deduction e come si calcola?",
-                acceptedAnswer: {
-                  '@type': 'Answer',
-                  text: 'Il bend deduction è la differenza tra la lunghezza sviluppata e la lunghezza finale del pezzo piegato. Si calcola con la formula: Bend Deduction = 2 × Setback - Bend Allowance.',
-                },
-              },
-              {
-                '@type': 'Question',
-                name: 'Come calcolare il Setback lamiera?',
-                acceptedAnswer: {
-                  '@type': 'Answer',
-                  text: "Il setback lamiera si calcola con la formula: Setback = (R + T) × tan(α/2), dove R è il raggio interno, T lo spessore e α l'angolo di piegatura.",
-                },
-              },
-            ],
-          }),
-        },
-      ],
     });
 
-    const featuresSection = ref(null);
-
-    const scrollToFeatures = () => {
-      if (featuresSection.value) {
-        featuresSection.value.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-      }
-    };
-
-    return {
-      featuresSection,
-      scrollToFeatures,
-    };
+    return {};
   },
 };
 </script>

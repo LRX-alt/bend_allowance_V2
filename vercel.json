@@ -7,6 +7,12 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "sviluppolamiera.it" }],
+      "destination": "https://www.sviluppolamiera.it/:path*",
+      "statusCode": 301
+    },
+    {
       "source": "/calculator",
       "destination": "/calcolatore-sviluppo-lamiera",
       "permanent": true

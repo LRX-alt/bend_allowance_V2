@@ -108,6 +108,15 @@
         </button>
       </div>
     </EditorDialog>
+    <section class="editor-about">
+      <h1>Modifica uno sviluppo DXF</h1>
+      <p>
+        Apri il file, conferma se le quote sono in millimetri o in pollici, indica spessore e
+        materiale, misura con due clic e correggi una quota. Le linee di piega si selezionano sul
+        disegno; la scheda di piega riepiloga angolo e direzione. Non è un programma CNC della
+        pressa.
+      </p>
+    </section>
   </div>
 </template>
 
@@ -128,15 +137,25 @@ import { useEditorSelection } from '@/composables/useEditorSelection.js';
 import { useEditorStretch } from '@/composables/useEditorStretch.js';
 import '@/components/editor/editor.css';
 
+const SITE_URL = 'https://www.sviluppolamiera.it';
+
 useHead({
-  title: 'Editor pezzo DXF | SviluppoLamiera',
+  title: 'Modifica sviluppo DXF | SviluppoLamiera',
   meta: [
     {
       name: 'description',
       content:
-        'Apri, misura, controlla e modifica uno sviluppo lamiera DXF prima della pressa piegatrice.',
+        'Apri uno sviluppo DXF, conferma le unità, indica lo spessore e modifica una quota prima della piegatura.',
     },
+    { property: 'og:title', content: 'Modifica sviluppo DXF | SviluppoLamiera' },
+    {
+      property: 'og:description',
+      content:
+        'Misura, controlla e modifica uno sviluppo lamiera DXF. Unità, spessore e scheda di piega.',
+    },
+    { property: 'og:url', content: `${SITE_URL}/editor` },
   ],
+  link: [{ rel: 'canonical', href: `${SITE_URL}/editor` }],
 });
 
 const canvasHost = ref(null);

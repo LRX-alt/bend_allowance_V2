@@ -248,3 +248,20 @@
     inset: 16px 16px 64px;
   }
 }
+
+.editor-about {
+  padding: 20px 16px 28px;
+  background: white;
+  border-top: 1px solid var(--steel-200);
+}
+
+.editor-about h1 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.editor-about p {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--gray-700);
+}
