@@ -85,12 +85,26 @@ export interface MaterialRef {
   kFactorOverride?: number;
 }
 
+export type RadiusSource = 'manual' | 'measured' | 'target' | 'punchAssumption';
+
+export interface PunchRef {
+  radius: number;
+}
+
+export interface RadiusPolicy {
+  source: RadiusSource;
+  targetInside?: number;
+  measuredInside?: number;
+}
+
 export interface BendSetup {
   vOpening?: number;
   process: 'airBend' | 'bottoming' | 'coining';
   method: 'standard' | 'DIN6935' | 'ANSI' | 'customK';
   grainDirection: 'parallelaPiega' | 'perpendicolarePiega';
   dimensionReference: 'external' | 'internal' | 'flat';
+  punch?: PunchRef;
+  radiusPolicy?: RadiusPolicy;
 }
 
 export interface Annotation {

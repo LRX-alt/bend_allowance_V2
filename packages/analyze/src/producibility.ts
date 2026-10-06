@@ -52,8 +52,10 @@ export function evaluateProducibility(part: Part): Finding[] {
       findings.push(finding('warning', 'BND-007', 'Per verificare il lembo mi serve il materiale', { geometryRefs: [bend.id] }));
       continue;
     }
-    const opening = calcolaAperturaMatrice(T, part.bendSetup.process, materialKey);
-    const flange = calcolaLatoMinimo({ V: opening.aperturaOttimale, pieghe: limits.flangeBends });
+    const recommended = calcolaAperturaMatrice(T, part.bendSetup.process, materialKey);
+    const chosen = part.bendSetup.vOpening;
+    const opening = typeof chosen === 'number' && chosen > 0 ? chosen : recommended.aperturaOttimale;
+    const flange = calcolaLatoMinimo({ V: opening, pieghe: limits.flangeBends });
     const pos = (bend.a.x + bend.b.x) / 2;
     const vertical = Math.abs(bend.a.x - bend.b.x) <= part.tolerances.point;
     const lengths = vertical

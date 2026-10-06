@@ -202,6 +202,35 @@ describe('feature', () => {
   });
 });
 
+describe('bendSetup', () => {
+  it('un pezzo nuovo non inventa punzone, V o policy', () => {
+    const part = createPart({ outer: square('out', 0, 0, 100, 80), provenance: confirmed });
+    expect(part.schemaVersion).toBe(1);
+    expect(part.bendSetup).toEqual({
+      process: 'airBend',
+      method: 'standard',
+      grainDirection: 'parallelaPiega',
+      dimensionReference: 'external',
+    });
+    expect(part.bendSetup.punch).toBeUndefined();
+    expect(part.bendSetup.vOpening).toBeUndefined();
+    expect(part.bendSetup.radiusPolicy).toBeUndefined();
+  });
+
+  it('un JSON vecchio senza i campi nuovi passa la validazione', () => {
+    const part = createPart({ outer: square('out', 0, 0, 100, 80), provenance: confirmed });
+    const raw = JSON.parse(serialize(part)) as { bendSetup: Record<string, unknown> };
+    delete raw.bendSetup.punch;
+    delete raw.bendSetup.radiusPolicy;
+    delete raw.bendSetup.vOpening;
+    const loaded = deserialize(JSON.stringify(raw));
+    expect(validatePart(loaded).status).toBe('valid');
+    expect(loaded.bendSetup.process).toBe('airBend');
+    expect(loaded.bendSetup.punch).toBeUndefined();
+    expect(loaded.bendSetup.radiusPolicy).toBeUndefined();
+  });
+});
+
 describe('serialize', () => {
   it('serialize(deserialize(s)) === s su dieci casi', () => {
     const cases = Array.from({ length: 10 }, (_, i) =>

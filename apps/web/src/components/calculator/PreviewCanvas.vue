@@ -107,6 +107,8 @@ export default {
     const buildGeometry = () =>
       buildProfileGeometry(props.segments, props.raggioPiega, props.spessore);
 
+    let occupied = [];
+
     // Disegna un'etichetta con sfondo "pill" centrata su (sx, sy).
     const drawPill = (ctx, text, sx, sy, color, bg) => {
       ctx.font = '12px system-ui, Arial';
@@ -132,6 +134,40 @@ export default {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(text, sx, sy);
+      occupied.push({ x: rx, y: ry, w: rw, h: rh });
+    };
+
+    const drawStack = (ctx, lines, sx, sy, color, bg) => {
+      if (!lines.length) return;
+      ctx.font = '12px system-ui, Arial';
+      const width = Math.max(...lines.map(line => ctx.measureText(line).width));
+      const lineH = 16;
+      const padX = 8;
+      const padY = 7;
+      const rx = sx - width / 2 - padX;
+      const ry = sy - (lines.length * lineH) / 2 - padY;
+      const rw = width + padX * 2;
+      const rh = lines.length * lineH + padY * 2;
+      const r = 6;
+      ctx.beginPath();
+      ctx.moveTo(rx + r, ry);
+      ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, r);
+      ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, r);
+      ctx.arcTo(rx, ry + rh, rx, ry, r);
+      ctx.arcTo(rx, ry, rx + rw, ry, r);
+      ctx.closePath();
+      ctx.fillStyle = bg;
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      lines.forEach((line, index) => {
+        ctx.fillText(line, sx, ry + padY + lineH * index + lineH / 2);
+      });
+      return { x: rx, y: ry, w: rw, h: rh };
     };
 
     const drawPreview = () => {
@@ -149,6 +185,7 @@ export default {
       el.height = Math.round(cssH * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, cssW, cssH);
+      occupied = [];
 
       // Griglia di sfondo (in pixel, indipendente dallo zoom).
       ctx.strokeStyle = '#eef1f5';
@@ -255,10 +292,6 @@ export default {
         );
       }
 
-      if (showRadius.value) {
-        for (const bend of bends) drawRadiusQuota(ctx, bend, toScreen);
-      }
-
       bends.forEach((piega, index) => {
         const sp = toScreen(piega);
 
@@ -284,46 +317,99 @@ export default {
       ctx.fillStyle = '#1d4ed8';
       ctx.fill();
       drawPill(ctx, 'Inizio', start.x, start.y - 16, '#1d4ed8', '#dbeafe');
+
+      if (showRadius.value) {
+        const chains = [centerScreen, leftScreen, rightScreen];
+        const hitsSheet = rect => {
+          for (const chain of chains) {
+            for (let i = 0; i < chain.length; i += 1) {
+              const a = chain[i];
+              const b = chain[Math.min(i + 1, chain.length - 1)];
+              for (let step = 0; step <= 8; step += 1) {
+                const t = step / 8;
+                const x = a.x + (b.x - a.x) * t;
+                const y = a.y + (b.y - a.y) * t;
+                if (
+                  x >= rect.x - 4 &&
+                  x <= rect.x + rect.w + 4 &&
+                  y >= rect.y - 4 &&
+                  y <= rect.y + rect.h + 4
+                ) {
+                  return true;
+                }
+              }
+            }
+          }
+          return false;
+        };
+        const overlaps = rect =>
+          occupied.some(
+            box =>
+              rect.x < box.x + box.w + 8 &&
+              rect.x + rect.w + 8 > box.x &&
+              rect.y < box.y + box.h + 8 &&
+              rect.y + rect.h + 8 > box.y
+          );
+        for (const bend of bends) {
+          drawRadiusQuota(ctx, bend, toScreen, centroid, cssW, cssH, overlaps, hitsSheet);
+        }
+      }
     };
 
     const formatMm = value => (Math.round(value * 100) / 100).toFixed(2);
 
-    const drawRadiusQuota = (ctx, bend, toScreen) => {
-      if (bend.cx == null || bend.midAngle == null) return;
-      const marks = [];
-      if (bend.arcoInterno > 0.05) {
-        marks.push({
-          radius: bend.raggio,
-          label: `Int. ${formatMm(bend.arcoInterno)} mm`,
-          outward: -1,
-        });
-      }
-      if (bend.arcoEsterno > 0.05) {
-        marks.push({
-          radius: bend.raggioEsterno,
-          label: `Est. ${formatMm(bend.arcoEsterno)} mm`,
-          outward: 1,
-        });
-      }
-      if (!marks.length) return;
+    const drawRadiusQuota = (ctx, bend, toScreen, centroid, cssW, cssH, overlaps, hitsSheet) => {
+      if (bend.cx == null) return;
+      const lines = [];
+      if (bend.arcoInterno > 0.05) lines.push(`Arco interno ${formatMm(bend.arcoInterno)} mm`);
+      if (bend.arcoEsterno > 0.05) lines.push(`Arco esterno ${formatMm(bend.arcoEsterno)} mm`);
+      if (!lines.length) return;
 
-      const origin = toScreen({ x: bend.cx, y: bend.cy });
-      const onInner = toScreen({
-        x: bend.cx + Math.cos(bend.midAngle) * Math.max(bend.raggio, 1),
-        y: bend.cy + Math.sin(bend.midAngle) * Math.max(bend.raggio, 1),
+      ctx.font = '12px system-ui, Arial';
+      const width = Math.max(...lines.map(line => ctx.measureText(line).width));
+      const rw = width + 16;
+      const rh = lines.length * 16 + 14;
+      const anchor = toScreen({ x: bend.x, y: bend.y });
+      const dirs = Array.from({ length: 16 }, (_, index) => {
+        const angle = (Math.PI * 2 * index) / 16;
+        return { x: Math.cos(angle), y: Math.sin(angle) };
+      }).sort((a, b) => {
+        const far = (dir, distance) =>
+          Math.hypot(anchor.x + dir.x * distance - centroid.x, anchor.y + dir.y * distance - centroid.y);
+        return far(b, 90) - far(a, 90);
       });
-      const ang = Math.atan2(onInner.y - origin.y, onInner.x - origin.x);
-      marks.forEach((mark, index) => {
-        const along = 28 + index * 22;
-        drawPill(
-          ctx,
-          mark.label,
-          onInner.x - Math.cos(ang) * along,
-          onInner.y - Math.sin(ang) * along,
-          '#0e7490',
-          '#f0fdfa'
-        );
-      });
+
+      let spot = null;
+      for (const distance of [78, 108, 140, 172]) {
+        for (const dir of dirs) {
+          const sx = anchor.x + dir.x * distance;
+          const sy = anchor.y + dir.y * distance;
+          const rect = { x: sx - rw / 2, y: sy - rh / 2, w: rw, h: rh };
+          if (rect.x < 6 || rect.y < 6 || rect.x + rect.w > cssW - 6 || rect.y + rect.h > cssH - 6) {
+            continue;
+          }
+          if (overlaps(rect) || hitsSheet(rect)) continue;
+          spot = { sx, sy, rect };
+          break;
+        }
+        if (spot) break;
+      }
+      if (!spot) {
+        spot = {
+          sx: Math.min(cssW - rw / 2 - 8, Math.max(rw / 2 + 8, anchor.x)),
+          sy: Math.min(cssH - rh / 2 - 8, Math.max(rh / 2 + 8, anchor.y - 88)),
+        };
+        spot.rect = { x: spot.sx - rw / 2, y: spot.sy - rh / 2, w: rw, h: rh };
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(anchor.x, anchor.y);
+      ctx.lineTo(spot.sx, spot.sy);
+      ctx.strokeStyle = '#0e7490';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      const box = drawStack(ctx, lines, spot.sx, spot.sy, '#0e7490', '#ffffff');
+      if (box) occupied.push(box);
     };
 
     const resetView = () => {

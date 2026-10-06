@@ -79,6 +79,20 @@ describe('producibilita', () => {
     expect(result.map(item => item.code)).toEqual(['BND-006']);
   });
 
+  it('una V usata sostituisce la cava consigliata nel controllo del lembo', () => {
+    const part = piece(20, 200, 10, null);
+    expect(evaluateProducibility(part).some(item => item.code === 'BND-005' && item.severity === 'error')).toBe(
+      false
+    );
+    const withDie = {
+      ...part,
+      bendSetup: { ...part.bendSetup, vOpening: 24 },
+    };
+    expect(
+      evaluateProducibility(withDie).some(item => item.code === 'BND-005' && item.severity === 'error')
+    ).toBe(true);
+  });
+
   it('senza materiale non giudica il lembo e emette BND-007', () => {
     const part = piece(40, 80, 20, null, { material: undefined });
     const result = evaluateProducibility(part);

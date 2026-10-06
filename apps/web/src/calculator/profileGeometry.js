@@ -132,3 +132,21 @@ export function buildProfileGeometry(segments, raggio = 0, spessore = 0) {
 
   return { center, left, right, flanges, bends };
 }
+
+/** Contorno chiuso della sezione: lato interno, poi esterno al ritorno. */
+export function contornoProfilo(segments, raggio = 0, spessore = 0) {
+  const { left, right } = buildProfileGeometry(segments, raggio, spessore);
+  const ring = [...left, ...[...right].reverse()];
+  const points = [];
+  for (const point of ring) {
+    const prev = points[points.length - 1];
+    if (prev && Math.hypot(point.x - prev.x, point.y - prev.y) < 1e-4) continue;
+    points.push({ x: point.x, y: point.y });
+  }
+  if (points.length > 1) {
+    const first = points[0];
+    const last = points[points.length - 1];
+    if (Math.hypot(first.x - last.x, first.y - last.y) < 1e-4) points.pop();
+  }
+  return points;
+}

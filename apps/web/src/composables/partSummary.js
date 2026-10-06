@@ -1,4 +1,4 @@
-import { calcolaPiega, materialsDatabase } from '@sviluppolamiera/bend-core';
+import { calcolaPiega, materialsDatabase, risolviFattoreK } from '@sviluppolamiera/bend-core';
 
 export function partBox(part) {
   const box = part?.outer?.bbox;
@@ -16,8 +16,14 @@ export function materialRecord(part) {
 }
 
 export function kFactorOf(part) {
-  if (typeof part?.material?.kFactorOverride === 'number') return part.material.kFactorOverride;
-  return materialRecord(part)?.bending?.kFactor ?? null;
+  const override = part?.material?.kFactorOverride;
+  const dbId = part?.material?.dbId;
+  const hasOverride = typeof override === 'number' && Number.isFinite(override) && override > 0;
+  if (!hasOverride && !dbId) return null;
+  return risolviFattoreK({
+    fattoreK: hasOverride ? override : undefined,
+    materialKey: dbId,
+  });
 }
 
 export function bendLength(bend) {

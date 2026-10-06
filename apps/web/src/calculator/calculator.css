@@ -146,13 +146,32 @@
   color: var(--gray-600);
 }
 
-.result-card strong {
+.result-card strong,
+.estimate-card strong {
   display: block;
   margin-top: 2px;
   color: var(--ink);
   font-size: 2rem;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+}
+
+.estimate-card {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: var(--gray-50, #f6f5f2);
+  border: 1px dashed var(--gray-400, #8a8478);
+  border-radius: 10px;
+}
+
+.estimate-card p {
+  margin: 0;
+  color: var(--gray-600);
+}
+
+.estimate-card strong {
+  font-size: 1.25rem;
+  margin: 4px 0;
 }
 
 .explain {

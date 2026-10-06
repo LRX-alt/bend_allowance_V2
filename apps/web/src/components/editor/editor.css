@@ -225,15 +225,37 @@
 }
 
 .part-summary,
+.bend-setup,
 .bend-panel,
 .inspector-block {
   padding: 10px 12px;
 }
 
 .part-summary,
+.bend-setup,
 .bend-panel,
 .side-tabs {
   border-bottom: 1px solid var(--line);
+}
+
+.bend-setup h3 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.estimate-note {
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: var(--panel-bg);
+}
+
+.estimate-note p {
+  margin: 0;
 }
 
 .panel-heading,

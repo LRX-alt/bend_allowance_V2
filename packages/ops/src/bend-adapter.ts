@@ -1,4 +1,4 @@
-import { calcolaPiega, calcolaSviluppo } from '@sviluppolamiera/bend-core';
+import { calcolaPiega, calcolaSviluppo, risolviFattoreK } from '@sviluppolamiera/bend-core';
 import { finding, type BendLine, type Finding, type Part } from '@sviluppolamiera/part-model';
 
 export interface BendInput {
@@ -31,10 +31,19 @@ export function partToBendInput(part: Part): { input: BendInput } | { findings: 
       segments,
       T: part.thickness,
       R: radius,
-      K: part.material?.kFactorOverride ?? 0.33,
+      K: kFactorOfPart(part),
       metodo: part.bendSetup.method,
     },
   };
+}
+
+function kFactorOfPart(part: Part): number {
+  const override = part.material?.kFactorOverride;
+  const hasOverride = typeof override === 'number' && Number.isFinite(override) && override > 0;
+  return risolviFattoreK({
+    fattoreK: hasOverride ? override : undefined,
+    materialKey: part.material?.dbId,
+  });
 }
 
 export function computeBendZones(part: Part): { bendLines: BendLine[]; findings: Finding[] } {
@@ -44,7 +53,7 @@ export function computeBendZones(part: Part): { bendLines: BendLine[]; findings:
       findings: [finding('warning', 'BND-006', 'Per calcolare la zona di piega mi serve lo spessore')],
     };
   }
-  const K = part.material?.kFactorOverride ?? 0.33;
+  const K = kFactorOfPart(part);
   const bendLines = part.bendLines.map(bend => {
     if (bend.angleDeg === undefined || bend.innerRadius === undefined) return { ...bend };
     const piega = calcolaPiega({ angolo: bend.angleDeg, T: part.thickness ?? 0, R: bend.innerRadius, K });

@@ -46,14 +46,6 @@
               min="0.1"
               step="0.1"
           /></label>
-          <label for="raggio"
-            >Raggio interno mm<input
-              id="raggio"
-              v-model.number="raggio"
-              type="number"
-              min="0"
-              step="0.1"
-          /></label>
           <label for="materiale">
             Materiale
             <select id="materiale" v-model="materialId" @change="applyMaterial">
@@ -62,6 +54,75 @@
               </option>
             </select>
           </label>
+          <label for="punzone"
+            >Punzone mm<input
+              id="punzone"
+              type="number"
+              min="0"
+              step="0.1"
+              :value="raggioPunzone ?? ''"
+              @change="raggioPunzone = optionalNumber($event.target.value)"
+          /></label>
+          <label for="processo"
+            >Processo
+            <select id="processo" v-model="processo">
+              <option v-for="item in processi" :key="item.id" :value="item.id">
+                {{ item.label }}
+              </option>
+            </select>
+          </label>
+          <label for="cava"
+            >Cava V usata
+            <select id="cava" v-model="cavaScelta">
+              <option value="consigliata">Consigliata ({{ apertura.toFixed(1) }} mm)</option>
+              <option v-for="opening in caveStandard" :key="opening" :value="String(opening)">
+                {{ opening }} mm
+              </option>
+              <option value="custom">Personalizzata</option>
+            </select>
+          </label>
+          <label v-if="cavaScelta === 'custom'" for="cava-custom"
+            >Apertura mm<input
+              id="cava-custom"
+              v-model.number="cavaCustom"
+              type="number"
+              min="1"
+              step="0.5"
+          /></label>
+          <label for="origine-raggio"
+            >Origine del raggio
+            <select id="origine-raggio" v-model="raggioOrigine">
+              <option v-for="item in origini" :key="item.id" :value="item.id">
+                {{ item.label }}
+              </option>
+            </select>
+          </label>
+          <label v-if="raggioOrigine === 'manual'" for="raggio"
+            >Raggio interno mm<input
+              id="raggio"
+              v-model.number="raggio"
+              type="number"
+              min="0"
+              step="0.1"
+          /></label>
+          <label v-else-if="raggioOrigine === 'measured'" for="raggio-misurato"
+            >Raggio misurato mm<input
+              id="raggio-misurato"
+              type="number"
+              min="0"
+              step="0.1"
+              :value="raggioMisurato ?? ''"
+              @change="raggioMisurato = optionalNumber($event.target.value)"
+          /></label>
+          <label v-else-if="raggioOrigine === 'target'" for="raggio-target"
+            >Raggio target mm<input
+              id="raggio-target"
+              type="number"
+              min="0"
+              step="0.1"
+              :value="raggioTarget ?? ''"
+              @change="raggioTarget = optionalNumber($event.target.value)"
+          /></label>
           <template v-if="mode === 'esterne'">
             <label for="angolo"
               >Angolo °<input
@@ -98,24 +159,6 @@
               max="0.5"
               step="0.01"
           /></label>
-          <label for="cava"
-            >Cava V
-            <select id="cava" v-model="cavaScelta">
-              <option value="consigliata">Consigliata ({{ apertura.toFixed(1) }} mm)</option>
-              <option v-for="opening in caveStandard" :key="opening" :value="String(opening)">
-                {{ opening }} mm
-              </option>
-              <option value="custom">Personalizzata</option>
-            </select>
-          </label>
-          <label v-if="cavaScelta === 'custom'" for="cava-custom"
-            >Apertura mm<input
-              id="cava-custom"
-              v-model.number="cavaCustom"
-              type="number"
-              min="1"
-              step="0.5"
-          /></label>
         </div>
         <div class="quick" aria-label="Spessori rapidi">
           <button
@@ -138,33 +181,45 @@
             @remove="remove"
           />
           <PreviewCanvas
+            v-if="sviluppoPronto"
             :segments="segments"
             :spessore="spessore"
-            :raggio-piega="raggio"
+            :raggio-piega="raggioSviluppo"
             :fattore-k="fattoreK"
             tipo-matrice="V"
             :larghezza-matrice="cavaUsata"
             tipo-cava="standard"
           />
+          <p v-else class="section-note">{{ motivoIncompleto }}</p>
         </div>
 
         <div class="result-card">
           <div>
             <p>{{ mode === 'esterne' ? 'Lunghezza da tagliare' : 'Sviluppo' }}</p>
-            <strong>{{ resultNumber.toFixed(3) }} mm</strong>
+            <strong v-if="sviluppoPronto">{{ resultNumber.toFixed(3) }} mm</strong>
+            <strong v-else>—</strong>
           </div>
-          <p class="section-note">
-            Cava V {{ cavaUsata.toFixed(1) }} mm
-            <template v-if="Math.abs(cavaUsata - apertura) > 0.05">
-              · consigliata {{ apertura.toFixed(1) }} mm
-            </template>
-          </p>
+          <div class="section-note">
+            <p>Cava usata {{ cavaUsata.toFixed(1) }} mm</p>
+            <p>Cava consigliata {{ apertura.toFixed(1) }} mm</p>
+            <p v-if="sviluppoPronto">
+              Raggio interno dello sviluppo {{ formatMm(raggioSviluppo) }} mm ·
+              {{ originLabel(raggioOrigine) }}
+            </p>
+            <p v-else>{{ motivoIncompleto }}</p>
+            <p v-if="raggioRisolto.assunzioneOperatore">{{ assunzione }}</p>
+          </div>
         </div>
-        <details class="explain">
+        <aside v-if="stima != null" class="estimate-card" :aria-label="stimaTitolo">
+          <p>{{ stimaTitolo }}</p>
+          <strong>{{ stima.toFixed(2) }} mm</strong>
+          <p>{{ stimaTesto }}</p>
+        </aside>
+        <details v-if="sviluppoPronto" class="explain">
           <summary>Come l'ho calcolato</summary>
           <p>
-            Metodo standard. Raggio interno {{ raggio }} mm, fattore K {{ fattoreK }}, spessore
-            {{ spessore }} mm.
+            Metodo standard. Raggio interno dello sviluppo {{ formatMm(raggioSviluppo) }} mm,
+            fattore K {{ fattoreK }}, spessore {{ spessore }} mm.
           </p>
           <p v-if="mode === 'esterne'">
             Bend deduction {{ external.bendDeduction.toFixed(3) }} mm, bend allowance
@@ -286,17 +341,27 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { useHead } from '@unhead/vue';
-import {
-  calcolaAperturaMatrice,
-  materialsDatabase,
-  resolveMaterial,
-} from '@sviluppolamiera/bend-core';
+import { materialsDatabase, resolveMaterial } from '@sviluppolamiera/bend-core';
 import PreviewCanvas from '@/components/calculator/PreviewCanvas.vue';
 import SegmentsList from '@/components/calculator/SegmentsList.vue';
 import { computeExternal, computeProfile } from '@/calculator/compute.js';
 import { lunghezzeArco } from '@/calculator/profileGeometry.js';
-import { decodeShare, readProjects, writeProjects } from '@/calculator/projects.js';
+import { decodeShare, readProjects, toolFromRecord, writeProjects } from '@/calculator/projects.js';
 import { addSegment, removeSegment } from '@/calculator/segments.js';
+import {
+  ASSUNZIONE,
+  MOTIVI,
+  ORIGINI,
+  PROCESSI,
+  STIMA_TITOLO,
+  testoStimaEmpirica,
+  cavaConsigliata,
+  developmentRadius,
+  optionalNumber,
+  originLabel,
+  processLabel,
+  stimaEmpirica,
+} from '@/calculator/toolSetup.js';
 import '@/calculator/calculator.css';
 
 const SITE_URL = 'https://www.sviluppolamiera.it';
@@ -336,11 +401,27 @@ useHead({
 });
 
 const materials = materialsDatabase;
+const processi = PROCESSI;
+const origini = ORIGINI;
+const assunzione = ASSUNZIONE;
+const stimaTitolo = STIMA_TITOLO;
+const stimaTesto = computed(() =>
+  testoStimaEmpirica({
+    cava: cavaUsata.value,
+    spessore: spessore.value,
+    processo: processo.value,
+  })
+);
 const mode = ref('esterne');
 const spessore = ref(2);
 const raggio = ref(1);
 const fattoreK = ref(0.33);
 const materialId = ref('steel_mild');
+const processo = ref('airBend');
+const raggioPunzone = ref(null);
+const raggioOrigine = ref('manual');
+const raggioMisurato = ref(null);
+const raggioTarget = ref(null);
 const angolo = ref(90);
 const latoA = ref(50);
 const latoB = ref(50);
@@ -358,32 +439,46 @@ const saveState = ref('');
 const editing = ref('');
 const draftName = ref('');
 
-const external = computed(() =>
-  computeExternal({
+const pageState = computed(() => ({
+  raggio: raggio.value,
+  raggioOrigine: raggioOrigine.value,
+  raggioMisurato: raggioMisurato.value,
+  raggioTarget: raggioTarget.value,
+  raggioPunzone: raggioPunzone.value,
+}));
+const raggioRisolto = computed(() => developmentRadius(pageState.value));
+const sviluppoPronto = computed(() => raggioRisolto.value.stato === 'resolved');
+const raggioSviluppo = computed(() => raggioRisolto.value.raggioSviluppo);
+const motivoIncompleto = computed(() => MOTIVI[raggioRisolto.value.motivo] || '');
+const external = computed(() => {
+  if (!sviluppoPronto.value) return null;
+  return computeExternal({
     angolo: angolo.value,
     latoA: latoA.value,
     latoB: latoB.value,
     fattoreK: fattoreK.value,
-    raggio: raggio.value,
+    raggio: raggioSviluppo.value,
     spessore: spessore.value,
-  })
-);
-const profile = computed(() =>
-  computeProfile({
+  });
+});
+const profile = computed(() => {
+  if (!sviluppoPronto.value) return null;
+  return computeProfile({
     segments: segments.value,
     spessore: spessore.value,
-    raggio: raggio.value,
+    raggio: raggioSviluppo.value,
     fattoreK: fattoreK.value,
-  })
-);
-const resultNumber = computed(() =>
-  mode.value === 'esterne' ? external.value.lunghezzaDaTagliare : profile.value.sviluppoTotale
-);
+  });
+});
+const resultNumber = computed(() => {
+  if (!sviluppoPronto.value) return null;
+  return mode.value === 'esterne' ? external.value.lunghezzaDaTagliare : profile.value.sviluppoTotale;
+});
 const caveStandard = [6, 8, 12, 16, 20, 24, 32, 40, 50, 60, 80, 100, 120, 140, 160];
 const cavaScelta = ref('consigliata');
 const cavaCustom = ref(16);
-const apertura = computed(
-  () => calcolaAperturaMatrice(spessore.value || 0, 'airBend', 'acciaio').aperturaOttimale
+const apertura = computed(() =>
+  cavaConsigliata(spessore.value, processo.value, materialId.value)
 );
 const cavaUsata = computed(() => {
   if (cavaScelta.value === 'custom') {
@@ -394,18 +489,22 @@ const cavaUsata = computed(() => {
   const chosen = Number(cavaScelta.value);
   return chosen > 0 ? chosen : apertura.value;
 });
+const stima = computed(() =>
+  stimaEmpirica(spessore.value, cavaUsata.value, raggioPunzone.value, processo.value)
+);
 const archi = computed(() => {
+  if (!sviluppoPronto.value) return [];
   if (mode.value === 'esterne') {
     const angoloPiega = Math.abs(Number(angolo.value) || 0);
     if (!angoloPiega) return [];
-    const lengths = lunghezzeArco(angoloPiega, raggio.value, spessore.value);
+    const lengths = lunghezzeArco(angoloPiega, raggioSviluppo.value, spessore.value);
     return [{ angolo: angoloPiega, ...lengths }];
   }
   return segments.value.flatMap((segment, index) => {
     if (index === 0) return [];
     const angoloPiega = Math.abs(Number(segment.angle) || 0);
     if (!angoloPiega) return [];
-    const lengths = lunghezzeArco(angoloPiega, raggio.value, spessore.value);
+    const lengths = lunghezzeArco(angoloPiega, raggioSviluppo.value, spessore.value);
     return [{ angolo: angoloPiega, ...lengths }];
   });
 });
@@ -450,7 +549,29 @@ function currentProject(nome) {
     angolo: angolo.value,
     latoA: latoA.value,
     latoB: latoB.value,
+    processo: processo.value,
+    cavaScelta: cavaScelta.value,
+    cavaCustom: cavaCustom.value,
+    raggioPunzone: raggioPunzone.value,
+    raggioOrigine: raggioOrigine.value,
+    raggioMisurato: raggioMisurato.value,
+    raggioTarget: raggioTarget.value,
   };
+}
+
+function applyTool(record) {
+  const tool = toolFromRecord(record);
+  processo.value = tool.processo;
+  cavaScelta.value = tool.cavaScelta;
+  cavaCustom.value = tool.cavaCustom;
+  raggioPunzone.value = tool.raggioPunzone;
+  raggioOrigine.value = tool.raggioOrigine;
+  raggioMisurato.value = tool.raggioMisurato;
+  raggioTarget.value = tool.raggioTarget;
+}
+
+function formatMm(value) {
+  return Number(value).toFixed(2);
 }
 
 function saveProject() {
@@ -486,6 +607,7 @@ function loadProject(project) {
     angolo.value = project.angolo ?? 90;
     if (project.modo === 'esterne') mode.value = 'esterne';
   }
+  applyTool(project);
 }
 
 function startRename(project) {
@@ -513,7 +635,7 @@ function removeProject(project) {
 
 function payload() {
   return {
-    v: 2,
+    v: 3,
     t: spessore.value,
     mat: materialId.value,
     r: raggio.value,
@@ -524,6 +646,13 @@ function payload() {
     lb: latoB.value,
     an: angolo.value,
     modo: mode.value,
+    processo: processo.value,
+    cavaScelta: cavaScelta.value,
+    cavaCustom: cavaCustom.value,
+    raggioPunzone: raggioPunzone.value,
+    raggioOrigine: raggioOrigine.value,
+    raggioMisurato: raggioMisurato.value,
+    raggioTarget: raggioTarget.value,
   };
 }
 
@@ -542,13 +671,25 @@ async function copyShare() {
   }
 }
 
+function exportMeta() {
+  return {
+    raggioSviluppo: raggioSviluppo.value,
+    raggioPunzone: raggioPunzone.value,
+    cavaUsata: cavaUsata.value,
+    processo: processLabel(processo.value),
+    origineRaggio: originLabel(raggioOrigine.value),
+  };
+}
+
 async function exportPdf() {
+  if (!sviluppoPronto.value) return;
   const { esportaPDF } = await import('@/utils/exporters.js');
   esportaPDF({
     spessore: spessore.value,
-    raggioPiega: raggio.value,
+    raggioPiega: raggioSviluppo.value,
     fattoreK: fattoreK.value,
     materiale: resolveMaterial(materialId.value).name,
+    ...exportMeta(),
     sviluppoTotale: resultNumber.value,
     segments:
       mode.value === 'profilo'
@@ -573,10 +714,11 @@ async function exportPdf() {
 }
 
 async function exportDxf() {
+  if (!sviluppoPronto.value) return;
   const { esportaDXF } = await import('@/utils/exporters.js');
   esportaDXF({
     spessore: spessore.value,
-    raggioPiega: raggio.value,
+    raggioPiega: raggioSviluppo.value,
     fattoreK: fattoreK.value,
     materiale: resolveMaterial(materialId.value).name,
     sviluppoTotale: resultNumber.value,
@@ -612,6 +754,7 @@ onMounted(() => {
           latoB.value = shared.latoB ?? raw.lb ?? latoB.value;
           angolo.value = shared.angolo ?? raw.an ?? angolo.value;
         }
+        applyTool(raw.v === 3 ? shared : {});
       }
     } catch {
       shareUrl.value = '';

@@ -1,6 +1,7 @@
 <template>
   <aside class="editor-side">
     <PartSummaryPanel :part="part" />
+    <BendSetupPanel :part="part" @setup="$emit('setup', $event)" />
     <BendTable
       :part="part"
       :selected-id="selectedBend?.id || ''"
@@ -73,6 +74,7 @@
 
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue';
+import BendSetupPanel from '@/components/editor/BendSetupPanel.vue';
 import BendTable from '@/components/editor/BendTable.vue';
 import FindingList from '@/components/editor/FindingList.vue';
 import PartSummaryPanel from '@/components/editor/PartSummaryPanel.vue';
@@ -117,6 +119,7 @@ defineEmits([
   'bend-radius',
   'thickness',
   'material',
+  'setup',
   'select-bend',
   'remove-bend',
   'focus-finding',

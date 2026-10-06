@@ -70,4 +70,29 @@ export function exportDxf(part: Part, findings: Finding[] = []): { dxf: string |
   return { dxf: writer.stringify(), gate };
 }
 
+function roundMm(value: number): number {
+  return Math.round(value * 10000) / 10000;
+}
+
+/** DXF R2000 in millimetri, con un contorno chiuso sul layer di taglio. */
+export function exportOutlineDxf(points: Array<{ x: number; y: number }>): string {
+  const writer = new DxfWriter();
+  writer.setUnits(Units.Millimeters);
+  writer.addLayer('SL_TAGLIO', 7, 'CONTINUOUS');
+  writer.setCurrentLayerName('SL_TAGLIO');
+  const rounded = points
+    .map(point => ({ x: roundMm(point.x), y: roundMm(point.y) }))
+    .filter((point, index, all) => {
+      const prev = all[index - 1];
+      return !prev || Math.hypot(point.x - prev.x, point.y - prev.y) > 1e-6;
+    });
+  if (rounded.length >= 3) {
+    writer.addLWPolyline(
+      rounded.map(point => ({ point, bulge: 0 })),
+      { flags: LWPolylineFlags.Closed }
+    );
+  }
+  return writer.stringify();
+}
+
 void curveEnd;

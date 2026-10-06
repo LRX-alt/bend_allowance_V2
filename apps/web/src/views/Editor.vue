@@ -80,6 +80,7 @@
         @bend-radius="updateBend({ innerRadius: Number($event) })"
         @thickness="setThickness"
         @material="setMaterial"
+        @setup="onBendSetup"
         @select-bend="selectBend"
         @remove-bend="removeBend"
         @focus-finding="focusFinding"
@@ -165,7 +166,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useHead } from '@unhead/vue';
 import { exportDecision } from '@sviluppolamiera/analyze';
-import { commit } from '@sviluppolamiera/part-model';
+import { commit, serialize } from '@sviluppolamiera/part-model';
+import { applyBendSetup } from '@/composables/radiusPolicy.js';
 import EditorCanvas from '@/components/editor/EditorCanvas.vue';
 import EditorDialog from '@/components/editor/EditorDialog.vue';
 import EditorSidePanel from '@/components/editor/EditorSidePanel.vue';
@@ -203,6 +205,7 @@ useHead({
 });
 
 const canvasHost = ref(null);
+const savedManualRadii = ref({});
 const tool = ref('select');
 const cursor = ref(null);
 function storedDensity() {
@@ -354,6 +357,14 @@ function updateBend(patch) {
   state.value = commit(state.value, { ...part.value, bendLines }, 'Linea di piega');
 }
 
+function onBendSetup(patch) {
+  if (!part.value) return;
+  const next = applyBendSetup(part.value, patch, savedManualRadii.value);
+  savedManualRadii.value = next.savedManualRadii;
+  if (serialize(next.part) === serialize(part.value)) return;
+  state.value = commit(state.value, next.part, 'Setup piega');
+}
+
 function setMaterial(dbId) {
   if (!part.value) return;
   const next = { ...part.value };
@@ -368,6 +379,7 @@ async function fitLoaded() {
 }
 
 async function onFile(event) {
+  savedManualRadii.value = {};
   const staged = await loadFile(event);
   if (event?.target) event.target.value = '';
   if (staged && !staged.needsUnits) await fitLoaded();

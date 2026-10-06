@@ -1,9 +1,13 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { calcolaPiega, calcolaRaggioEffettivo } from '@sviluppolamiera/bend-core';
+import { importDxf } from '@sviluppolamiera/dxf';
+import { contenutoDXF } from '@/utils/exporters.js';
 import { computeExternal, computeProfile } from './compute.js';
 import { buildProfileGeometry, lunghezzeArco } from './profileGeometry.js';
-import { decodeShare, readProjects, writeProjects } from './projects.js';
+import { decodeShare, readProjects, toolFromRecord, writeProjects } from './projects.js';
+import { cavaConsigliata, developmentRadius } from './toolSetup.js';
 import { addSegment, removeSegment } from './segments.js';
 
 function walk(dir) {
@@ -154,6 +158,135 @@ describe('progetti', () => {
     expect(next.modo).toBe('esterne');
     expect(next.materialId).toBe('steel_mild');
     expect(next.latoA).toBe(40);
+    expect(next.raggioOrigine).toBe('manual');
+    expect(next.raggioPunzone).toBeUndefined();
+    expect(next.processo).toBe('airBend');
+  });
+
+  it('un progetto vecchio resta manuale e lo sviluppo non cambia', () => {
+    const vecchio = { nome: 'Vecchio', spessore: 2, raggioPiega: 1, fattoreK: 0.33 };
+    const tool = toolFromRecord(vecchio);
+    expect(tool.raggioOrigine).toBe('manual');
+    expect(tool.raggioPunzone).toBeNull();
+    expect(tool.processo).toBe('airBend');
+    expect(tool.cavaScelta).toBe('consigliata');
+    const raggio = developmentRadius({ raggio: vecchio.raggioPiega, raggioOrigine: tool.raggioOrigine });
+    expect(raggio.raggioSviluppo).toBe(1);
+    expect(
+      computeExternal({ angolo: 90, latoA: 50, latoB: 50, fattoreK: 0.33, raggio: raggio.raggioSviluppo, spessore: 2 })
+        .lunghezzaDaTagliare
+    ).toBeCloseTo(100 - 3.3924781, 6);
+  });
+
+  it('il link v3 riporta punzone, cava e raggio misurato', () => {
+    const encoded = btoa(
+      JSON.stringify({
+        v: 3,
+        t: 2,
+        r: 1,
+        k: 0.33,
+        m: 'standard',
+        s: [],
+        modo: 'esterne',
+        mat: 'steel_s235jr',
+        la: 50,
+        lb: 50,
+        an: 90,
+        processo: 'airBend',
+        cavaScelta: '24',
+        raggioPunzone: 10,
+        raggioOrigine: 'measured',
+        raggioMisurato: 10,
+      })
+    );
+    const shared = decodeShare(encoded);
+    expect(shared.raggioPunzone).toBe(10);
+    expect(shared.cavaScelta).toBe('24');
+    expect(shared.raggioMisurato).toBe(10);
+    expect(shared.raggioOrigine).toBe('measured');
+    expect(shared.raggioPiega).toBe(1);
+  });
+});
+
+describe('raggio di sviluppo', () => {
+  const base = { angolo: 90, latoA: 50, latoB: 50, fattoreK: 0.33, spessore: 2 };
+
+  it('il manuale 10 e il misurato 10 chiamano compute con lo stesso R', () => {
+    const manuale = developmentRadius({ raggio: 10, raggioOrigine: 'manual', raggioPunzone: 5 });
+    const misurato = developmentRadius({
+      raggio: 1,
+      raggioOrigine: 'measured',
+      raggioMisurato: 10,
+      raggioPunzone: 10,
+    });
+    expect(manuale.raggioSviluppo).toBe(10);
+    expect(misurato.raggioSviluppo).toBe(10);
+    const conManuale = computeExternal({ ...base, raggio: manuale.raggioSviluppo });
+    const conMisura = computeExternal({ ...base, raggio: misurato.raggioSviluppo });
+    expect(conMisura).toEqual(conManuale);
+    expect(conManuale.bendAllowance).toBe(calcolaPiega({ angolo: 90, T: 2, R: 10, K: 0.33 }).bendAllowance);
+  });
+
+  it('cambiare la V o il punzone non muove il raggio manuale o misurato', () => {
+    const stato = { raggio: 1, raggioOrigine: 'manual', raggioPunzone: 10, raggioMisurato: 10 };
+    const prima = developmentRadius(stato).raggioSviluppo;
+    const dopoPunzone = developmentRadius({ ...stato, raggioPunzone: 15 }).raggioSviluppo;
+    const misurato = developmentRadius({ ...stato, raggioOrigine: 'measured' }).raggioSviluppo;
+    expect(prima).toBe(1);
+    expect(dopoPunzone).toBe(1);
+    expect(misurato).toBe(10);
+    expect(computeExternal({ ...base, raggio: prima }).lunghezzaDaTagliare).toBe(
+      computeExternal({ ...base, raggio: dopoPunzone }).lunghezzaDaTagliare
+    );
+  });
+
+  it('il caso d officina manda R 10 e tiene la stima fuori dallo sviluppo', () => {
+    const pagina = developmentRadius({
+      raggio: 1,
+      raggioOrigine: 'measured',
+      raggioMisurato: 10,
+      raggioPunzone: 10,
+    });
+    expect(pagina.raggioSviluppo).toBe(10);
+    expect(cavaConsigliata(2, 'airBend', 'steel_s235jr')).toBe(16);
+    const stima = calcolaRaggioEffettivo(2, 24, 10, 'airBend');
+    expect(stima).not.toBe(pagina.raggioSviluppo);
+    expect(
+      computeExternal({ ...base, raggio: pagina.raggioSviluppo }).bendAllowance
+    ).toBe(calcolaPiega({ angolo: 90, T: 2, R: 10, K: 0.33 }).bendAllowance);
+  });
+
+  it('senza misura non inventa un raggio', () => {
+    const incompleto = developmentRadius({
+      raggioOrigine: 'measured',
+      raggio: 1,
+      raggioPunzone: 10,
+    });
+    expect(incompleto.stato).toBe('incomplete');
+    expect(incompleto.raggioSviluppo).toBeNull();
+  });
+});
+
+describe('dxf del profilo', () => {
+  it('chiude la lamiera in millimetri e l editor la legge', () => {
+    const dxf = contenutoDXF({
+      segments: [
+        { length: 250, angle: 0 },
+        { length: 150, angle: 90 },
+        { length: 250, angle: 90 },
+      ],
+      spessore: 2,
+      raggioPiega: 1,
+    });
+    expect(dxf).toContain('$ACADVER');
+    expect(dxf).toContain('$INSUNITS');
+    const imported = importDxf(dxf);
+    expect(imported.part?.provenance.declaredUnits).toBe('mm');
+    expect(imported.part?.outer.closed).toBe(true);
+    expect(imported.part?.outer.curves.length).toBeGreaterThan(2);
+    expect(
+      imported.findings.some(item => item.code === 'TOP-001' && item.severity === 'error')
+    ).toBe(false);
   });
 });
 

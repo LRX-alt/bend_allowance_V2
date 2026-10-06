@@ -4,8 +4,10 @@
 // Funzioni pure: ricevono i dati e producono/salvano il file, senza dipendere
 // dallo stato Vue.
 
+import { exportOutlineDxf } from '@sviluppolamiera/dxf';
 import jsPDF from 'jspdf';
 import { saveAs } from 'file-saver';
+import { contornoProfilo } from '@/calculator/profileGeometry.js';
 
 const DEG2RAD = Math.PI / 180;
 
@@ -56,6 +58,11 @@ export function esportaPDF(data) {
   const {
     spessore,
     raggioPiega,
+    raggioSviluppo = raggioPiega,
+    raggioPunzone,
+    cavaUsata,
+    processo,
+    origineRaggio,
     fattoreK,
     materiale,
     sviluppoTotale,
@@ -78,7 +85,11 @@ export function esportaPDF(data) {
 
   line(`Materiale: ${materiale ?? '-'}`);
   line(`Spessore: ${spessore} ${unitLabel}`);
-  line(`Raggio di piega: ${raggioPiega} ${unitLabel}`);
+  line(`Raggio di sviluppo: ${raggioSviluppo} ${unitLabel}`);
+  if (raggioPunzone != null && raggioPunzone !== '') line(`Punzone: ${raggioPunzone} ${unitLabel}`);
+  if (cavaUsata != null && cavaUsata !== '') line(`Cava usata: ${cavaUsata} ${unitLabel}`);
+  if (processo) line(`Processo: ${processo}`);
+  if (origineRaggio) line(`Origine raggio: ${origineRaggio}`);
   if (typeof fattoreK === 'number') line(`Fattore K: ${fattoreK.toFixed(3)}`);
   y += 3;
 
@@ -114,28 +125,22 @@ function num(v) {
 }
 
 /**
- * Esporta il profilo in DXF (entita LINE).
+ * DXF del profilo piegato: contorno chiuso della lamiera, in millimetri.
+ * @param {object} data
+ * @returns {string}
+ */
+export function contenutoDXF(data) {
+  const { segments = [], spessore = 0, raggioPiega = 0 } = data;
+  return exportOutlineDxf(contornoProfilo(segments, raggioPiega, spessore));
+}
+
+/**
+ * Esporta il profilo in DXF.
  * @param {object} data
  */
 export function esportaDXF(data) {
-  const { segments = [], nomeFile = 'sviluppo_lamiera.dxf' } = data;
-  const { punti } = profiloPunti(segments);
-
-  let dxf =
-    '0\nSECTION\n2\nHEADER\n0\nENDSEC\n' +
-    '0\nSECTION\n2\nTABLES\n0\nENDSEC\n' +
-    '0\nSECTION\n2\nBLOCKS\n0\nENDSEC\n' +
-    '0\nSECTION\n2\nENTITIES\n';
-
-  for (let i = 1; i < punti.length; i++) {
-    const a = punti[i - 1];
-    const b = punti[i];
-    dxf += `0\nLINE\n8\n0\n10\n${a.x}\n20\n${a.y}\n11\n${b.x}\n21\n${b.y}\n`;
-  }
-
-  dxf += '0\nENDSEC\n0\nEOF\n';
-
-  saveAs(new Blob([dxf], { type: 'application/dxf' }), nomeFile);
+  const { nomeFile = 'sviluppo_lamiera.dxf' } = data;
+  saveAs(new Blob([contenutoDXF(data)], { type: 'application/dxf' }), nomeFile);
 }
 
 /**
