@@ -7,7 +7,7 @@
       </label>
       <div class="doc-name">
         <strong>{{ fileName || 'Nessun file' }}</strong>
-        <span>{{ part ? 'Sviluppo lamiera' : 'Apri un DXF per iniziare' }}</span>
+        <span>{{ saveLabel || (part ? 'Sviluppo lamiera' : 'Apri un DXF per iniziare') }}</span>
       </div>
       <button type="button" class="status-badge" :class="light" @click="$emit('findings')">
         {{ label }}
@@ -47,6 +47,22 @@
       <button
         type="button"
         class="btn btn-primary btn-sm"
+        :disabled="!part || saving"
+        @click="$emit('save')"
+      >
+        Salva
+      </button>
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm"
+        :disabled="!part || saving"
+        @click="$emit('save-as')"
+      >
+        Salva con nome
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary btn-sm"
         :disabled="!part || gateStatus === 'blocked'"
         @click="$emit('export')"
       >
@@ -71,6 +87,8 @@ defineProps({
   warningCount: { type: Number, default: 0 },
   part: { type: Object, default: null },
   gateStatus: { type: String, default: 'blocked' },
+  saveLabel: { type: String, default: '' },
+  saving: { type: Boolean, default: false },
 });
-defineEmits(['file', 'undo', 'redo', 'findings', 'analyze', 'sheet', 'export']);
+defineEmits(['file', 'undo', 'redo', 'findings', 'analyze', 'sheet', 'export', 'save', 'save-as']);
 </script>

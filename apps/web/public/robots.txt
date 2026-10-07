@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /login
+Disallow: /auth/
+Disallow: /account
+Disallow: /progetti
+Disallow: /apertura-progetto
 
 Sitemap: https://www.sviluppolamiera.it/sitemap.xml

@@ -1,7 +1,7 @@
 <template>
   <div class="editor-page" :data-density="density">
     <EditorToolbar
-      :file-name="fileName"
+      :file-name="cloud.projectName.value || fileName"
       :can-undo="canUndo"
       :can-redo="canRedo"
       :undo-label="undoLabel"
@@ -11,15 +11,31 @@
       :warning-count="warningCount"
       :part="part"
       :gate-status="gate.status"
+      :save-label="cloud.label.value"
+      :saving="cloud.status.value === 'saving'"
       @file="onFile"
       @undo="onUndo"
       @redo="onRedo"
       @findings="openAnalysis"
       @analyze="openAnalysis"
       @sheet="openSheet"
+      @save="cloud.save()"
+      @save-as="cloud.askSaveAs()"
       @export="requestExport"
     />
-    <p v-if="banner" class="editor-banner" role="status">{{ banner }}</p>
+    <p v-if="cloud.readOnlyMessage.value" class="editor-banner" role="status">
+      {{ cloud.readOnlyMessage.value }}
+    </p>
+    <p v-else-if="banner" class="editor-banner" role="status">{{ banner }}</p>
+    <p v-if="cloud.recovery.value" class="editor-banner" role="status">
+      C’è un lavoro non salvato in questo browser.
+      <button type="button" class="btn btn-ghost btn-sm" @click="cloud.restoreRecovery()">
+        Ripristina
+      </button>
+      <button type="button" class="btn btn-ghost btn-sm" @click="cloud.discardRecovery()">
+        Scarta
+      </button>
+    </p>
     <div class="editor-workspace">
       <EditorToolRail
         :tool="tool"
@@ -135,6 +151,48 @@
         </button>
       </div>
     </EditorDialog>
+    <EditorDialog
+      :open="cloud.nameOpen.value"
+      title="Salva con nome"
+      title-id="save-as-title"
+      @close="cloud.nameOpen.value = false"
+    >
+      <label class="technical-field"
+        >Nome
+        <input
+          v-model="cloud.nameDraft.value"
+          type="text"
+          maxlength="120"
+          @keydown.enter="cloud.confirmName()"
+        />
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" @click="cloud.nameOpen.value = false">
+          Annulla
+        </button>
+        <button type="button" class="btn btn-primary" @click="cloud.confirmName()">Salva</button>
+      </div>
+    </EditorDialog>
+
+    <EditorDialog
+      :open="cloud.conflictOpen.value"
+      title="Progetto modificato altrove"
+      title-id="conflict-title"
+      @close="cloud.conflictOpen.value = false"
+    >
+      <p class="dialog-copy">
+        Una versione più recente di questo progetto è già nel tuo account. Scegli quale tenere.
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" @click="cloud.reloadRemote()">Ricarica</button>
+        <button type="button" class="btn btn-ghost" @click="cloud.saveCopy()">
+          Salva come copia
+        </button>
+        <button type="button" class="btn btn-primary" @click="cloud.overwrite()">
+          Sovrascrivi
+        </button>
+      </div>
+    </EditorDialog>
   </div>
 </template>
 
@@ -157,6 +215,7 @@ import { mergeFindings } from '@/composables/partSummary.js';
 import { useEditorDocument } from '@/composables/useEditorDocument.js';
 import { useEditorExport } from '@/composables/useEditorExport.js';
 import { useEditorHistory } from '@/composables/useEditorHistory.js';
+import { useEditorProject } from '@/composables/useEditorProject.js';
 import { useEditorSelection } from '@/composables/useEditorSelection.js';
 import { useEditorStretch } from '@/composables/useEditorStretch.js';
 import '@/components/editor/editor.css';
@@ -185,6 +244,10 @@ const canvasHost = ref(null);
 const savedManualRadii = ref({});
 const tool = ref('select');
 const cursor = ref(null);
+const props = defineProps({
+  record: { type: Object, default: null },
+});
+
 function storedDensity() {
   try {
     return localStorage.getItem('sl-density') === 'comfortable' ? 'comfortable' : 'compact';
@@ -211,6 +274,8 @@ const {
   banner,
   state,
   fileName,
+  source,
+  replaceDocument,
   onFile: loadFile,
   approximate,
   rejectCurves,
@@ -258,6 +323,13 @@ const { gate, onExport, openSheet } = useEditorExport(part, findings);
 const light = computed(() => editorLight(part.value, gate.value.status));
 const lightLabel = computed(() => editorLightLabel(light.value));
 const locked = computed(() => part.value?.provenance.unsupportedCurvesDecision === 'rejected');
+const cloud = useEditorProject({
+  part,
+  source,
+  fileName,
+  replaceDocument,
+  record: props.record,
+});
 const warningCount = computed(
   () =>
     findings.value.filter(item => item.severity === 'warning' || item.severity === 'error').length
@@ -393,10 +465,16 @@ function onContext(action) {
 }
 
 function onWindowKey(event) {
-  const tag = event.target?.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
   const command = editorCommand(event);
   if (!command) return;
+  if ((command === 'save' || command === 'save-as') && document.querySelector('.editor-page')) {
+    event.preventDefault();
+    if (command === 'save') void cloud.save();
+    else cloud.askSaveAs();
+    return;
+  }
+  const tag = event.target?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
   if (command !== 'undo' && command !== 'redo' && !document.querySelector('.editor-page')) return;
   event.preventDefault();
   if (command === 'undo') onUndo();
@@ -419,9 +497,14 @@ watch(part, value => {
   clearPreview();
 });
 
-onMounted(() => window.addEventListener('keydown', onWindowKey));
+onMounted(() => {
+  window.addEventListener('keydown', onWindowKey);
+  window.addEventListener('beforeunload', cloud.beforeUnload);
+  void cloud.resumeDraft();
+});
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onWindowKey);
+  window.removeEventListener('beforeunload', cloud.beforeUnload);
   clearTimeout(noticeTimer);
 });
 </script>

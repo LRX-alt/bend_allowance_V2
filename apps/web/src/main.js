@@ -1,5 +1,7 @@
 import { ViteSSG } from 'vite-ssg';
 import App from './App.vue';
+import { isAppMounted } from './composables/appReady.js';
+import { useAuth } from './composables/useAuth.js';
 import { routes } from './router/index.js';
 
 // Import design system

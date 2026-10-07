@@ -8,9 +8,10 @@
   ],
   "scripts": {
     "dev": "npm run dev -w @sviluppolamiera/web",
-    "build": "npm run build -w @sviluppolamiera/web",
+    "build": "npm run build -w @sviluppolamiera/web && node scripts/check-secrets.mjs",
     "preview": "npm run preview -w @sviluppolamiera/web",
     "test": "vitest run",
+    "test:rls": "vitest run --config vitest.rls.config.js",
     "lint": "npm run lint -w @sviluppolamiera/web",
     "lint:check": "npm run lint:check -w @sviluppolamiera/web",
     "format": "npm run format -w @sviluppolamiera/web",

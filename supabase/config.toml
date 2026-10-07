@@ -1,0 +1,10 @@
+# Progetto Supabase di SviluppoLamiera.
+# Le migration si applicano con: npx supabase link --project-ref <ref> && npx supabase db push
+# La funzione si pubblica con: npx supabase functions deploy delete-account
+project_id = "sviluppolamiera"
+
+[db]
+major_version = 15
+
+[functions.delete-account]
+verify_jwt = true

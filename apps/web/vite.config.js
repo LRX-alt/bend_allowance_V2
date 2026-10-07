@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
 
 export default defineConfig({
+  envDir: resolve(__dirname, '../..'),
   plugins: [vue()],
   resolve: {
     alias: {
@@ -23,7 +24,7 @@ export default defineConfig({
     formatting: 'minify',
     // Genera solo le pagine reali; il path '/calculator' e un redirect.
     includedRoutes(paths) {
-      return paths.filter(path => path !== '/calculator');
+      return paths.filter(path => path !== '/calculator' && !path.includes(':'));
     },
   },
   test: {

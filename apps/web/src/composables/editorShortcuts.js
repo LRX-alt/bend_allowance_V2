@@ -5,6 +5,7 @@ export function editorCommand(event) {
   if (event.metaKey || event.ctrlKey) {
     if (key === 'z') return event.shiftKey ? 'redo' : 'undo';
     if (key === 'y') return 'redo';
+    if (key === 's') return event.shiftKey ? 'save-as' : 'save';
     return null;
   }
   if (FIELD.has(event.target?.tagName) || event.target?.isContentEditable) return null;

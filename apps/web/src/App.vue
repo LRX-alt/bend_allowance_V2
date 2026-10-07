@@ -103,6 +103,12 @@
               Materiali
             </router-link>
           </nav>
+          <div class="account-slot">
+            <router-link v-if="showLogin" to="/login" class="btn btn-primary btn-sm"
+              >Accedi</router-link
+            >
+            <AccountMenu v-else-if="showAccount" />
+          </div>
         </div>
       </div>
     </header>
@@ -141,12 +147,19 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useHead } from '@unhead/vue';
+import AccountMenu from '@/components/account/AccountMenu.vue';
+import { markAppMounted } from '@/composables/appReady.js';
+import { useAuth } from '@/composables/useAuth.js';
+import { useShell } from '@/composables/useShell.js';
+import { hasStoredSession } from '@/services/supabase/client.js';
+import '@/assets/styles/account.css';
 
 export default {
   name: 'App',
+  components: { AccountMenu },
   setup() {
     // Attributi <html> globali (vite-ssg/unhead altrimenti reimposta lang="en").
     useHead({
@@ -154,10 +167,35 @@ export default {
     });
 
     const route = useRoute();
-    const isEditor = computed(() => route.name === 'Editor');
-    const isTool = computed(() => route.name === 'Calculator' || route.name === 'Editor');
+    const auth = useAuth();
+    const shell = useShell();
+    const isEditor = computed(() => route.name === 'Editor' || shell.value === 'editor');
+    const isTool = computed(
+      () =>
+        route.name === 'Calculator' ||
+        route.name === 'Editor' ||
+        route.name === 'ProjectWorkspace' ||
+        shell.value === 'editor'
+    );
+    const showLogin = computed(() => auth.status.value === 'anonymous');
+    const showAccount = computed(() => auth.isAuthenticated.value);
     const currentYear = new Date().getFullYear();
-    return { currentYear, isEditor, isTool };
+
+    onMounted(() => {
+      markAppMounted();
+      if (
+        hasStoredSession() ||
+        route.meta.requiresAuth ||
+        route.name === 'Login' ||
+        route.name === 'AuthCallback'
+      ) {
+        void auth.whenReady();
+      } else {
+        auth.markAnonymous();
+      }
+    });
+
+    return { currentYear, isEditor, isTool, showLogin, showAccount };
   },
 };
 </script>
@@ -337,6 +375,12 @@ body {
 
 .nav-icon svg {
   margin: 0;
+}
+
+.account-slot {
+  display: flex;
+  align-items: center;
+  margin-left: var(--space-2);
 }
 
 /* === MAIN CONTENT === */

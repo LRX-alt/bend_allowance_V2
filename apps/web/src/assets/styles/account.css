@@ -1,0 +1,178 @@
+.account-page {
+  width: min(960px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.account-page h1 {
+  margin: 0 0 var(--space-3);
+}
+
+.account-lead,
+.account-meta {
+  color: var(--gray-700);
+  margin: 0 0 var(--space-4);
+}
+
+.account-note {
+  margin: 0 0 var(--space-4);
+  color: var(--gray-800);
+}
+
+.account-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+}
+
+.account-card label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.account-actions,
+.projects-head,
+.projects-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+}
+
+.projects-head {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.projects-tools {
+  margin-bottom: var(--space-4);
+}
+
+.projects-tools label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  min-width: 180px;
+}
+
+.account-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.account-danger h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.projects-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: var(--text-sm);
+}
+
+.projects-table th,
+.projects-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--gray-200);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.projects-table th {
+  color: var(--gray-600);
+  font-weight: var(--font-medium);
+}
+
+.projects-row-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.account-menu {
+  position: relative;
+}
+
+.account-menu summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  background: white;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.account-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.account-menu summary img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.account-menu-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  padding: var(--space-2);
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.account-menu-panel p {
+  margin: 0;
+  padding: var(--space-2);
+  color: var(--gray-600);
+  font-size: var(--text-xs);
+}
+
+.account-menu-panel a,
+.account-menu-panel button {
+  padding: var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--gray-800);
+  text-align: left;
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.account-menu-panel a:hover,
+.account-menu-panel button:hover {
+  background: var(--gray-100);
+}
+
+.workspace-state {
+  margin: var(--space-6);
+}
+
+.project-panel .btn {
+  margin-top: var(--space-2);
+}

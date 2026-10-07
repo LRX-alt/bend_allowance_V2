@@ -70,6 +70,16 @@ export function useEditorDocument() {
     state.value = commit(state.value, next, 'File in sola lettura');
   }
 
+  function replaceDocument(nextPart, options = {}) {
+    if (options.fileName !== undefined) fileName.value = options.fileName || '';
+    if (options.sourceText !== undefined) source.value = options.sourceText || '';
+    state.value = nextPart ? createEditorState(nextPart) : null;
+    proposals.value = [];
+    findings.value = [];
+    importFindings.value = [];
+    askCurves.value = false;
+  }
+
   return {
     source,
     fileName,
@@ -86,5 +96,6 @@ export function useEditorDocument() {
     onFile,
     approximate,
     rejectCurves,
+    replaceDocument,
   };
 }

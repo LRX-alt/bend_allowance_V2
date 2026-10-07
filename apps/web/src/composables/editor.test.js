@@ -122,6 +122,10 @@ describe('scorciatoie editor', () => {
     expect(editorCommand({ key: 'Delete', target: plain })).toBe('delete-bend');
     expect(editorCommand({ key: 'q', target: plain })).toBe('tool-stretch');
     expect(editorCommand({ key: 'f', target: plain })).toBe('fit');
+    expect(editorCommand({ key: 's', ctrlKey: true, target: plain })).toBe('save');
+    expect(editorCommand({ key: 's', ctrlKey: true, shiftKey: true, target: plain })).toBe(
+      'save-as'
+    );
     expect(editorCommand({ key: 'z', ctrlKey: true, target: plain })).toBe('undo');
     expect(editorCommand({ key: 'z', ctrlKey: true, shiftKey: true, target: plain })).toBe('redo');
     expect(editorCommand({ key: 'q', target: { tagName: 'INPUT' } })).toBe(null);

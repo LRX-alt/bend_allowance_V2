@@ -260,52 +260,120 @@
       </section>
 
       <aside class="project-panel">
-        <h2>Progetti</h2>
-        <label for="cerca-progetto"
-          >Cerca<input
-            id="cerca-progetto"
-            v-model="search"
-            type="search"
-            placeholder="Nome progetto"
-        /></label>
-        <p v-if="saveState" class="section-note" role="status">{{ saveState }}</p>
-        <p v-if="!filtered.length" class="project-empty">
-          Nessun progetto salvato in questo browser.
-        </p>
-        <ul v-else class="project-list">
-          <li v-for="project in filtered" :key="project.nome + project.data">
-            <div class="project-main">
-              <input
-                v-if="editing === projectKey(project)"
-                v-model="draftName"
-                type="text"
-                @keydown.enter="commitRename(project)"
-                @blur="commitRename(project)"
-              />
-              <button v-else type="button" class="btn btn-ghost" @click="loadProject(project)">
-                {{ project.nome }}
-              </button>
-            </div>
-            <span class="project-actions">
-              <button type="button" class="btn btn-ghost btn-sm" @click="startRename(project)">
-                Rinomina
-              </button>
-              <button type="button" class="btn btn-ghost btn-sm" @click="removeProject(project)">
-                Elimina
-              </button>
-            </span>
-          </li>
-        </ul>
-        <label for="nome-progetto"
-          >Nome<input
-            id="nome-progetto"
-            v-model="projectName"
-            type="text"
-            placeholder="Nuovo progetto"
-        /></label>
-        <button type="button" class="btn btn-primary" @click="saveProject">Salva progetto</button>
+        <template v-if="props.record">
+          <h2>{{ cloud.projectName.value || 'Profilo' }}</h2>
+          <p v-if="cloud.readOnlyMessage.value" class="section-note">
+            {{ cloud.readOnlyMessage.value }}
+          </p>
+          <p v-else-if="cloud.label.value" class="section-note" role="status">
+            {{ cloud.label.value }}
+          </p>
+          <p v-if="cloud.recovery.value" class="section-note">
+            C’è una bozza locale più recente.
+            <button type="button" class="btn btn-ghost btn-sm" @click="cloud.restoreRecovery()">
+              Ripristina
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" @click="cloud.discardRecovery()">
+              Scarta
+            </button>
+          </p>
+          <button type="button" class="btn btn-primary" @click="cloud.save()">Salva</button>
+          <button type="button" class="btn btn-ghost" @click="cloud.askSaveAs()">
+            Salva con nome
+          </button>
+        </template>
+        <template v-else>
+          <h2>Progetti</h2>
+          <label for="cerca-progetto"
+            >Cerca<input
+              id="cerca-progetto"
+              v-model="search"
+              type="search"
+              placeholder="Nome progetto"
+          /></label>
+          <p v-if="saveState" class="section-note" role="status">{{ saveState }}</p>
+          <p v-if="!filtered.length" class="project-empty">
+            Nessun progetto salvato in questo browser.
+          </p>
+          <ul v-else class="project-list">
+            <li v-for="project in filtered" :key="project.nome + project.data">
+              <div class="project-main">
+                <input
+                  v-if="editing === projectKey(project)"
+                  v-model="draftName"
+                  type="text"
+                  @keydown.enter="commitRename(project)"
+                  @blur="commitRename(project)"
+                />
+                <button v-else type="button" class="btn btn-ghost" @click="loadProject(project)">
+                  {{ project.nome }}
+                </button>
+              </div>
+              <span class="project-actions">
+                <button type="button" class="btn btn-ghost btn-sm" @click="startRename(project)">
+                  Rinomina
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" @click="removeProject(project)">
+                  Elimina
+                </button>
+              </span>
+            </li>
+          </ul>
+          <label for="nome-progetto"
+            >Nome<input
+              id="nome-progetto"
+              v-model="projectName"
+              type="text"
+              placeholder="Nuovo progetto"
+          /></label>
+          <button type="button" class="btn btn-primary" @click="saveProject">Salva progetto</button>
+          <button type="button" class="btn btn-ghost" @click="cloud.saveToAccount()">
+            Salva nel tuo account
+          </button>
+          <p v-if="cloud.label.value" class="section-note" role="status">{{ cloud.label.value }}</p>
+        </template>
       </aside>
     </div>
+
+    <EditorDialog
+      :open="cloud.nameOpen.value"
+      title="Salva nel tuo account"
+      title-id="account-save-title"
+      @close="cloud.nameOpen.value = false"
+    >
+      <label class="technical-field"
+        >Nome
+        <input
+          v-model="cloud.nameDraft.value"
+          type="text"
+          maxlength="120"
+          @keydown.enter="cloud.confirmName()"
+        />
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" @click="cloud.nameOpen.value = false">
+          Annulla
+        </button>
+        <button type="button" class="btn btn-primary" @click="cloud.confirmName()">Salva</button>
+      </div>
+    </EditorDialog>
+    <EditorDialog
+      :open="cloud.conflictOpen.value"
+      title="Progetto modificato altrove"
+      title-id="profile-conflict-title"
+      @close="cloud.conflictOpen.value = false"
+    >
+      <p class="dialog-copy">Una versione più recente è già nel tuo account.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" @click="cloud.reloadRemote()">Ricarica</button>
+        <button type="button" class="btn btn-ghost" @click="cloud.saveCopy()">
+          Salva come copia
+        </button>
+        <button type="button" class="btn btn-primary" @click="cloud.overwrite()">
+          Sovrascrivi
+        </button>
+      </div>
+    </EditorDialog>
 
     <details class="seo-calculator-section">
       <summary>Formule e limiti del calcolo</summary>
@@ -354,14 +422,21 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useHead } from '@unhead/vue';
 import { materialsDatabase, resolveMaterial } from '@sviluppolamiera/bend-core';
+import EditorDialog from '@/components/editor/EditorDialog.vue';
 import PreviewCanvas from '@/components/calculator/PreviewCanvas.vue';
 import SegmentsList from '@/components/calculator/SegmentsList.vue';
 import { computeExternal, computeProfile } from '@/calculator/compute.js';
 import { lunghezzeArco } from '@/calculator/profileGeometry.js';
 import { decodeShare, readProjects, toolFromRecord, writeProjects } from '@/calculator/projects.js';
+import { useCalculatorProject } from '@/composables/useCalculatorProject.js';
+import {
+  profileFingerprint,
+  profileFromCalculator,
+  profileFromLocal,
+} from '@/persistence/profileAdapter.js';
 import { addSegment, removeSegment } from '@/calculator/segments.js';
 import {
   ASSUNZIONE,
@@ -413,6 +488,10 @@ useHead({
       }),
     },
   ],
+});
+
+const props = defineProps({
+  record: { type: Object, default: null },
 });
 
 const materials = materialsDatabase;
@@ -488,14 +567,14 @@ const profile = computed(() => {
 });
 const resultNumber = computed(() => {
   if (!sviluppoPronto.value) return null;
-  return mode.value === 'esterne' ? external.value.lunghezzaDaTagliare : profile.value.sviluppoTotale;
+  return mode.value === 'esterne'
+    ? external.value.lunghezzaDaTagliare
+    : profile.value.sviluppoTotale;
 });
 const caveStandard = [6, 8, 12, 16, 20, 24, 32, 40, 50, 60, 80, 100, 120, 140, 160];
 const cavaScelta = ref('consigliata');
 const cavaCustom = ref(16);
-const apertura = computed(() =>
-  cavaConsigliata(spessore.value, processo.value, materialId.value)
-);
+const apertura = computed(() => cavaConsigliata(spessore.value, processo.value, materialId.value));
 const cavaUsata = computed(() => {
   if (cavaScelta.value === 'custom') {
     const custom = Number(cavaCustom.value);
@@ -551,15 +630,12 @@ function refresh() {
   projects.value = readProjects();
 }
 
-function currentProject(nome) {
-  return {
-    nome,
-    data: new Date().toISOString(),
+function currentProfile() {
+  return profileFromCalculator({
     spessore: spessore.value,
     raggioPiega: raggio.value,
     fattoreK: fattoreK.value,
     materialeSelezionato: materialId.value,
-    metodoDiCalcolo: 'standard',
     segments: segments.value,
     modo: mode.value,
     angolo: angolo.value,
@@ -573,8 +649,47 @@ function currentProject(nome) {
     raggioOrigine: raggioOrigine.value,
     raggioMisurato: raggioMisurato.value,
     raggioTarget: raggioTarget.value,
+  });
+}
+
+function currentProject(nome) {
+  return {
+    nome,
+    data: new Date().toISOString(),
+    ...currentProfile(),
   };
 }
+
+function applyProfile(profile) {
+  const next = profileFromLocal(profile);
+  spessore.value = next.spessore ?? 2;
+  larghezza.value = Number(next.larghezza) > 0 ? Number(next.larghezza) : 100;
+  raggio.value = next.raggioPiega ?? 1;
+  fattoreK.value = next.fattoreK ?? 0.33;
+  materialId.value = next.materialeSelezionato || 'steel_mild';
+  if (Array.isArray(next.segments) && next.segments.length) {
+    segments.value = next.segments.map(segment => ({
+      length: segment.length,
+      angle: segment.angle,
+    }));
+    mode.value = next.modo === 'esterne' ? 'esterne' : 'profilo';
+  }
+  if (next.latoA) {
+    latoA.value = next.latoA;
+    latoB.value = next.latoB;
+    angolo.value = next.angolo ?? 90;
+    if (next.modo === 'esterne') mode.value = 'esterne';
+  }
+  applyTool(next);
+}
+
+const fingerprint = computed(() => profileFingerprint(currentProfile()));
+const cloud = useCalculatorProject({
+  fingerprint,
+  readProfile: currentProfile,
+  applyProfile,
+  record: props.record,
+});
 
 function applyTool(record) {
   const tool = toolFromRecord(record);
@@ -607,25 +722,7 @@ function saveProject() {
 }
 
 function loadProject(project) {
-  spessore.value = project.spessore ?? 2;
-  larghezza.value = Number(project.larghezza) > 0 ? Number(project.larghezza) : 100;
-  raggio.value = project.raggioPiega ?? 1;
-  fattoreK.value = project.fattoreK ?? 0.33;
-  materialId.value = project.materialeSelezionato || 'steel_mild';
-  if (Array.isArray(project.segments) && project.segments.length) {
-    segments.value = project.segments.map(segment => ({
-      length: segment.length,
-      angle: segment.angle,
-    }));
-    mode.value = project.modo === 'esterne' ? 'esterne' : 'profilo';
-  }
-  if (project.latoA) {
-    latoA.value = project.latoA;
-    latoB.value = project.latoB;
-    angolo.value = project.angolo ?? 90;
-    if (project.modo === 'esterne') mode.value = 'esterne';
-  }
-  applyTool(project);
+  applyProfile(profileFromLocal(project));
 }
 
 function startRename(project) {
@@ -754,7 +851,23 @@ async function exportDxf() {
   });
 }
 
-onMounted(() => {
+function onCalcKey(event) {
+  if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 's') return;
+  if (!document.querySelector('.calc-page')) return;
+  event.preventDefault();
+  if (event.shiftKey) cloud.askSaveAs();
+  else if (props.record) void cloud.save();
+  else void cloud.saveToAccount();
+}
+
+onMounted(async () => {
+  window.addEventListener('beforeunload', cloud.beforeUnload);
+  window.addEventListener('keydown', onCalcKey);
+  const draft = await cloud.pendingDraft();
+  if (props.record?.kind === 'profile' || draft?.intent === 'save') {
+    await cloud.resumeDraft();
+    return;
+  }
   refresh();
   const params = new URLSearchParams(window.location.search);
   const encoded = params.get('share');
@@ -786,5 +899,11 @@ onMounted(() => {
     const found = readProjects().find(project => project.nome === requested);
     if (found) loadProject(found);
   }
+  if (draft) await cloud.resumeDraft();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', cloud.beforeUnload);
+  window.removeEventListener('keydown', onCalcKey);
 });
 </script>
