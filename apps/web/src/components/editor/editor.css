@@ -90,7 +90,7 @@
 }
 
 .editor-toolbar input[type='file'],
-.canvas-empty input[type='file'] {
+.import-banner input[type='file'] {
   display: none;
 }
 
@@ -158,35 +158,27 @@
   cursor: crosshair;
 }
 
-.canvas-empty {
+.import-banner {
   position: absolute;
-  inset: 48px;
-  align-items: flex-start;
-  max-width: 460px;
-  margin: auto;
-  padding: 20px;
-  text-align: left;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 24px);
+  padding: 8px 12px;
   background: rgb(255 255 255 / 0.96);
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-}
-
-.canvas-empty h2 {
-  margin: 0;
-  font-size: 22px;
-}
-
-.canvas-empty ul {
-  margin: 8px 0 12px;
-  padding-left: 18px;
   color: var(--gray-700);
   font-size: 13px;
 }
 
-.canvas-empty a {
+.import-banner a {
   color: var(--primary-800);
-  font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .canvas-legend {
@@ -505,7 +497,4 @@
     border-top: 1px solid var(--line);
   }
 
-  .canvas-empty {
-    inset: 16px;
-  }
 }

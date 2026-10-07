@@ -74,6 +74,14 @@ export function useEditorSelection(state, part, proposals, messages) {
     pickMessage.value = '';
   }
 
+  function pickBend(point) {
+    if (!part.value) return false;
+    const bend = nearestBend(point, toleranceOf());
+    if (!bend) return false;
+    selectBend(bend.id);
+    return true;
+  }
+
   function onPoint(point, tool = 'select') {
     if (!part.value) return 'miss';
     if (tool === 'pan') return 'pan';
@@ -266,6 +274,7 @@ export function useEditorSelection(state, part, proposals, messages) {
     pickMessage,
     onPoint,
     selectBend,
+    pickBend,
     removeBend,
     clearSelection,
     acceptGroup,

@@ -42,6 +42,7 @@
         @point="point => onPoint(point, tool)"
         @cursor="cursor = $event"
         @context="onContext"
+        @context-point="pickBend"
         @resize-dimension="resizeDimension"
         @view="viewState = $event"
       />
@@ -99,32 +100,6 @@
       @density="toggleDensity"
     />
     <p v-if="notice" class="editor-toast" role="status">{{ notice }}</p>
-
-    <EditorDialog
-      :open="askUnits"
-      title="Conferma le unità"
-      title-id="units-title"
-      @close="cancelUnits"
-    >
-      <p class="dialog-copy">
-        {{
-          unitChoice === 'inch'
-            ? 'Il file dichiara i pollici. Confermando, le quote vengono convertite in millimetri.'
-            : 'Il file non dichiara le unità. Conferma come vanno lette le coordinate.'
-        }}
-      </p>
-      <label class="technical-field"
-        >Unità del file
-        <select v-model="unitChoice">
-          <option value="mm">Millimetri</option>
-          <option value="inch">Pollici, convertiti in mm</option>
-        </select>
-      </label>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" @click="cancelUnits">Annulla</button>
-        <button type="button" class="btn btn-primary" @click="confirmUnits">Apri il pezzo</button>
-      </div>
-    </EditorDialog>
 
     <EditorDialog :open="askCurves" title="Curve non gestibili" title-id="curves-title">
       <p class="dialog-copy">
@@ -231,16 +206,12 @@ const {
   findings,
   importFindings,
   askCurves,
-  askUnits,
-  unitChoice,
   approxTol,
   part,
   banner,
   state,
   fileName,
   onFile: loadFile,
-  applyUnits,
-  cancelUnits,
   approximate,
   rejectCurves,
 } = useEditorDocument();
@@ -276,6 +247,7 @@ const {
   pickMessage,
   onPoint,
   selectBend,
+  pickBend,
   removeBend,
   clearSelection,
   acceptGroup,
@@ -315,10 +287,6 @@ function openAnalysis() {
 }
 
 function focusFinding(id) {
-  if (id === 'units') {
-    askUnits.value = true;
-    return;
-  }
   focusTarget.value = '';
   nextTick(() => {
     focusTarget.value = id;
@@ -395,12 +363,7 @@ async function onFile(event) {
   savedManualRadii.value = {};
   const staged = await loadFile(event);
   if (event?.target) event.target.value = '';
-  if (staged && !staged.needsUnits) await fitLoaded();
-}
-
-async function confirmUnits() {
-  applyUnits();
-  await fitLoaded();
+  if (staged?.part) await fitLoaded();
 }
 
 function requestExport() {
@@ -426,6 +389,7 @@ function onContext(action) {
   if (action === 'measure') setTool('measure');
   if (action === 'bend') setTool('bend');
   if (action === 'clear') clearSelection();
+  if (action === 'delete-bend') removeBend();
 }
 
 function onWindowKey(event) {

@@ -125,7 +125,7 @@
               <router-link to="/bend-deduction">Bend deduction</router-link>
               <router-link to="/cava-v-pressopiegatrice">Cava V</router-link>
               <router-link to="/ritorno-elastico">Ritorno elastico</router-link>
-              <router-link to="/modifica-sviluppo-dxf">Sviluppo DXF</router-link>
+              <router-link to="/modifica-sviluppo-dxf">Istruzioni editor</router-link>
             </nav>
             <p class="footer-text">
               © {{ currentYear }} SviluppoLamiera - Ideato e sviluppato da Loris Di Furio

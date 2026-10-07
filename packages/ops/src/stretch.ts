@@ -180,8 +180,8 @@ function policyOffset(
   if (ref === 'absolute') return 0;
   if (ref === 'minX' || ref === 'minY') return edgeOffset('min', axis, box, cuts, offsets, tol);
   if (ref === 'maxX' || ref === 'maxY') return edgeOffset('max', axis, box, cuts, offsets, tol);
-  if (ref === 'group' && feature.groupId) {
-    const members = part.features.filter(f => f.groupId === feature.groupId);
+  if (ref === 'group') {
+    const members = feature.groupId ? part.features.filter(f => f.groupId === feature.groupId) : [feature];
     const sample = members[0] ?? feature;
     const loop = part.inner.find(l => l.id === sample.loopId);
     const span = featureSpan(sample, axis, loop);

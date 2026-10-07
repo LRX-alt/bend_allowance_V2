@@ -53,7 +53,7 @@
         <router-link to="/fattore-k">Fattore K</router-link>
         <router-link to="/cava-v-pressopiegatrice">Cava V</router-link>
         <router-link to="/ritorno-elastico">Ritorno elastico</router-link>
-        <router-link to="/modifica-sviluppo-dxf">Modifica DXF</router-link>
+        <router-link to="/modifica-sviluppo-dxf">Istruzioni editor DXF</router-link>
       </div>
       <div class="reference-copy">
         <h2>Calcolo sviluppo lamiera e bend allowance</h2>

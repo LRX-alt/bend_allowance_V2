@@ -1,5 +1,5 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { quoteSpan } from '@/composables/dimensionEdit.js';
+import { flangeQuotes, quoteSpan } from '@/composables/dimensionEdit.js';
 
 const GEOMETRY = '#1c2430';
 const BEND = '#15803d';
@@ -9,6 +9,8 @@ const DIMENSION = '#0e7490';
 const PREVIEW = '#6d28d9';
 const GHOST = '#94a3b8';
 const OPEN = '#c2410c';
+const FLANGE_GAP = 14;
+const FLANGE_OVER = 6;
 
 export function useEditorViewport(canvas, scene) {
   const view = ref({ x: 40, y: 40, scale: 1 });
@@ -102,9 +104,11 @@ export function useEditorViewport(canvas, scene) {
         ctx.stroke();
       }
     }
+    const flanges = options.dims ? flangeQuotes(current) : [];
     for (const note of current.annotations || []) {
       const label = noteText(note);
       if (label) {
+        if (options.dims && isFlangeDuplicate(current, label, flanges)) continue;
         ctx.fillStyle = DIMENSION;
         drawWorldText(ctx, label.text, label.x, label.y);
         if (options.quotes) rememberQuote(ctx, current, label);
@@ -116,7 +120,10 @@ export function useEditorViewport(canvas, scene) {
       ctx.fillStyle = SELECT;
       ctx.fillRect(x - 2.5 / scale, y - 2.5 / scale, 5 / scale, 5 / scale);
     }
-    if (options.dims) drawDimensions(ctx, current);
+    if (options.dims) {
+      drawDimensions(ctx, current);
+      drawFlangeQuotes(ctx, current, flanges);
+    }
     ctx.restore();
   }
 
@@ -202,6 +209,79 @@ export function useEditorViewport(canvas, scene) {
       to: box.maxY,
     });
     ctx.restore();
+  }
+
+  /** Quote di flangia (bordo -> piega piu' esterna) in seconda fila, piu' vicine al pezzo. */
+  function drawFlangeQuotes(ctx, current, flanges) {
+    const box = current.outer?.bbox;
+    if (!box || !flanges?.length) return;
+    const scale = view.value.scale;
+    const gap = FLANGE_GAP / scale;
+    const over = FLANGE_OVER / scale;
+    const unit = current.units || 'mm';
+    ctx.save();
+    ctx.strokeStyle = DIMENSION;
+    ctx.fillStyle = DIMENSION;
+    ctx.lineWidth = 1 / scale;
+    ctx.setLineDash([]);
+    for (const quote of flanges) {
+      const length = quote.to - quote.from;
+      if (!(length > 0.01)) continue;
+      const label = `${length.toFixed(2)} ${unit}`;
+      const mid = (quote.from + quote.to) / 2;
+      if (quote.axis === 'x') {
+        const y = box.minY - gap;
+        ctx.beginPath();
+        ctx.moveTo(quote.from, box.minY);
+        ctx.lineTo(quote.from, y - over);
+        ctx.moveTo(quote.to, box.minY);
+        ctx.lineTo(quote.to, y - over);
+        ctx.moveTo(quote.from, y);
+        ctx.lineTo(quote.to, y);
+        ctx.stroke();
+        drawWorldText(ctx, label, mid, y - 3 / scale);
+        rememberDimension(ctx, label, mid, y - 3 / scale, {
+          axis: 'x',
+          from: quote.from,
+          to: quote.to,
+        });
+      } else {
+        const x = box.minX - gap;
+        ctx.beginPath();
+        ctx.moveTo(box.minX, quote.from);
+        ctx.lineTo(x - over, quote.from);
+        ctx.moveTo(box.minX, quote.to);
+        ctx.lineTo(x - over, quote.to);
+        ctx.moveTo(x, quote.from);
+        ctx.lineTo(x, quote.to);
+        ctx.stroke();
+        drawWorldText(ctx, label, x - 3 / scale, mid);
+        rememberDimension(ctx, label, x - 3 / scale, mid, {
+          axis: 'y',
+          from: quote.from,
+          to: quote.to,
+        });
+      }
+    }
+    ctx.restore();
+  }
+
+  /** Vero se un'annotazione DXF «N mm» coincide con una quota di flangia gia' disegnata. */
+  function isFlangeDuplicate(part, label, flanges) {
+    if (!flanges?.length) return false;
+    const match = label.text.match(/^(\d+(?:[.,]\d+)?)\s*mm$/i);
+    if (!match) return false;
+    const length = Number(match[1].replace(',', '.'));
+    const span = quoteSpan(part, label.x, label.y, length);
+    if (!span) return false;
+    const lo = Math.min(span.from, span.to);
+    const hi = Math.max(span.from, span.to);
+    return flanges.some(
+      quote =>
+        quote.axis === span.axis &&
+        Math.abs(quote.from - lo) < 0.08 &&
+        Math.abs(quote.to - hi) < 0.08
+    );
   }
 
   function screenOf(x, y) {

@@ -1,14 +1,24 @@
-import { curveBbox, signedArea, translate, unionBbox, type Curve, type Loop } from '@sviluppolamiera/geom2d';
+import {
+  curveBbox,
+  reverseCurve,
+  signedArea,
+  translate,
+  unionBbox,
+  type Curve,
+  type Loop,
+} from '@sviluppolamiera/geom2d';
 import { nextId } from './createPart';
 import type { Feature } from './types';
 
+/** I loop di lavorazione sono sempre interni: devono avere area con segno negativo. */
 function finish(id: string, curves: Curve[]): Loop {
+  const oriented = signedArea(curves) > 0 ? [...curves].reverse().map(reverseCurve) : curves;
   return {
     id,
-    curves,
+    curves: oriented,
     closed: true,
-    signedArea: signedArea(curves),
-    bbox: unionBbox(curves.map(curveBbox)),
+    signedArea: signedArea(oriented),
+    bbox: unionBbox(oriented.map(curveBbox)),
   };
 }
 

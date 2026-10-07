@@ -1,6 +1,6 @@
 <template>
   <section class="inspector-block">
-    <h3>Modifica quota</h3>
+    <h3>Modifica sviluppo</h3>
     <p class="section-note">
       Allunga o accorcia il pezzo lungo la larghezza o l'altezza. Non sposta i vertici uno per uno.
     </p>
@@ -25,13 +25,13 @@
     <label class="technical-field"
       >Riferimento
       <select v-model="mode" :disabled="locked">
+        <option value="symmetric">Simmetrico</option>
         <option value="leftFixed">
           {{ axis === 'x' ? 'Lato sinistro fermo' : 'Lato basso fermo' }}
         </option>
         <option value="rightFixed">
           {{ axis === 'x' ? 'Lato destro fermo' : 'Lato alto fermo' }}
         </option>
-        <option value="symmetric">Simmetrico</option>
       </select>
     </label>
     <label v-if="needsPolicy" class="technical-field"

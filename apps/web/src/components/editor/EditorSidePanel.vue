@@ -6,6 +6,26 @@
         @thickness="$emit('thickness', $event)"
         @material="$emit('material', $event)"
       />
+      <StretchInspector
+        v-if="part"
+        :axis="axis"
+        :amount="amount"
+        :sign="sign"
+        :mode="mode"
+        :policy="policy"
+        :needs-policy="needsPolicy"
+        :locked="locked"
+        :can-apply="canApply"
+        :messages="messages"
+        :compare="compare"
+        @update:axis="$emit('update:axis', $event)"
+        @update:amount="$emit('update:amount', $event)"
+        @update:sign="$emit('update:sign', $event)"
+        @update:mode="$emit('update:mode', $event)"
+        @update:policy="$emit('update:policy', $event)"
+        @preview="$emit('preview')"
+        @apply="$emit('apply')"
+      />
       <BendTable
         :part="part"
         :selected-id="selectedBend?.id || ''"
@@ -34,26 +54,6 @@
       </div>
       <div class="side-detail">
         <template v-if="tab === 'proprieta'">
-          <StretchInspector
-            v-if="tool === 'stretch'"
-            :axis="axis"
-            :amount="amount"
-            :sign="sign"
-            :mode="mode"
-            :policy="policy"
-            :needs-policy="needsPolicy"
-            :locked="locked"
-            :can-apply="canApply"
-            :messages="messages"
-            :compare="compare"
-            @update:axis="$emit('update:axis', $event)"
-            @update:amount="$emit('update:amount', $event)"
-            @update:sign="$emit('update:sign', $event)"
-            @update:mode="$emit('update:mode', $event)"
-            @update:policy="$emit('update:policy', $event)"
-            @preview="$emit('preview')"
-            @apply="$emit('apply')"
-          />
           <PropertiesInspector
             :part="part"
             :selected="selected"

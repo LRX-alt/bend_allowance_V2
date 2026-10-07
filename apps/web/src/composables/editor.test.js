@@ -46,19 +46,18 @@ describe('stato editor', () => {
     expect(editorBanner(editor.part.value)).toContain('sola lettura');
   });
 
-  it('chiede conferma per pollici e per file senza unità', () => {
+  it('legge i pollici e i file senza unità come millimetri, senza conversione', () => {
     const editor = useEditorDocument();
     editor.source.value = corpus('04-pollici.dxf');
-    expect(editor.stageSource('04-pollici.dxf').needsUnits).toBe(true);
-    expect(editor.unitChoice.value).toBe('inch');
-    const imported = editor.applyUnits();
-    expect(imported.units).toBe('mm');
-    expect(imported.provenance.assumedUnits).toBe('inch');
-    expect(imported.provenance.unitsConfirmedByUser).toBe(true);
+    const inches = editor.stageSource('04-pollici.dxf');
+    expect(inches.part.units).toBe('mm');
+    expect(inches.part.provenance.assumedUnits).toBe('mm');
+    expect(inches.part.outer.bbox.maxX - inches.part.outer.bbox.minX).toBeCloseTo(4, 3);
 
     editor.source.value = corpus('03-senza-unita-80x50.dxf');
-    expect(editor.stageSource('03-senza-unita-80x50.dxf').needsUnits).toBe(true);
-    expect(editor.unitChoice.value).toBe('mm');
+    const unknown = editor.stageSource('03-senza-unita-80x50.dxf');
+    expect(unknown.part.units).toBe('mm');
+    expect(unknown.part.outer.bbox.maxX - unknown.part.outer.bbox.minX).toBeCloseTo(80, 3);
   });
 
   it('misura solo con lo strumento dedicato', () => {
@@ -80,6 +79,9 @@ describe('stato editor', () => {
     const selection = useEditorSelection(editor.state, editor.part, editor.proposals, ref([]));
     expect(selection.onPoint({ x: 40, y: 0 }, 'bend')).toBe('added');
     expect(editor.part.value.bendLines).toHaveLength(1);
+    expect(selection.pickBend({ x: 200, y: 200 })).toBe(false);
+    expect(selection.selectedBend.value?.id).toBe(editor.part.value.bendLines[0].id);
+    expect(selection.pickBend({ x: 40, y: 0 })).toBe(true);
     expect(editor.part.value.bendLines[0].source).toBe('manual');
     expect(selection.onPoint({ x: 40, y: 0 }, 'bend')).toBe('bend');
     expect(editor.part.value.bendLines).toHaveLength(1);

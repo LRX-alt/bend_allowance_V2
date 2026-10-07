@@ -10,8 +10,6 @@ export function useEditorDocument() {
   const proposals = ref([]);
   const findings = ref([]);
   const askCurves = ref(false);
-  const askUnits = ref(false);
-  const unitChoice = ref('mm');
   const approxTol = ref(0.1);
   const importFindings = ref([]);
 
@@ -41,17 +39,9 @@ export function useEditorDocument() {
       findings.value = probe.findings;
       proposals.value = [];
       state.value = null;
-      askUnits.value = false;
-      return { needsUnits: false, part: null };
+      return { part: null };
     }
-    const declared = probe.part.provenance.declaredUnits;
-    if (declared === 'inch' || declared === 'unknown') {
-      unitChoice.value = declared === 'inch' ? 'inch' : 'mm';
-      askUnits.value = true;
-      return { needsUnits: true, part: probe.part };
-    }
-    askUnits.value = false;
-    return { needsUnits: false, part: openSource({ confirmUnits: 'mm' }) };
+    return { part: openSource({ confirmUnits: 'mm' }) };
   }
 
   async function onFile(event) {
@@ -62,24 +52,10 @@ export function useEditorDocument() {
     return stageSource(file.name);
   }
 
-  function applyUnits() {
-    askUnits.value = false;
-    return openSource({ confirmUnits: unitChoice.value === 'inch' ? 'inch' : 'mm' });
-  }
-
-  function cancelUnits() {
-    askUnits.value = false;
-    source.value = '';
-    fileName.value = '';
-    state.value = null;
-    findings.value = [];
-    importFindings.value = [];
-  }
-
   function approximate() {
     askCurves.value = false;
     return openSource({
-      confirmUnits: unitChoice.value === 'inch' ? 'inch' : 'mm',
+      confirmUnits: 'mm',
       approximateUnsupported: { tolerance: approxTol.value },
     });
   }
@@ -101,8 +77,6 @@ export function useEditorDocument() {
     proposals,
     findings,
     askCurves,
-    askUnits,
-    unitChoice,
     approxTol,
     importFindings,
     part,
@@ -110,8 +84,6 @@ export function useEditorDocument() {
     openSource,
     stageSource,
     onFile,
-    applyUnits,
-    cancelUnits,
     approximate,
     rejectCurves,
   };

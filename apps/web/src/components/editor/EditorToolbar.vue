@@ -52,6 +52,9 @@
       >
         Esporta DXF
       </button>
+      <router-link class="btn btn-ghost btn-sm" to="/modifica-sviluppo-dxf" target="_blank">
+        Istruzioni
+      </router-link>
     </div>
   </header>
 </template>

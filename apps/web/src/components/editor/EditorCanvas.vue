@@ -16,22 +16,13 @@
       @pointerup="onPointerUp"
       @pointercancel="onPointerUp"
     ></canvas>
-    <div v-if="!part" class="empty-state canvas-empty">
-      <p class="page-kicker">Editor DXF</p>
-      <h2>Importa lo sviluppo</h2>
-      <p>
-        Trascina un DXF qui oppure sceglilo dal disco. Le quote di ingombro compaiono sul disegno.
-      </p>
-      <ul>
-        <li>DXF in millimetri, oppure pollici da confermare</li>
-        <li>Linee di piega verdi se il layer contiene PIEGA, BEND o FOLD</li>
-        <li>Fori, asole e contorno chiuso</li>
-      </ul>
-      <label class="btn btn-primary">
+    <div v-if="!part" class="import-banner">
+      <label class="btn btn-primary btn-sm">
         Apri DXF
         <input type="file" accept=".dxf" @change="$emit('file', $event)" />
       </label>
-      <router-link to="/modifica-sviluppo-dxf">Come si modifica una quota</router-link>
+      <span>oppure trascina il file qui</span>
+      <router-link to="/modifica-sviluppo-dxf">Istruzioni</router-link>
     </div>
     <div v-if="part" class="canvas-legend" aria-hidden="true">
       <span><i class="swatch sheet"></i> Geometria</span>
@@ -57,6 +48,9 @@
       @blur="commitEdit"
     />
     <ul v-if="menu" class="context-menu" :style="{ left: `${menu.x}px`, top: `${menu.y}px` }">
+      <li v-if="selectedBendId">
+        <button type="button" @click="runMenu('delete-bend')">Elimina linea di piega</button>
+      </li>
       <li><button type="button" @click="runMenu('fit')">Adatta al pezzo</button></li>
       <li><button type="button" @click="runMenu('bend')">Linea di piega</button></li>
       <li><button type="button" @click="runMenu('measure')">Misura</button></li>
@@ -80,7 +74,15 @@ const props = defineProps({
   tool: { type: String, default: 'select' },
   showDimensions: { type: Boolean, default: true },
 });
-const emit = defineEmits(['file', 'point', 'cursor', 'context', 'view', 'resize-dimension']);
+const emit = defineEmits([
+  'file',
+  'point',
+  'cursor',
+  'context',
+  'context-point',
+  'view',
+  'resize-dimension',
+]);
 const canvas = ref(null);
 const menu = ref(null);
 const editing = ref(null);
@@ -144,6 +146,7 @@ function onDrop(event) {
 }
 function onContext(event) {
   if (!props.part) return;
+  emit('context-point', viewport.worldFromEvent(event));
   const rect = event.currentTarget.getBoundingClientRect();
   menu.value = { x: event.clientX - rect.left, y: event.clientY - rect.top };
 }
