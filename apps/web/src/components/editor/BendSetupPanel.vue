@@ -1,8 +1,19 @@
 <template>
   <section v-if="part" class="bend-setup" aria-label="Setup piega">
     <h3>Setup piega</h3>
+    <label class="technical-field catalog-field" for="setup-punch-type"
+      >Punzone
+      <select id="setup-punch-type" :value="punchPick" @change="onPunchPick">
+        <option value="custom">Personalizzato</option>
+        <optgroup v-for="group in punchGroups" :key="group.nome" :label="group.nome">
+          <option v-for="item in group.items" :key="item.id" :value="item.id">
+            {{ item.label }}
+          </option>
+        </optgroup>
+      </select>
+    </label>
     <label class="technical-field" for="setup-punch"
-      >Punzone mm
+      >Raggio punta mm
       <input
         id="setup-punch"
         type="number"
@@ -18,8 +29,19 @@
         <option v-for="item in processi" :key="item.id" :value="item.id">{{ item.label }}</option>
       </select>
     </label>
+    <label class="technical-field catalog-field" for="setup-die-type"
+      >Matrice
+      <select id="setup-die-type" :value="diePick" @change="onDiePick">
+        <option value="custom">Personalizzata</option>
+        <optgroup v-for="group in dieGroups" :key="group.nome" :label="group.nome">
+          <option v-for="item in group.items" :key="item.id" :value="item.id">
+            {{ item.label }}
+          </option>
+        </optgroup>
+      </select>
+    </label>
     <label class="technical-field" for="setup-v"
-      >Cava V usata mm
+      >Apertura V mm
       <input id="setup-v" type="number" min="0" step="0.5" :value="vText" @change="onOpening" />
     </label>
     <p class="section-note">Cava consigliata {{ consigliataText }}</p>
@@ -67,7 +89,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { calcolaAperturaMatrice, risolviRaggioInterno } from '@sviluppolamiera/bend-core';
 import {
   ASSUNZIONE,
@@ -78,6 +100,7 @@ import {
   stimaEmpirica,
   testoStimaEmpirica,
 } from '@/calculator/toolSetup.js';
+import { MATRICI, PUNZONI, gruppiDi } from '@/calculator/toolCatalog.js';
 
 const props = defineProps({
   part: { type: Object, default: null },
@@ -86,6 +109,10 @@ const emit = defineEmits(['setup']);
 
 const processi = PROCESSI;
 const origini = ORIGINI;
+const punchGroups = gruppiDi(PUNZONI);
+const dieGroups = gruppiDi(MATRICI);
+const punchPick = ref('custom');
+const diePick = ref('custom');
 const assunzione = ASSUNZIONE;
 const stimaTitolo = STIMA_TITOLO;
 
@@ -118,7 +145,8 @@ const consigliataText = computed(() => {
 });
 const resolved = computed(() =>
   risolviRaggioInterno({
-    source: source.value === 'manual' && !props.part?.bendSetup?.radiusPolicy ? undefined : source.value,
+    source:
+      source.value === 'manual' && !props.part?.bendSetup?.radiusPolicy ? undefined : source.value,
     measuredInside: props.part?.bendSetup?.radiusPolicy?.measuredInside,
     targetInside: props.part?.bendSetup?.radiusPolicy?.targetInside,
     punchRadius: props.part?.bendSetup?.punch?.radius,
@@ -148,8 +176,43 @@ function numberOrNull(value) {
   return Number.isFinite(number) ? number : null;
 }
 
+watch(
+  () => props.part?.bendSetup?.punch?.radius,
+  radius => {
+    const current = PUNZONI.find(item => item.id === punchPick.value);
+    if (current && current.radius === radius) return;
+    punchPick.value = PUNZONI.find(item => item.radius === radius)?.id || 'custom';
+  },
+  { immediate: true }
+);
+watch(
+  () => props.part?.bendSetup?.vOpening,
+  opening => {
+    const current = MATRICI.find(item => item.id === diePick.value);
+    if (current && current.opening === opening) return;
+    diePick.value = MATRICI.find(item => item.opening === opening)?.id || 'custom';
+  },
+  { immediate: true }
+);
+
+function onPunchPick(event) {
+  punchPick.value = event.target.value;
+  const item = PUNZONI.find(entry => entry.id === punchPick.value);
+  if (!item) return;
+  emit('setup', { punch: { radius: item.radius } });
+}
+
+function onDiePick(event) {
+  diePick.value = event.target.value;
+  const item = MATRICI.find(entry => entry.id === diePick.value);
+  if (!item) return;
+  emit('setup', { vOpening: item.opening });
+}
+
 function onPunch(event) {
   const radius = numberOrNull(event.target.value);
+  const current = PUNZONI.find(item => item.id === punchPick.value);
+  if (!current || current.radius !== radius) punchPick.value = 'custom';
   emit('setup', { punch: radius == null ? null : { radius } });
 }
 

@@ -1,4 +1,10 @@
-import { DxfWriter, LWPolylineFlags, Units } from '@tarikjabiri/dxf';
+import {
+  DxfWriter,
+  LWPolylineFlags,
+  TextHorizontalAlignment,
+  TextVerticalAlignment,
+  Units,
+} from '@tarikjabiri/dxf';
 import type { Curve, Loop } from '@sviluppolamiera/geom2d';
 import { arcSweep, curveEnd, curveStart } from '@sviluppolamiera/geom2d';
 import { finding, validatePart, type Finding, type Part } from '@sviluppolamiera/part-model';
@@ -91,6 +97,64 @@ export function exportOutlineDxf(points: Array<{ x: number; y: number }>): strin
       rounded.map(point => ({ point, bulge: 0 })),
       { flags: LWPolylineFlags.Closed }
     );
+  }
+  return writer.stringify();
+}
+
+export interface FlatBendLine {
+  a: { x: number; y: number };
+  b: { x: number; y: number };
+  layer: string;
+  label: string;
+}
+
+export interface FlatQuote {
+  x: number;
+  y: number;
+  text: string;
+}
+
+/** Sviluppo piatto: contorno, linee di piega e quote, in millimetri. */
+export function exportFlatDxf(pattern: {
+  contorno: Array<{ x: number; y: number }>;
+  pieghe: FlatBendLine[];
+  quote: FlatQuote[];
+}): string {
+  const writer = new DxfWriter();
+  writer.setUnits(Units.Millimeters);
+  writer.addLayer('SL_TAGLIO', 7, 'CONTINUOUS');
+  writer.addLayer('SL_QUOTE', 3, 'CONTINUOUS');
+  for (const name of new Set(pattern.pieghe.map(bend => bend.layer))) {
+    writer.addLayer(name, 1, 'CONTINUOUS');
+  }
+  const outline = pattern.contorno
+    .map(point => ({ x: roundMm(point.x), y: roundMm(point.y) }))
+    .filter((point, index, all) => {
+      const prev = all[index - 1];
+      return !prev || Math.hypot(point.x - prev.x, point.y - prev.y) > 1e-6;
+    });
+  if (outline.length >= 3) {
+    writer.setCurrentLayerName('SL_TAGLIO');
+    writer.addLWPolyline(
+      outline.map(point => ({ point, bulge: 0 })),
+      { flags: LWPolylineFlags.Closed }
+    );
+  }
+  for (const bend of pattern.pieghe) {
+    writer.setCurrentLayerName(bend.layer);
+    writer.addLine(
+      { x: roundMm(bend.a.x), y: roundMm(bend.a.y), z: 0 },
+      { x: roundMm(bend.b.x), y: roundMm(bend.b.y), z: 0 }
+    );
+  }
+  writer.setCurrentLayerName('SL_QUOTE');
+  for (const quote of pattern.quote) {
+    const point = { x: roundMm(quote.x), y: roundMm(quote.y), z: 0 };
+    writer.addText(point, 3.5, quote.text, {
+      horizontalAlignment: TextHorizontalAlignment.Center,
+      verticalAlignment: TextVerticalAlignment.Middle,
+      secondAlignmentPoint: point,
+    });
   }
   return writer.stringify();
 }

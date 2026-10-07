@@ -134,6 +134,21 @@
 .canvas-stage.tool-select canvas {
   cursor: default;
 }
+
+.dimension-editor {
+  position: absolute;
+  z-index: 4;
+  width: 92px;
+  transform: translate(-50%, -50%);
+  padding: 2px 6px;
+  border: 1px solid var(--tech-dimension, #0e7490);
+  border-radius: var(--radius-sm);
+  background: white;
+  color: var(--ink);
+  font-family: var(--font-family-mono);
+  font-size: 13px;
+  text-align: center;
+}
 .canvas-stage.tool-pan canvas {
   cursor: grab;
 }
@@ -220,6 +235,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
   background: white;
   border-left: 1px solid var(--line);
 }
@@ -238,8 +254,26 @@
   border-bottom: 1px solid var(--line);
 }
 
+.sheet-fields,
+.bend-setup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 10px;
+}
+
+.sheet-fields {
+  margin-top: 10px;
+}
+
+.bend-setup h3,
+.bend-setup .section-note,
+.bend-setup .estimate-note,
+.bend-setup .catalog-field {
+  grid-column: 1 / -1;
+}
+
 .bend-setup h3 {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -294,7 +328,6 @@
 }
 
 .bend-table-wrap {
-  max-height: 210px;
   margin: 0;
   border-radius: var(--radius-sm);
 }
@@ -376,6 +409,7 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .inspector-block {

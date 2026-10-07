@@ -1,2 +1,10 @@
 export { importDxf, type ImportDecisions, type ImportResult, type LayerRole } from './importDxf';
-export { exportDxf, exportGate, exportOutlineDxf, type ExportGate } from './exportDxf';
+export {
+  exportDxf,
+  exportFlatDxf,
+  exportGate,
+  exportOutlineDxf,
+  type ExportGate,
+  type FlatBendLine,
+  type FlatQuote,
+} from './exportDxf';

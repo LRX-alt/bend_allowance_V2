@@ -4,10 +4,10 @@
 // Funzioni pure: ricevono i dati e producono/salvano il file, senza dipendere
 // dallo stato Vue.
 
-import { exportOutlineDxf } from '@sviluppolamiera/dxf';
+import { exportFlatDxf } from '@sviluppolamiera/dxf';
 import jsPDF from 'jspdf';
 import { saveAs } from 'file-saver';
-import { contornoProfilo } from '@/calculator/profileGeometry.js';
+import { sviluppoPiatto } from '@/calculator/flatPattern.js';
 
 const DEG2RAD = Math.PI / 180;
 
@@ -125,13 +125,21 @@ function num(v) {
 }
 
 /**
- * DXF del profilo piegato: contorno chiuso della lamiera, in millimetri.
+ * DXF dello sviluppo piatto: contorno, linee di piega e quote, in millimetri.
  * @param {object} data
  * @returns {string}
  */
 export function contenutoDXF(data) {
-  const { segments = [], spessore = 0, raggioPiega = 0 } = data;
-  return exportOutlineDxf(contornoProfilo(segments, raggioPiega, spessore));
+  const { segments = [], spessore = 0, raggioPiega = 0, fattoreK = 0.33, larghezza = 100 } = data;
+  return exportFlatDxf(
+    sviluppoPiatto({
+      segments,
+      spessore,
+      raggio: raggioPiega,
+      fattoreK,
+      larghezza,
+    })
+  );
 }
 
 /**

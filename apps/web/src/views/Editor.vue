@@ -42,6 +42,7 @@
         @point="point => onPoint(point, tool)"
         @cursor="cursor = $event"
         @context="onContext"
+        @resize-dimension="resizeDimension"
         @view="viewState = $event"
       />
       <EditorSidePanel
@@ -167,6 +168,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useHead } from '@unhead/vue';
 import { exportDecision } from '@sviluppolamiera/analyze';
 import { commit, serialize } from '@sviluppolamiera/part-model';
+import { applyDimensionEdit } from '@/composables/dimensionEdit.js';
 import { applyBendSetup } from '@/composables/radiusPolicy.js';
 import EditorCanvas from '@/components/editor/EditorCanvas.vue';
 import EditorDialog from '@/components/editor/EditorDialog.vue';
@@ -355,6 +357,17 @@ function updateBend(patch) {
     bend.id === selectedBend.value.id ? { ...bend, ...patch } : bend
   );
   state.value = commit(state.value, { ...part.value, bendLines }, 'Linea di piega');
+}
+
+function resizeDimension(span) {
+  if (!part.value || locked.value) return;
+  const result = applyDimensionEdit(part.value, span);
+  if (result.ok && result.part && result.part !== part.value) {
+    state.value = commit(state.value, result.part, 'Modifica quota');
+    return;
+  }
+  const message = result.blocking?.[0]?.message;
+  if (message) notify(message);
 }
 
 function onBendSetup(patch) {

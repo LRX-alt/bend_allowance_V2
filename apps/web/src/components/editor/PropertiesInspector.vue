@@ -109,29 +109,6 @@
       <p v-else class="section-note">Questa lavorazione si seleziona, non si ridimensiona.</p>
     </template>
     <template v-else>
-      <label class="technical-field" for="sheet-thickness"
-        >Spessore mm
-        <input
-          id="sheet-thickness"
-          type="number"
-          min="0.1"
-          step="0.1"
-          :value="part.thickness ?? ''"
-          placeholder="Es. 2"
-          @change="$emit('thickness', $event.target.value)"
-        />
-      </label>
-      <label class="technical-field" for="sheet-material"
-        >Materiale
-        <select
-          id="sheet-material"
-          :value="part.material?.dbId || ''"
-          @change="$emit('material', $event.target.value)"
-        >
-          <option value="">Non indicato</option>
-          <option v-for="item in materials" :key="item.id" :value="item.id">{{ item.name }}</option>
-        </select>
-      </label>
       <dl>
         <div class="property-row">
           <dt>Larghezza</dt>
@@ -169,7 +146,6 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { materialsDatabase } from '@sviluppolamiera/bend-core';
 import { bendCalculation, bendLength, partBox } from '@/composables/partSummary.js';
 
 const props = defineProps({
@@ -192,7 +168,6 @@ const emit = defineEmits([
   'remove-bend',
 ]);
 
-const materials = materialsDatabase;
 const draftDiameter = ref(props.draftDiameter);
 watch(draftDiameter, value => emit('update:draftDiameter', value));
 watch(

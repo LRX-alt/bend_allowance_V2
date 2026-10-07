@@ -41,6 +41,21 @@
       <span><i class="swatch dimension"></i> Quote</span>
       <span><i class="swatch preview"></i> Anteprima</span>
     </div>
+    <input
+      v-if="editing"
+      ref="editInput"
+      class="dimension-editor"
+      type="number"
+      min="0.01"
+      step="0.01"
+      :style="{ left: `${editing.x + editing.w / 2}px`, top: `${editing.y + editing.h / 2}px` }"
+      :value="editing.draft"
+      aria-label="Nuova quota in millimetri"
+      @input="editing.draft = $event.target.value"
+      @keydown.enter.prevent="commitEdit"
+      @keydown.esc.prevent="editing = null"
+      @blur="commitEdit"
+    />
     <ul v-if="menu" class="context-menu" :style="{ left: `${menu.x}px`, top: `${menu.y}px` }">
       <li><button type="button" @click="runMenu('fit')">Adatta al pezzo</button></li>
       <li><button type="button" @click="runMenu('bend')">Linea di piega</button></li>
@@ -51,7 +66,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 import { useEditorViewport } from '@/composables/useEditorViewport.js';
 
 const props = defineProps({
@@ -65,9 +80,11 @@ const props = defineProps({
   tool: { type: String, default: 'select' },
   showDimensions: { type: Boolean, default: true },
 });
-const emit = defineEmits(['file', 'point', 'cursor', 'context', 'view']);
+const emit = defineEmits(['file', 'point', 'cursor', 'context', 'view', 'resize-dimension']);
 const canvas = ref(null);
 const menu = ref(null);
+const editing = ref(null);
+const editInput = ref(null);
 const viewport = useEditorViewport(canvas, () => ({
   part: props.part,
   ghost: props.ghost,
@@ -92,9 +109,33 @@ function onDown(event) {
 }
 function onMove(event) {
   viewport.onMove(event);
+  const hit = props.tool === 'select' ? viewport.dimensionAt(event) : null;
+  if (canvas.value) canvas.value.style.cursor = hit ? 'pointer' : '';
 }
 function onPointerUp(event) {
-  viewport.onUp(event, point => emit('point', point));
+  viewport.onUp(event, point => {
+    const hit = props.tool === 'select' ? viewport.dimensionAt(event) : null;
+    if (hit) {
+      editing.value = {
+        ...hit,
+        draft: String(Math.round(hit.current * 100) / 100),
+      };
+      nextTick(() => {
+        editInput.value?.focus();
+        editInput.value?.select();
+      });
+      return;
+    }
+    emit('point', point);
+  });
+}
+function commitEdit() {
+  const hit = editing.value;
+  if (!hit) return;
+  editing.value = null;
+  const next = Number(String(hit.draft).replace(',', '.'));
+  if (!Number.isFinite(next) || next <= 0 || Math.abs(next - hit.current) < 0.001) return;
+  emit('resize-dimension', { axis: hit.axis, from: hit.from, to: hit.to, next });
 }
 function onDrop(event) {
   const file = event.dataTransfer?.files?.[0];

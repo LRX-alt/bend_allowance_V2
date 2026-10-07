@@ -8,7 +8,14 @@
       </div>
       <div class="export-actions">
         <button type="button" class="btn btn-primary" @click="exportPdf">Esporta PDF</button>
-        <button type="button" class="btn btn-ghost" @click="exportDxf">Esporta DXF</button>
+        <button
+          type="button"
+          class="btn btn-ghost"
+          title="Sviluppo piatto con linee di piega e quote"
+          @click="exportDxf"
+        >
+          Esporta DXF
+        </button>
         <button type="button" class="btn btn-ghost" @click="share">Condividi</button>
       </div>
     </header>
@@ -45,6 +52,14 @@
               type="number"
               min="0.1"
               step="0.1"
+          /></label>
+          <label for="larghezza" title="Lato del pezzo lungo la linea di piega"
+            >Larghezza mm<input
+              id="larghezza"
+              v-model.number="larghezza"
+              type="number"
+              min="1"
+              step="1"
           /></label>
           <label for="materiale">
             Materiale
@@ -414,6 +429,7 @@ const stimaTesto = computed(() =>
 );
 const mode = ref('esterne');
 const spessore = ref(2);
+const larghezza = ref(100);
 const raggio = ref(1);
 const fattoreK = ref(0.33);
 const materialId = ref('steel_mild');
@@ -549,6 +565,7 @@ function currentProject(nome) {
     angolo: angolo.value,
     latoA: latoA.value,
     latoB: latoB.value,
+    larghezza: larghezza.value,
     processo: processo.value,
     cavaScelta: cavaScelta.value,
     cavaCustom: cavaCustom.value,
@@ -591,6 +608,7 @@ function saveProject() {
 
 function loadProject(project) {
   spessore.value = project.spessore ?? 2;
+  larghezza.value = Number(project.larghezza) > 0 ? Number(project.larghezza) : 100;
   raggio.value = project.raggioPiega ?? 1;
   fattoreK.value = project.fattoreK ?? 0.33;
   materialId.value = project.materialeSelezionato || 'steel_mild';
@@ -637,6 +655,7 @@ function payload() {
   return {
     v: 3,
     t: spessore.value,
+    w: larghezza.value,
     mat: materialId.value,
     r: raggio.value,
     k: fattoreK.value,
@@ -720,6 +739,7 @@ async function exportDxf() {
     spessore: spessore.value,
     raggioPiega: raggioSviluppo.value,
     fattoreK: fattoreK.value,
+    larghezza: larghezza.value,
     materiale: resolveMaterial(materialId.value).name,
     sviluppoTotale: resultNumber.value,
     segments:
@@ -744,6 +764,7 @@ onMounted(() => {
       const raw = JSON.parse(atob(encoded));
       if (shared) {
         spessore.value = shared.spessore;
+        if (Number(shared.larghezza) > 0) larghezza.value = shared.larghezza;
         raggio.value = shared.raggioPiega;
         fattoreK.value = shared.fattoreK;
         if (shared.materialId) materialId.value = shared.materialId;

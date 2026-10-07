@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { calcolaPiega, calcolaRaggioEffettivo } from '@sviluppolamiera/bend-core';
 import { importDxf } from '@sviluppolamiera/dxf';
+import { sviluppoPiatto } from './flatPattern.js';
 import { contenutoDXF } from '@/utils/exporters.js';
 import { computeExternal, computeProfile } from './compute.js';
 import { buildProfileGeometry, lunghezzeArco } from './profileGeometry.js';
@@ -267,23 +268,59 @@ describe('raggio di sviluppo', () => {
   });
 });
 
-describe('dxf del profilo', () => {
-  it('chiude la lamiera in millimetri e l editor la legge', () => {
+describe('sviluppo piatto', () => {
+  const segments = [
+    { length: 50, angle: 0 },
+    { length: 30, angle: 90 },
+    { length: 40, angle: 45, tipoPiega: 'su' },
+  ];
+
+  it('mette le linee di piega al centro della zona e quota gli intervalli', () => {
+    const flat = sviluppoPiatto({
+      segments,
+      spessore: 2,
+      raggio: 1,
+      fattoreK: 0.33,
+      larghezza: 80,
+    });
+    const sb90 = 3 * Math.tan(Math.PI / 4);
+    const ba90 = (Math.PI / 2) * (1 + 0.33 * 2);
+    const sb45 = 3 * Math.tan((45 * Math.PI) / 180 / 2);
+    const ba45 = (Math.PI / 4) * (1 + 0.33 * 2);
+    const first = 50 - sb90 + ba90 / 2;
+    const second = first + ba90 / 2 + (30 - sb90 - sb45) + ba45 / 2;
+    expect(flat.lunghezza).toBeCloseTo(115.4260015, 4);
+    expect(flat.pieghe.map(bend => bend.a.x)).toEqual([
+      expect.closeTo(first, 4),
+      expect.closeTo(second, 4),
+    ]);
+    expect(flat.pieghe[0].layer).toBe('PIEGA_90_SU');
+    expect(flat.pieghe[1].layer).toBe('PIEGA_45_SU');
+    expect(flat.pieghe[0].b.y - flat.pieghe[0].a.y).toBe(80);
+    const gaps = flat.quote.filter(item => item.text.endsWith('mm'));
+    const sum = gaps.reduce((total, item) => total + Number(item.text.replace(' mm', '')), 0);
+    expect(sum).toBeCloseTo(flat.lunghezza, 1);
+  });
+
+  it('il dxf piatto ha contorno chiuso, pieghe e quote in millimetri', () => {
     const dxf = contenutoDXF({
-      segments: [
-        { length: 250, angle: 0 },
-        { length: 150, angle: 90 },
-        { length: 250, angle: 90 },
-      ],
+      segments,
       spessore: 2,
       raggioPiega: 1,
+      fattoreK: 0.33,
+      larghezza: 80,
     });
-    expect(dxf).toContain('$ACADVER');
     expect(dxf).toContain('$INSUNITS');
+    expect(dxf).toContain('PIEGA_90_SU');
     const imported = importDxf(dxf);
     expect(imported.part?.provenance.declaredUnits).toBe('mm');
     expect(imported.part?.outer.closed).toBe(true);
-    expect(imported.part?.outer.curves.length).toBeGreaterThan(2);
+    expect(imported.part?.outer.bbox.maxX - imported.part?.outer.bbox.minX).toBeCloseTo(115.426, 2);
+    expect(imported.part?.outer.bbox.maxY - imported.part?.outer.bbox.minY).toBeCloseTo(80, 2);
+    expect(imported.part?.bendLines.map(bend => bend.angleDeg)).toEqual([90, 45]);
+    expect(imported.part?.bendLines.map(bend => bend.direction)).toEqual(['up', 'up']);
+    const labels = imported.part?.annotations.map(note => note.raw?.text).filter(Boolean);
+    expect(labels).toEqual(expect.arrayContaining(['90° su', '45° su']));
     expect(
       imported.findings.some(item => item.code === 'TOP-001' && item.severity === 'error')
     ).toBe(false);

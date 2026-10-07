@@ -1,4 +1,5 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { quoteSpan } from '@/composables/dimensionEdit.js';
 
 const GEOMETRY = '#1c2430';
 const BEND = '#15803d';
@@ -15,6 +16,7 @@ export function useEditorViewport(canvas, scene) {
   const dragging = ref(null);
   const moved = ref(false);
   let observer;
+  let dimensionHits = [];
 
   function paint() {
     const surface = canvas.value;
@@ -29,6 +31,7 @@ export function useEditorViewport(canvas, scene) {
     surface.height = height * devicePixelRatio;
     ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
     ctx.clearRect(0, 0, width, height);
+    dimensionHits = [];
     ctx.save();
     ctx.translate(view.value.x, view.value.y);
     ctx.scale(view.value.scale, -view.value.scale);
@@ -40,7 +43,8 @@ export function useEditorViewport(canvas, scene) {
         color: current.previewPart ? PREVIEW : GEOMETRY,
         dashed: Boolean(current.previewPart),
         bends: true,
-        dims: current.showDimensions !== false,
+        dims: current.showDimensions !== false && !current.previewPart,
+        quotes: !current.previewPart,
         selectedBendId: current.selectedBendId,
         selectedLoopId: current.selectedLoopId,
       });
@@ -99,6 +103,13 @@ export function useEditorViewport(canvas, scene) {
       }
     }
     for (const note of current.annotations || []) {
+      const label = noteText(note);
+      if (label) {
+        ctx.fillStyle = DIMENSION;
+        drawWorldText(ctx, label.text, label.x, label.y);
+        if (options.quotes) rememberQuote(ctx, current, label);
+        continue;
+      }
       if (!note.bbox) continue;
       const x = (note.bbox.minX + note.bbox.maxX) / 2;
       const y = (note.bbox.minY + note.bbox.maxY) / 2;
@@ -118,6 +129,14 @@ export function useEditorViewport(canvas, scene) {
     ctx.beginPath();
     ctx.moveTo(bend.a.x, bend.a.y);
     ctx.lineTo(bend.b.x, bend.b.y);
+  }
+
+  function noteText(note) {
+    const raw = note?.raw || {};
+    const text = typeof raw.text === 'string' ? raw.text.trim() : '';
+    const point = raw.endPoint?.x != null ? raw.endPoint : raw.startPoint;
+    if (!text || point?.x == null || point?.y == null) return null;
+    return { text, x: point.x, y: point.y };
   }
 
   function bendDash(direction, scale) {
@@ -159,7 +178,13 @@ export function useEditorViewport(canvas, scene) {
     ctx.moveTo(box.minX, y);
     ctx.lineTo(box.maxX, y);
     ctx.stroke();
-    drawWorldText(ctx, `${width.toFixed(2)} ${unit}`, (box.minX + box.maxX) / 2, y - 3 / scale);
+    const widthLabel = `${width.toFixed(2)} ${unit}`;
+    drawWorldText(ctx, widthLabel, (box.minX + box.maxX) / 2, y - 3 / scale);
+    rememberDimension(ctx, widthLabel, (box.minX + box.maxX) / 2, y - 3 / scale, {
+      axis: 'x',
+      from: box.minX,
+      to: box.maxX,
+    });
     const x = box.minX - gap;
     ctx.beginPath();
     ctx.moveTo(box.minX, box.minY);
@@ -169,8 +194,59 @@ export function useEditorViewport(canvas, scene) {
     ctx.moveTo(x, box.minY);
     ctx.lineTo(x, box.maxY);
     ctx.stroke();
-    drawWorldText(ctx, `${height.toFixed(2)} ${unit}`, x - 3 / scale, (box.minY + box.maxY) / 2);
+    const heightLabel = `${height.toFixed(2)} ${unit}`;
+    drawWorldText(ctx, heightLabel, x - 3 / scale, (box.minY + box.maxY) / 2);
+    rememberDimension(ctx, heightLabel, x - 3 / scale, (box.minY + box.maxY) / 2, {
+      axis: 'y',
+      from: box.minY,
+      to: box.maxY,
+    });
     ctx.restore();
+  }
+
+  function screenOf(x, y) {
+    return {
+      x: view.value.x + x * view.value.scale,
+      y: view.value.y - y * view.value.scale,
+    };
+  }
+
+  function rememberDimension(ctx, text, worldX, worldY, span) {
+    ctx.font = '12px IBM Plex Mono, ui-monospace, sans-serif';
+    const pad = 8;
+    const w = ctx.measureText(text).width + pad;
+    const h = 18;
+    const screen = screenOf(worldX, worldY);
+    dimensionHits.push({
+      ...span,
+      current: Math.abs(span.to - span.from),
+      x: screen.x - w / 2,
+      y: screen.y - h / 2,
+      w,
+      h,
+    });
+  }
+
+  function rememberQuote(ctx, part, label) {
+    const match = label.text.match(/^(\d+(?:[.,]\d+)?)\s*mm$/i);
+    if (!match || !part) return;
+    const length = Number(match[1].replace(',', '.'));
+    const span = quoteSpan(part, label.x, label.y, length);
+    if (!span) return;
+    rememberDimension(ctx, label.text, label.x, label.y, span);
+  }
+
+  function dimensionAt(event) {
+    const surface = canvas.value;
+    if (!surface) return null;
+    const rect = surface.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    return (
+      dimensionHits.find(
+        hit => x >= hit.x && x <= hit.x + hit.w && y >= hit.y && y <= hit.y + hit.h
+      ) || null
+    );
   }
 
   function drawWorldText(ctx, text, x, y) {
@@ -334,5 +410,17 @@ export function useEditorViewport(canvas, scene) {
 
   onBeforeUnmount(() => observer?.disconnect());
 
-  return { view, fitScale, paint, fit, onWheel, onDown, onMove, onUp, zoomBy, worldFromEvent };
+  return {
+    view,
+    fitScale,
+    paint,
+    fit,
+    onWheel,
+    onDown,
+    onMove,
+    onUp,
+    zoomBy,
+    worldFromEvent,
+    dimensionAt,
+  };
 }

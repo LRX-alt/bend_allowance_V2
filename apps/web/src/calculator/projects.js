@@ -46,6 +46,7 @@ export function decodeShare(encoded) {
     latoA: data.la,
     latoB: data.lb,
     angolo: data.an,
+    larghezza: Number(data.w) > 0 ? Number(data.w) : 100,
   };
   if (data.v !== 3) {
     return {

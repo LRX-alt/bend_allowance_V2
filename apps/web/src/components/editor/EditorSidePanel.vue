@@ -1,73 +1,79 @@
 <template>
   <aside class="editor-side">
-    <PartSummaryPanel :part="part" />
-    <BendSetupPanel :part="part" @setup="$emit('setup', $event)" />
-    <BendTable
-      :part="part"
-      :selected-id="selectedBend?.id || ''"
-      @select="$emit('select-bend', $event)"
-      @remove="$emit('remove-bend', $event)"
-    />
-    <div class="side-tabs" role="tablist" aria-label="Dettaglio pezzo">
-      <button
-        type="button"
-        role="tab"
-        :aria-selected="tab === 'proprieta'"
-        @click="tab = 'proprieta'"
-      >
-        Proprietà
-      </button>
-      <button
-        type="button"
-        role="tab"
-        :aria-selected="tab === 'diagnostica'"
-        @click="tab = 'diagnostica'"
-      >
-        Diagnostica
-        <span v-if="issueCount" class="tab-count tech-num">{{ issueCount }}</span>
-      </button>
-    </div>
     <div class="side-scroll">
-      <template v-if="tab === 'proprieta'">
-        <StretchInspector
-          v-if="tool === 'stretch'"
-          :axis="axis"
-          :amount="amount"
-          :sign="sign"
-          :mode="mode"
-          :policy="policy"
-          :needs-policy="needsPolicy"
-          :locked="locked"
-          :can-apply="canApply"
-          :messages="messages"
-          :compare="compare"
-          @update:axis="$emit('update:axis', $event)"
-          @update:amount="$emit('update:amount', $event)"
-          @update:sign="$emit('update:sign', $event)"
-          @update:mode="$emit('update:mode', $event)"
-          @update:policy="$emit('update:policy', $event)"
-          @preview="$emit('preview')"
-          @apply="$emit('apply')"
-        />
-        <PropertiesInspector
-          :part="part"
-          :selected="selected"
-          :selected-bend="selectedBend"
-          :pick-message="pickMessage"
-          :draft-diameter="draftDiameter"
-          :proposals="proposals"
-          @update:draft-diameter="$emit('update:draftDiameter', $event)"
-          @thickness="$emit('thickness', $event)"
-          @material="$emit('material', $event)"
-          @bend-angle="$emit('bend-angle', $event)"
-          @bend-direction="$emit('bend-direction', $event)"
-          @bend-radius="$emit('bend-radius', $event)"
-          @diameter="$emit('diameter')"
-          @group="$emit('group', $event)"
-          @remove-bend="$emit('remove-bend', selectedBend?.id)"
-        />
-      </template>
-      <FindingList v-else :items="findings" @focus="$emit('focus-finding', $event)" />
+      <PartSummaryPanel
+        :part="part"
+        @thickness="$emit('thickness', $event)"
+        @material="$emit('material', $event)"
+      />
+      <BendTable
+        :part="part"
+        :selected-id="selectedBend?.id || ''"
+        @select="$emit('select-bend', $event)"
+        @remove="$emit('remove-bend', $event)"
+      />
+      <BendSetupPanel :part="part" @setup="$emit('setup', $event)" />
+      <div class="side-tabs" role="tablist" aria-label="Dettaglio pezzo">
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="tab === 'proprieta'"
+          @click="tab = 'proprieta'"
+        >
+          Proprietà
+        </button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="tab === 'diagnostica'"
+          @click="tab = 'diagnostica'"
+        >
+          Diagnostica
+          <span v-if="issueCount" class="tab-count tech-num">{{ issueCount }}</span>
+        </button>
+      </div>
+      <div class="side-detail">
+        <template v-if="tab === 'proprieta'">
+          <StretchInspector
+            v-if="tool === 'stretch'"
+            :axis="axis"
+            :amount="amount"
+            :sign="sign"
+            :mode="mode"
+            :policy="policy"
+            :needs-policy="needsPolicy"
+            :locked="locked"
+            :can-apply="canApply"
+            :messages="messages"
+            :compare="compare"
+            @update:axis="$emit('update:axis', $event)"
+            @update:amount="$emit('update:amount', $event)"
+            @update:sign="$emit('update:sign', $event)"
+            @update:mode="$emit('update:mode', $event)"
+            @update:policy="$emit('update:policy', $event)"
+            @preview="$emit('preview')"
+            @apply="$emit('apply')"
+          />
+          <PropertiesInspector
+            :part="part"
+            :selected="selected"
+            :selected-bend="selectedBend"
+            :pick-message="pickMessage"
+            :draft-diameter="draftDiameter"
+            :proposals="proposals"
+            @update:draft-diameter="$emit('update:draftDiameter', $event)"
+            @thickness="$emit('thickness', $event)"
+            @material="$emit('material', $event)"
+            @bend-angle="$emit('bend-angle', $event)"
+            @bend-direction="$emit('bend-direction', $event)"
+            @bend-radius="$emit('bend-radius', $event)"
+            @diameter="$emit('diameter')"
+            @group="$emit('group', $event)"
+            @remove-bend="$emit('remove-bend', selectedBend?.id)"
+          />
+        </template>
+        <FindingList v-else :items="findings" @focus="$emit('focus-finding', $event)" />
+      </div>
     </div>
   </aside>
 </template>
@@ -144,7 +150,9 @@ watch(
     tab.value = 'proprieta';
     await nextTick();
     const id = value === 'material' ? 'sheet-material' : 'sheet-thickness';
-    document.getElementById(id)?.focus();
+    const field = document.getElementById(id);
+    field?.scrollIntoView({ block: 'nearest' });
+    field?.focus();
   }
 );
 watch(
